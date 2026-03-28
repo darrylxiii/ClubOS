@@ -66,6 +66,7 @@ export const CandidateHeroSection = ({
   applicationId,
 }: Props) => {
   const navigate = useNavigate();
+  const { t } = useTranslation('candidates');
   const { recharts, isLoading: chartsLoading } = useRecharts();
   const [enrichModal, setEnrichModal] = useState<{ open: boolean; mode: 'linkedin' | 'deep-enrich' }>({
     open: false,
@@ -90,7 +91,6 @@ export const CandidateHeroSection = ({
     .toUpperCase();
 
   const getConfidenceIndicator = (confidence: number) => {
-  const { t } = useTranslation('candidates');
     if (confidence >= 0.5) return { dotColor: 'bg-green-500', opacity: '', border: '' };
     if (confidence >= 0.2) return { dotColor: 'bg-amber-500', opacity: 'opacity-70', border: 'border-dashed' };
     return { dotColor: 'bg-red-500', opacity: 'opacity-40', border: 'border-dashed' };
@@ -105,7 +105,7 @@ export const CandidateHeroSection = ({
             <div className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${dotColor}`} />
           </TooltipTrigger>
           <TooltipContent side="top" className="text-[10px]">
-            {confidence < 0.2 ? 'Not enough data' : confidence < 0.5 ? 'Partial data' : 'High confidence'}
+            {confidence < 0.2 ? t('candidateHero.notEnoughData', 'Not enough data') : confidence < 0.5 ? t('candidateHero.partialData', 'Partial data') : t('candidateHero.highConfidence', 'High confidence')}
             {' '}({Math.round(confidence * 100)}%)
           </TooltipContent>
         </Tooltip>
@@ -139,7 +139,7 @@ export const CandidateHeroSection = ({
               ) : (
                 <div className="flex items-center gap-1">
                   <AlertCircle className="w-3 h-3 text-muted-foreground" />
-                  <span className="text-[10px] text-muted-foreground">No data</span>
+                  <span className="text-[10px] text-muted-foreground">{t('candidateHero.noData', 'No data')}</span>
                 </div>
               )}
             </div>
@@ -256,12 +256,12 @@ export const CandidateHeroSection = ({
                 {!hasAccount ? (
                   <Badge variant="outline" className="border-yellow-500/50 text-yellow-600 bg-yellow-500/10 text-[10px]">
                     <AlertCircle className="w-3 h-3 mr-1" />
-                    Pending Setup
+                    {t('candidateHero.pendingSetup', 'Pending Setup')}
                   </Badge>
                 ) : (
                   <Badge variant="outline" className="border-green-500/50 text-green-600 bg-green-500/10 text-[10px]">
                     <CheckCircle className="w-3 h-3 mr-1" />
-                    Active Member
+                    {t('candidateHero.activeMember', 'Active Member')}
                   </Badge>
                 )}
                 {stage && (
@@ -270,10 +270,10 @@ export const CandidateHeroSection = ({
                   </Badge>
                 )}
                 {candidate.years_of_experience && (
-                  <Badge variant="outline" className="text-[10px]">{candidate.years_of_experience}y exp</Badge>
+                  <Badge variant="outline" className="text-[10px]">{candidate.years_of_experience}{t('candidateHero.yrsExp', 'y exp')}</Badge>
                 )}
                 {candidate.notice_period && (
-                  <Badge variant="outline" className="text-[10px]">Notice: {candidate.notice_period}</Badge>
+                  <Badge variant="outline" className="text-[10px]">{t('candidateHero.notice', 'Notice')}: {candidate.notice_period}</Badge>
                 )}
               </div>
 
@@ -282,49 +282,49 @@ export const CandidateHeroSection = ({
                 {hasAccount ? (
                   <Button size="sm" className="h-7 text-xs" onClick={() => navigate(`/profile/${candidate.user_id}`)}>
                     <User className="w-3.5 h-3.5 mr-1" />
-                    Club Profile
+                    {t('candidateHero.clubProfile', 'Club Profile')}
                   </Button>
                 ) : isAdmin ? (
                   <Button size="sm" className="h-7 text-xs" onClick={() => navigate(`/admin/invite?email=${encodeURIComponent(candidate.email || '')}&name=${encodeURIComponent(candidate.full_name || '')}`)}>
                     <Send className="w-3.5 h-3.5 mr-1" />
-                    Invite
+                    {t('candidateHero.invite', 'Invite')}
                   </Button>
                 ) : null}
 
                 {onMessage && (
                   <Button variant="outline" size="sm" className="h-7 text-xs" onClick={onMessage}>
                     <Send className="w-3.5 h-3.5 mr-1" />
-                    Message
+                    {t('candidateHero.message', 'Message')}
                   </Button>
                 )}
                 {onSchedule && (
                   <Button variant="outline" size="sm" className="h-7 text-xs" onClick={onSchedule}>
                     <Calendar className="w-3.5 h-3.5 mr-1" />
-                    Schedule
+                    {t('candidateHero.schedule', 'Schedule')}
                   </Button>
                 )}
                 {onEdit && (
                   <Button variant="outline" size="sm" className="h-7 text-xs" onClick={onEdit}>
                     <Edit className="w-3.5 h-3.5 mr-1" />
-                    Edit
+                    {t('common:actions.edit', 'Edit')}
                   </Button>
                 )}
                 {isAdmin && candidate.linkedin_url && (
                   <Button variant="outline" size="sm" className="h-7 text-xs" onClick={() => setEnrichModal({ open: true, mode: 'linkedin' })}>
                     <RefreshCw className="w-3.5 h-3.5 mr-1" />
-                    Sync
+                    {t('candidateHero.sync', 'Sync')}
                   </Button>
                 )}
                 {isAdmin && (
                   <Button variant="outline" size="sm" className="h-7 text-xs border-primary/30 hover:border-primary/60" onClick={() => setEnrichModal({ open: true, mode: 'deep-enrich' })}>
                     <Scan className="w-3.5 h-3.5 mr-1" />
-                    Enrich
+                    {t('candidateHero.enrich', 'Enrich')}
                   </Button>
                 )}
                 {isAdmin && (
                   <Button variant="outline" size="sm" className="h-7 text-xs border-primary/30 hover:border-primary/60" onClick={() => setAddToJobOpen(true)}>
                     <Briefcase className="w-3.5 h-3.5 mr-1" />
-                    Add to Job
+                    {t('candidateHero.addToJob', 'Add to Job')}
                   </Button>
                 )}
               </div>
@@ -342,7 +342,7 @@ export const CandidateHeroSection = ({
           <div className="mt-4 pt-4 border-t border-border/30">
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center gap-2">
-                <span className="text-xs font-medium text-muted-foreground">Assessment</span>
+                <span className="text-xs font-medium text-muted-foreground">{t('candidateHero.assessment', 'Assessment')}</span>
                 {breakdown && (
                   <span className="text-lg font-bold" style={{ color: getScoreColor(breakdown.overall_score).bg }}>
                     {breakdown.overall_score}
@@ -361,7 +361,7 @@ export const CandidateHeroSection = ({
                 {onRecompute && (
                   <Button variant="ghost" size="sm" onClick={onRecompute} disabled={isComputing} className="h-6 text-[10px] px-2">
                     <RefreshCw className={`w-3 h-3 mr-0.5 ${isComputing ? 'animate-spin' : ''}`} />
-                    {isComputing ? 'Computing...' : breakdown ? 'Refresh' : 'Compute'}
+                    {isComputing ? t('candidateHero.computing', 'Computing...') : breakdown ? t('candidateHero.refresh', 'Refresh') : t('candidateHero.compute', 'Compute')}
                   </Button>
                 )}
               </div>
@@ -385,7 +385,7 @@ export const CandidateHeroSection = ({
                 className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors w-full text-left"
               >
                 <Sparkles className="w-3 h-3" />
-                <span className="font-medium">AI Summary</span>
+                <span className="font-medium">{t('candidateHero.aiSummary', 'AI Summary')}</span>
                 <ChevronDown className={`w-3 h-3 ml-auto transition-transform ${summaryExpanded ? 'rotate-180' : ''}`} />
               </button>
               {summaryExpanded && (

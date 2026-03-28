@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { LinkedinIcon, AlertCircle, Loader2 } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
@@ -128,7 +129,9 @@ export const LinkedInImport = () => {
           <Alert>
             <AlertCircle className="h-4 w-4" />
             <AlertDescription>
-              {t('profile.linkedInImportDesc')}
+              {t('profile.linkedInImportDesc')}{' '}
+              {t('profile.linkedInPrivacyNotice', 'Data imported from LinkedIn is processed per our')}{' '}
+              <Link to="/legal/privacy" className="text-primary hover:underline">{t('privacy_policy', 'Privacy Policy')}</Link>.
             </AlertDescription>
           </Alert>
 

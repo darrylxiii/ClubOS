@@ -37,7 +37,6 @@ interface SlaStatus {
 }
 
 function getSlaStatus(lastMessageAt: string | null, direction: string | null): SlaStatus | null {
-  const { t } = useTranslation('common');
   if (!lastMessageAt || direction !== 'inbound') return null;
   
   const waitMinutes = differenceInMinutes(new Date(), new Date(lastMessageAt));

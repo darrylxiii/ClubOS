@@ -105,7 +105,7 @@ const PartnersTab = () => {
           </div>
           <Button onClick={() => setShowProvision(true)} className="gap-2">
             <UserPlus className="w-4 h-4" />
-            Provision Partner
+            {t('users.partnersTab.provisionPartner', 'Provision Partner')}
           </Button>
         </div>
       </CardHeader>
@@ -135,11 +135,11 @@ const PartnersTab = () => {
           <TableBody>
             {isLoading ? (
               <TableRow>
-                <TableCell colSpan={7} className="text-center text-muted-foreground py-8">Loading partners...</TableCell>
+                <TableCell colSpan={7} className="text-center text-muted-foreground py-8">{t('users.partnersTab.loading', 'Loading partners...')}</TableCell>
               </TableRow>
             ) : filtered.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={7} className="text-center text-muted-foreground py-8">No partners found</TableCell>
+                <TableCell colSpan={7} className="text-center text-muted-foreground py-8">{t('users.partnersTab.noResults', 'No partners found')}</TableCell>
               </TableRow>
             ) : (
               filtered.map((user) => (

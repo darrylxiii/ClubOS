@@ -45,7 +45,7 @@ function generateFromPath(pathname: string, t: (key: string, fallback: string) =
     const isUuid = /^[0-9a-f]{8}-/.test(seg);
     const mapped = labelMap[seg];
     const label = isUuid
-      ? t("breadcrumbs.details", "Details")
+      ? "Details"
       : mapped
       ? t(mapped.key, mapped.fallback)
       : seg.charAt(0).toUpperCase() + seg.slice(1).replace(/-/g, " ");

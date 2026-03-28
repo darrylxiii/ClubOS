@@ -38,6 +38,7 @@ const BLOCKED_ROUTES = [
   '/payment',
   '/admin/security',
   '/admin/users',
+  '/candidate-onboarding',
 ];
 
 

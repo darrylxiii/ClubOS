@@ -121,7 +121,7 @@ export const AudienceInsights = () => {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Audience Insights</CardTitle>
+        <CardTitle>{t('analytics:audienceInsights', 'Audience Insights')}</CardTitle>
         <CardDescription>{t('audienceDemographicsDesc')}</CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">

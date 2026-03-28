@@ -130,7 +130,7 @@
   "online": {
     "status": "Online",
     "lastSeen": "Ultimo accesso {{time}}",
-    "offline": "Offline"
+    "offline": "Non in linea"
   },
   "videoCall": {
     "start": "Avvia videochiamata",
@@ -176,7 +176,7 @@
     "translate": "Traduci"
   },
   "thread": {
-    "title": "Thread",
+    "title": "Discussione",
     "reply": "Rispondi nel thread",
     "viewThread": "Visualizza thread",
     "replies": "{{count}} risposte"

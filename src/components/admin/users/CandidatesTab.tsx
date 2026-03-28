@@ -148,7 +148,7 @@ const CandidatesTab = () => {
           </div>
           <Button variant="outline" onClick={exportCandidates} className="gap-2">
             <Download className="w-4 h-4" />
-            Export
+            {t('common:actions.export', 'Export')}
           </Button>
         </div>
       </CardHeader>
@@ -168,11 +168,11 @@ const CandidatesTab = () => {
               <SelectValue placeholder={t('common:fields.status')} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All Statuses</SelectItem>
-              <SelectItem value="active">Active</SelectItem>
-              <SelectItem value="suspended">Suspended</SelectItem>
-              <SelectItem value="banned">Banned</SelectItem>
-              <SelectItem value="pending_review">Pending</SelectItem>
+              <SelectItem value="all">{t('users.candidatesTab.allStatuses')}</SelectItem>
+              <SelectItem value="active">{t('users.candidatesTab.active')}</SelectItem>
+              <SelectItem value="suspended">{t('users.candidatesTab.suspended')}</SelectItem>
+              <SelectItem value="banned">{t('users.candidatesTab.banned')}</SelectItem>
+              <SelectItem value="pending_review">{t('users.candidatesTab.pending')}</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -218,14 +218,14 @@ const CandidatesTab = () => {
                   </TableCell>
                   <TableCell>
                     {user.resume_url ? (
-                      <Badge variant="default" className="text-xs">Uploaded</Badge>
+                      <Badge variant="default" className="text-xs">{t('users.candidatesTab.uploaded')}</Badge>
                     ) : (
-                      <Badge variant="outline" className="text-xs">Missing</Badge>
+                      <Badge variant="outline" className="text-xs">{t('users.candidatesTab.missing')}</Badge>
                     )}
                   </TableCell>
                   <TableCell>
                     {user.stealth_mode_enabled ? (
-                      <Badge variant="secondary" className="text-xs">On</Badge>
+                      <Badge variant="secondary" className="text-xs">{t('users.candidatesTab.on')}</Badge>
                     ) : (
                       <span className="text-muted-foreground text-xs">{t('users.candidatesTab.off')}</span>
                     )}

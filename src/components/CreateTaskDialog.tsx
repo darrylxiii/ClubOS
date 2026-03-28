@@ -23,22 +23,22 @@ interface CreateTaskDialogProps {
 }
 
 const taskTypes = [
-  { value: 'interview_prep', label: t('createtaskdialog.interviewPrep', 'Interview Prep'), icon: '📝' },
-  { value: 'application', label: t('createtaskdialog.application', 'Application'), icon: '📄' },
-  { value: 'follow_up', label: t('createtaskdialog.followUp', 'Follow Up'), icon: '📧' },
-  { value: 'research', label: t('createtaskdialog.companyResearch', 'Company Research'), icon: '🔍' },
-  { value: 'meeting', label: t('createtaskdialog.meeting', 'Meeting'), icon: '👥' },
-  { value: 'networking', label: t('createtaskdialog.networking', 'Networking'), icon: '🤝' },
-  { value: 'skill_development', label: t('createtaskdialog.skillDevelopment', 'Skill Development'), icon: '📚' },
-  { value: 'portfolio', label: t('createtaskdialog.portfolioUpdate', 'Portfolio Update'), icon: '💼' },
-  { value: 'custom', label: t('createtaskdialog.custom', 'Custom'), icon: '✓' },
+  { value: 'interview_prep', label: 'Interview Prep', icon: '📝' },
+  { value: 'application', label: 'Application', icon: '📄' },
+  { value: 'follow_up', label: 'Follow Up', icon: '📧' },
+  { value: 'research', label: 'Company Research', icon: '🔍' },
+  { value: 'meeting', label: 'Meeting', icon: '👥' },
+  { value: 'networking', label: 'Networking', icon: '🤝' },
+  { value: 'skill_development', label: 'Skill Development', icon: '📚' },
+  { value: 'portfolio', label: 'Portfolio Update', icon: '💼' },
+  { value: 'custom', label: 'Custom', icon: '✓' },
 ];
 
 const priorities = [
-  { value: 'urgent', label: t('createtaskdialog.urgent', 'Urgent'), color: 'destructive' },
-  { value: 'high', label: t('createtaskdialog.high', 'High'), color: 'default' },
-  { value: 'medium', label: t('createtaskdialog.medium', 'Medium'), color: 'secondary' },
-  { value: 'low', label: t('createtaskdialog.low', 'Low'), color: 'outline' },
+  { value: 'urgent', label: 'Urgent', color: 'destructive' },
+  { value: 'high', label: 'High', color: 'default' },
+  { value: 'medium', label: 'Medium', color: 'secondary' },
+  { value: 'low', label: 'Low', color: 'outline' },
 ];
 
 const durations = [15, 30, 45, 60, 90, 120, 180, 240];

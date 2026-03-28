@@ -19,7 +19,7 @@ export const AssessmentsDashboard = () => {
   if (isLoading || !metrics) {
     return (
       <div className="space-y-6">
-        <DashboardHeader title={t('assessments.assessmentsDashboard.assessments')} description="Assessment results" onRefresh={handleRefresh} />
+        <DashboardHeader title={t('assessments.assessmentsDashboard.assessments')} description={t('assessments.assessmentsDashboard.descriptionLoading', 'Assessment results')} onRefresh={handleRefresh} />
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           <MetricCardSkeleton />
           <MetricCardSkeleton />
@@ -33,7 +33,7 @@ export const AssessmentsDashboard = () => {
     <div className="space-y-6">
       <DashboardHeader
         title={t('assessments.assessmentsDashboard.assessmentResults')}
-        description="Track candidate assessments and scores"
+        description={t('assessments.assessmentsDashboard.description', 'Track candidate assessments and scores')}
         onRefresh={handleRefresh}
         isRefreshing={isLoading}
       />
@@ -44,14 +44,14 @@ export const AssessmentsDashboard = () => {
           icon={FileText}
           iconColor="info"
           primaryMetric={metrics.total_completed.toLocaleString()}
-          secondaryText={`${metrics.in_progress} in progress • ${metrics.pending} pending`}
+          secondaryText={`${metrics.in_progress} ${t('assessments.assessmentsDashboard.inProgress', 'in progress')} • ${metrics.pending} ${t('assessments.assessmentsDashboard.pending', 'pending')}`}
         />
         <MetricCard
           title={t('assessments.assessmentsDashboard.averageScore')}
           icon={TrendingUp}
           iconColor="success"
           primaryMetric={`${metrics.average_score}/10`}
-          secondaryText="Overall performance"
+          secondaryText={t('assessments.assessmentsDashboard.overallPerformance', 'Overall performance')}
         >
           <Progress value={metrics.average_score * 10} className="h-2 mt-2" />
         </MetricCard>
@@ -60,7 +60,7 @@ export const AssessmentsDashboard = () => {
           icon={CheckCircle2}
           iconColor="success"
           primaryMetric={`${metrics.pass_rate}%`}
-          secondaryText="70% threshold"
+          secondaryText={t('assessments.assessmentsDashboard.threshold', '70% threshold')}
         >
           <Progress value={metrics.pass_rate} className="h-2 mt-2" />
         </MetricCard>

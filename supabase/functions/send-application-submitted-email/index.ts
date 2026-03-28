@@ -1,26 +1,27 @@
 import { createHandler } from '../_shared/handler.ts';
-import { EMAIL_SENDERS, EMAIL_COLORS, SUPPORT_EMAIL } from "../_shared/email-config.ts";
+import { EMAIL_SENDERS, EMAIL_COLORS, SUPPORT_EMAIL, getEmailHeaders } from "../_shared/email-config.ts";
 import { sendEmail } from '../_shared/resend-client.ts';
 import { baseEmailTemplate } from "../_shared/email-templates/base-template.ts";
 import {
   Heading, Paragraph, Spacer, Card, Button, StatusBadge,
 } from "../_shared/email-templates/components.ts";
 import { getAppUrl } from "../_shared/app-config.ts";
+import { z, parseBody, emailSchema, nameSchema } from '../_shared/validation.ts';
+import { sanitizeForEmail } from '../_shared/sanitize.ts';
 
-interface ApplicationSubmittedRequest {
-  userId: string;
-  email: string;
-  fullName: string;
-}
+const bodySchema = z.object({
+  userId: z.string().optional(),
+  email: emailSchema,
+  fullName: nameSchema,
+  testMode: z.boolean().optional(),
+});
 
 Deno.serve(createHandler(async (req, ctx) => {
-    const { userId, email, fullName, testMode }: ApplicationSubmittedRequest & { testMode?: boolean } = await req.json();
+    const parsed = await parseBody(req, bodySchema, ctx.corsHeaders);
+    if ('error' in parsed) return parsed.error;
+    const { userId, email, fullName, testMode } = parsed.data;
 
     console.log('[send-application-submitted-email] Processing:', { userId, email, fullName, testMode });
-
-    if (!email || !fullName) {
-      throw new Error('Missing required fields: email or fullName');
-    }
 
     const appUrl = getAppUrl();
     let accessToken = 'test-token-12345';
@@ -52,7 +53,7 @@ Deno.serve(createHandler(async (req, ctx) => {
       ${StatusBadge({ status: 'confirmed', text: 'RECEIVED' })}
       ${Heading({ text: 'Application Received', level: 1, align: 'center' })}
       ${Spacer(24)}
-      ${Paragraph(`Dear ${fullName},`, 'primary')}
+      ${Paragraph(`Dear ${sanitizeForEmail(fullName)},`, 'primary')}
       ${Spacer(8)}
       ${Paragraph('Thank you for applying to The Quantum Club. Your application has been successfully submitted and is now under review.', 'secondary')}
       ${Spacer(24)}
@@ -96,6 +97,7 @@ Deno.serve(createHandler(async (req, ctx) => {
       to: [email],
       subject,
       html: htmlContent,
+      headers: getEmailHeaders(),
     });
 
     console.log('[send-application-submitted-email] Email sent successfully:', emailResponse);

@@ -174,7 +174,10 @@
       "pleaseVerifyEmail": "Verifieer eerst uw e-mailadres",
       "pleaseVerifyPhone": "Verifieer eerst uw telefoonnummer",
       "consentRequired": "Toestemming vereist",
-      "consentRequiredDescription": "Accepteer het Privacybeleid en de Servicevoorwaarden"
+      "consentRequiredDescription": "Accepteer het Privacybeleid en de Servicevoorwaarden",
+      "ageVerificationRequired": "Leeftijdsverificatie vereist",
+      "mustConfirmAge": "U moet bevestigen dat u ten minste 16 jaar oud bent om dit platform te gebruiken",
+      "acceptBothRequired": "Accepteer zowel de Servicevoorwaarden als het Privacybeleid om door te gaan"
     },
     "messages": {
       "missingInfo": "Ontbrekende informatie",
@@ -200,7 +203,7 @@
       "enterDreamJob": "Voer uw droomfunctie in",
       "invalidPassword": "Ongeldig wachtwoord",
       "meetPasswordRequirements": "Voldoe aan alle wachtwoordvereisten",
-      "emailAlreadyLinked": "Dit e-mailadres is al gekoppeld aan een ander account. Neem contact op met support@thequantumclub.com",
+      "emailAlreadyLinked": "Dit e-mailadres is al gekoppeld aan een ander account. Neem contact op met info@thequantumclub.com",
       "profileMergeFailed": "We hebben uw profiel gevonden maar konden de samenvoeging niet voltooien. Probeer het opnieuw of neem contact op met support.",
       "unexpectedError": "Er is een onverwachte fout opgetreden. Probeer het opnieuw of neem contact op met support."
     },

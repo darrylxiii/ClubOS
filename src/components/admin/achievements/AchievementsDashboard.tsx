@@ -18,7 +18,7 @@ export const AchievementsDashboard = () => {
   if (isLoading || !metrics) {
     return (
       <div className="space-y-6">
-        <DashboardHeader title={t('achievements.achievementsDashboard.achievements')} description="Platform achievements" onRefresh={handleRefresh} />
+        <DashboardHeader title={t('achievements.achievementsDashboard.achievements')} description={t('achievements.achievementsDashboard.platformAchievements', 'Platform achievements')} onRefresh={handleRefresh} />
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           <MetricCardSkeleton />
           <MetricCardSkeleton />
@@ -36,7 +36,7 @@ export const AchievementsDashboard = () => {
     <div className="space-y-6">
       <DashboardHeader
         title={t('achievements.achievementsDashboard.achievementSystem')}
-        description="Manage platform achievements and gamification"
+        description={t('achievements.achievementsDashboard.manageGamification', 'Manage platform achievements and gamification')}
         onRefresh={handleRefresh}
         isRefreshing={isLoading}
       />
@@ -57,7 +57,7 @@ export const AchievementsDashboard = () => {
           secondaryText={`${metrics.unique_users_with_achievements} users with achievements`}
         >
           <p className="text-xs text-muted-foreground mt-2">
-            Avg {avgPerUser} per user
+            {t('achievements.achievementsDashboard.avgPerUser', 'Avg {{count}} per user', { count: avgPerUser })}
           </p>
         </MetricCard>
         <MetricCard

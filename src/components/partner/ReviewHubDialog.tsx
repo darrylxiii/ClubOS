@@ -113,7 +113,7 @@ export const ReviewHubDialog = ({
                 <Input
                   value={sidebarSearch}
                   onChange={(e) => setSidebarSearch(e.target.value)}
-                  placeholder={t("search_roles", "Search roles...")}
+                  placeholder={"Search roles..."}
                   className="pl-8 h-8 text-xs"
                 />
               </div>
@@ -127,7 +127,7 @@ export const ReviewHubDialog = ({
                 {filteredJobs.length === 0 && (
                   <div className="flex flex-col items-center py-8 text-muted-foreground gap-2">
                     <CheckCircle2 className="h-8 w-8 text-success/50" />
-                    <span className="text-xs">{t("no_pending_reviews", "No pending reviews")}</span>
+                    <span className="text-xs">{"No pending reviews"}</span>
                   </div>
                 )}
                 {filteredJobs.map((job) => (
@@ -153,7 +153,7 @@ export const ReviewHubDialog = ({
             ) : (
               <div className="flex flex-col items-center justify-center h-full text-muted-foreground gap-3">
                 <Briefcase className="h-10 w-10 opacity-30" />
-                <p className="text-sm">{t("select_a_role_to", "Select a role to begin reviewing")}</p>
+                <p className="text-sm">{"Select a role to begin reviewing"}</p>
               </div>
             )}
           </div>

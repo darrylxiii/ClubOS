@@ -234,14 +234,14 @@ export const SocialActivityFeed = ({ userId, isReadOnly = false }: SocialActivit
                     {hasYouTube && youtubeId && (
                       <div className="flex items-center gap-2 p-2 bg-muted/50 rounded-lg">
                         <Youtube className="w-4 h-4 text-red-500 flex-shrink-0" />
-                        <span className="text-xs text-muted-foreground truncate">YouTube Video</span>
+                        <span className="text-xs text-muted-foreground truncate">{t('profile.youtubeVideo', 'YouTube Video')}</span>
                       </div>
                     )}
                     
                     {post.media_url && !hasYouTube && (
                       <img
                         src={post.media_url}
-                        alt="Post media"
+                        alt={t('profile.postMedia', 'Post media')}
                         className="rounded-lg w-16 h-16 object-cover"
                       />
                     )}
@@ -335,7 +335,7 @@ export const SocialActivityFeed = ({ userId, isReadOnly = false }: SocialActivit
                     {hasYouTube && youtubeId && (
                       <div className="flex items-center gap-2 p-2 bg-muted/50 rounded-lg">
                         <Youtube className="w-4 h-4 text-red-500 flex-shrink-0" />
-                        <span className="text-xs text-muted-foreground truncate">YouTube Video</span>
+                        <span className="text-xs text-muted-foreground truncate">{t('profile.youtubeVideo', 'YouTube Video')}</span>
                       </div>
                     )}
                     

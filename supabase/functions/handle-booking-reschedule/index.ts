@@ -4,6 +4,7 @@ import { baseEmailTemplate } from "../_shared/email-templates/base-template.ts";
 import { Card, Heading, Paragraph, Spacer, InfoRow } from "../_shared/email-templates/components.ts";
 import { EMAIL_SENDERS } from "../_shared/email-config.ts";
 import { sendEmail } from '../_shared/resend-client.ts';
+import { sanitizeForEmail } from '../_shared/sanitize.ts';
 
 Deno.serve(createHandler(async (req, ctx) => {
     const { supabase: supabaseClient, corsHeaders } = ctx;
@@ -118,7 +119,9 @@ Deno.serve(createHandler(async (req, ctx) => {
     }
 
     // Send notification emails
-    const hostName = booking.profiles?.full_name || "Your host";
+    const hostName = sanitizeForEmail(booking.profiles?.full_name) || "Your host";
+    const safeGuestName = sanitizeForEmail(booking.guest_name);
+    const safeReason = sanitizeForEmail(reason);
     
     const oldTimeFormatted = oldStart.toLocaleString('en-US', { 
       weekday: 'long', 
@@ -142,10 +145,10 @@ Deno.serve(createHandler(async (req, ctx) => {
     const guestEmailContent = `
       ${Heading({ text: '🔄 Meeting Rescheduled', level: 1 })}
       ${Spacer(24)}
-      ${Paragraph(`Hi ${booking.guest_name},`, 'primary')}
+      ${Paragraph(`Hi ${safeGuestName},`, 'primary')}
       ${Spacer(16)}
       ${Paragraph(`Your meeting "${booking.booking_links?.title}" has been rescheduled.`, 'secondary')}
-      ${reason ? Spacer(16) + Paragraph(`💬 Reason: ${reason}`, 'secondary') : ''}
+      ${safeReason ? Spacer(16) + Paragraph(`💬 Reason: ${safeReason}`, 'secondary') : ''}
       ${Spacer(32)}
       ${Card({
         variant: 'highlight',
@@ -194,10 +197,10 @@ Deno.serve(createHandler(async (req, ctx) => {
           content: `
             ${Heading({ text: booking.booking_links?.title, level: 2 })}
             ${Spacer(16)}
-            ${InfoRow({ icon: '👤', label: 'Guest', value: `${booking.guest_name} (${booking.guest_email})` })}
+            ${InfoRow({ icon: '👤', label: 'Guest', value: `${safeGuestName} (${booking.guest_email})` })}
             ${InfoRow({ icon: '✅', label: 'New time', value: newTimeFormatted })}
             ${InfoRow({ icon: '⏱️', label: 'Duration', value: `${booking.booking_links?.duration_minutes} minutes` })}
-            ${reason ? InfoRow({ icon: '📝', label: 'Reason', value: reason }) : ''}
+            ${safeReason ? InfoRow({ icon: '📝', label: 'Reason', value: safeReason }) : ''}
           `
         })}
       `;

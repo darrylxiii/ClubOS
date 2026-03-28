@@ -103,7 +103,7 @@
     "returning": "Candidato recurrente"
   },
   "pipeline": {
-    "title": "Pipeline",
+    "title": "Embudo de Contratación",
     "stage": "Etapa actual",
     "moveToStage": "Mover a etapa",
     "daysInStage": "Días en esta etapa",
@@ -232,7 +232,7 @@
     "text18": "Experiencia",
     "text19": "Configuración",
     "text20": "Autorización de trabajo",
-    "text21": "Pipeline",
+    "text21": "Embudo de Contratación",
     "text22": "Actividad",
     "text23": "Documentos",
     "text24": "Notas internas y calificación",

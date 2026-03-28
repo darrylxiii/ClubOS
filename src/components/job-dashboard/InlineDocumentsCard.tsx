@@ -222,7 +222,7 @@ export const InlineDocumentsCard = memo(({ jobId }: InlineDocumentsCardProps) =>
               </DialogTrigger>
               <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
                 <DialogHeader>
-                  <DialogTitle>Job Documents</DialogTitle>
+                  <DialogTitle>{t('jobs:jobDocuments', 'Job Documents')}</DialogTitle>
                 </DialogHeader>
                 <JobDocuments jobId={jobId} onUpdate={fetchDocuments} />
               </DialogContent>

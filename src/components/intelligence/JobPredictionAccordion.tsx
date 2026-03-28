@@ -30,7 +30,6 @@ interface JobPredictionAccordionProps {
 }
 
 function getHealthColor(score: number) {
-  const { t } = useTranslation('common');
   if (score >= 80) return 'bg-green-500';
   if (score >= 60) return 'bg-amber-500';
   if (score >= 40) return 'bg-orange-500';

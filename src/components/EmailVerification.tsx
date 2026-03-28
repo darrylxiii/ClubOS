@@ -66,7 +66,7 @@ export const EmailVerification = ({
   return (
     <div className="space-y-4">
       <div>
-        <Label htmlFor="email">Email</Label>
+        <Label htmlFor="email">{t('common:fields.email', 'Email')}</Label>
         <div className="flex flex-col gap-3">
           <Input
             id="email"
@@ -113,7 +113,7 @@ export const EmailVerification = ({
         {email && !isEmailValid && !otpSent && (
           <div className="flex items-center gap-2 text-xs text-destructive mt-2">
             <XCircle className="w-4 h-4" />
-            <span>Invalid email address</span>
+            <span>{t('auth:invalidEmailAddress', 'Invalid email address')}</span>
           </div>
         )}
       </div>

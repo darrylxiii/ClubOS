@@ -278,7 +278,8 @@
     "text2": "Overview",
     "text3": "Pipeline",
     "text4": "Trends",
-    "text5": "Benchmarks"
+    "text5": "Benchmarks",
+    "diversity": "Diversity"
   },
   "partnerFunnel": {
     "desc": "Describe the role. We handle the rest.",
@@ -316,7 +317,9 @@
     "desc4": "Browse exclusive opportunities curated for your network",
     "desc5": "Submit Candidates",
     "desc6": "Introduce top talent through our streamlined process",
-    "desc7": "Schedule Your Onboarding Call"
+    "desc7": "Schedule Your Onboarding Call",
+    "welcomeToast": "Welcome to The Quantum Club!",
+    "failedOnboarding": "Failed to complete onboarding"
   },
   "addCandidateDialog": {
     "toast": {
@@ -698,7 +701,13 @@
       "email": "Email",
       "message": "Message",
       "meeting": "Meeting"
-    }
+    },
+    "interactionTimeline": "Interaction Timeline",
+    "adding": "Adding...",
+    "addInteraction": "Add Interaction",
+    "rejectionDetails": "Rejection Details",
+    "advancementDetails": "Advancement Details",
+    "sentiment": "Sentiment"
   },
   "candidateInternalRatingCard": {
     "title": "Rating History",
@@ -727,7 +736,13 @@
     },
     "selectedJobsWillBeMentionedInTheInvitati": "Selected jobs will be mentioned in the invitation email",
     "thisMessageWillBeIncludedInTheInvitation": "This message will be included in the invitation email",
-    "whatHappensNext": "What happens next?"
+    "whatHappensNext": "What happens next?",
+    "title": "Invite Candidate to Platform",
+    "sending": "Sending...",
+    "sendInvitation": "Send Invitation",
+    "step1": "Candidate receives invitation email with secure link",
+    "step2": "Link expires in 7 days",
+    "step3": "When they sign up, their profile data will be merged with user account"
   },
   "candidateLinkedJobs": {
     "toast": {
@@ -1448,7 +1463,17 @@
   "candidateWorkAuthCard": {
     "noWorkAuthorizationDataAvailable": "No work authorization data available",
     "requiresSponsorship": "Requires sponsorship",
-    "noSponsorshipRequired": "No sponsorship required"
+    "noSponsorshipRequired": "No sponsorship required",
+    "workAuthorization": "Work Authorization",
+    "compensationExpectations": "Compensation Expectations",
+    "availability": "Availability",
+    "locationPreferences": "Location Preferences",
+    "authorizedCountries": "Authorized Countries",
+    "visaType": "Visa Type",
+    "salaryRange": "Salary Range",
+    "currency": "Currency",
+    "noticePeriod": "Notice Period",
+    "remotePreference": "Remote Preference"
   },
   "changeOrdersPanel": {
     "noChangeOrdersYet": "No change orders yet",
@@ -1572,9 +1597,19 @@
     "placeholder": {
       "searchJobs": "Search jobs..."
     },
+    "tooltip": {
+      "search": "Search (/ key)"
+    },
     "menu": {
       "navigation": "Navigation",
-      "adminTools": "Admin Tools"
+      "adminTools": "Admin Tools",
+      "applicationsHub": "Applications Hub",
+      "companySettings": "Company Settings",
+      "companyManagement": "Company Management",
+      "aiConfiguration": "AI Configuration",
+      "clubSyncRequests": "Club Sync Requests",
+      "globalAnalytics": "Global Analytics",
+      "refreshData": "Refresh Data"
     },
     "newJob": "New Job",
     "jobs": "Jobs"
@@ -1621,7 +1656,20 @@
   "compactJobCard": {
     "tooltip": {
       "confidential": "Confidential"
-    }
+    },
+    "publish": "Publish",
+    "unpublish": "Unpublish",
+    "reopen": "Reopen",
+    "restore": "Restore",
+    "candidates": "Candidates",
+    "daysOpen": "Days Open",
+    "active": "Active",
+    "interviews": "Interviews",
+    "conversion": "Conversion",
+    "hired": "Hired",
+    "target": "Target",
+    "lastActivity": "Last Activity",
+    "pipelinePercent": "Pipeline %"
   },
   "jobsInlineStats": {
     "clubSync": "Club Sync"
@@ -3267,5 +3315,117 @@
       },
       "viewWarRoom": "War Room"
     }
+  },
+  "common:manual": "Manual",
+  "common:linkedin": "LinkedIn",
+  "common:cancel": "Cancel",
+  "diversity": {
+    "applied": "Applied",
+    "screened": "Screened",
+    "interviewed": "Interviewed",
+    "offered": "Offered",
+    "title": "Source Diversity & Pipeline Funnel",
+    "sourceDiversityScore": "Source Diversity Score",
+    "topSources": "Top Sources",
+    "pipelineFunnel": "Pipeline Funnel"
+  },
+  "healthScore": {
+    "title": "Hiring Health",
+    "excellent": "Excellent",
+    "good": "Good",
+    "needsAttention": "Needs Attention",
+    "critical": "Critical",
+    "noCompany": "No company linked",
+    "noCompanyDesc": "Health scores will appear once your company profile is set up."
+  },
+  "marketIntel": {
+    "avgSalaryRange": "Avg. Salary Range",
+    "avgCandidates": "Avg. Candidates/Role",
+    "avgTimeToFill": "Avg. Time to Fill",
+    "vsBenchmark": "vs est. avg",
+    "onBenchmark": "On est. avg",
+    "activeRoles": "Active Roles",
+    "title": "Your Hiring Metrics"
+  },
+  "automations": {
+    "bookingCreated": "When a meeting is booked",
+    "bookingCancelled": "When a meeting is cancelled",
+    "bookingRescheduled": "When a meeting is rescheduled",
+    "reminder": "Before meeting",
+    "bookingCompleted": "When a meeting ends",
+    "autoMatch": "AI matches candidates with 85%+ score to your roles",
+    "clubSync": "Club Sync",
+    "slaMonitoring": "SLA breach alerts sent when response times exceed targets",
+    "slaAlerts": "SLA Monitoring",
+    "dailyBriefing": "Daily pipeline briefing generated every morning",
+    "briefing": "Daily Briefing",
+    "platformAutomations": "Platform Automations",
+    "active": "Active",
+    "customWorkflows": "Custom Workflows",
+    "workflow": "workflow"
+  },
+  "offersDashboard": {
+    "unknownCandidate": "Unknown Candidate",
+    "unknownRole": "Unknown Role",
+    "pending": "Pending",
+    "accepted": "Accepted",
+    "declined": "Declined",
+    "negotiating": "Negotiating",
+    "pendingOffers": "Pending Offers",
+    "acceptedOffers": "Accepted",
+    "declinedOffers": "Declined",
+    "errorTitle": "Unable to load offers",
+    "errorDesc": "There was an issue loading your offers. Please try again later.",
+    "noOffers": "No offers yet",
+    "noOffersDesc": "When candidates reach the offer stage, they will appear here.",
+    "today": "Today"
+  },
+  "welcomeCeremony": {
+    "slaGuarantee": "48h Candidate Shortlist SLA",
+    "dedicatedStrategist": "Dedicated Talent Strategist",
+    "prioritySourcing": "Priority AI-Powered Sourcing",
+    "exclusiveMember": "Exclusive Member",
+    "yourStrategist": "Your Talent Strategist",
+    "yourCompany": "Your Organization",
+    "exclusiveBenefits": "Your Exclusive Benefits",
+    "readyMessage": "Your exclusive partner portal is ready. Everything you need to hire world-class talent, in one place.",
+    "agreements": {
+      "title": "Partner Agreements",
+      "dpaLabel": "I have read and accept the",
+      "dpaLink": "Data Processing Agreement",
+      "termsLabel": "I agree to the",
+      "termsLink": "Terms of Service",
+      "and": "and",
+      "privacyLink": "Privacy Policy",
+      "note": "As a partner processing personal data on our platform, you are required to accept these agreements.",
+      "reminder": "Please accept both agreements to continue."
+    },
+    "enterPortal": "Enter Your Portal"
+  },
+  "strategist": {
+    "messageSent": "Message sent to your strategist",
+    "messageError": "Failed to send message",
+    "askTitle": "Ask Your Strategist",
+    "sendingFrom": "Sending from:",
+    "to": "To:",
+    "cancel": "Cancel",
+    "sending": "Sending...",
+    "send": "Send",
+    "availability": "Availability",
+    "next5Days": "Next 5 business days",
+    "noSlots": "No open slots",
+    "bookCall": "Book Call",
+    "noteSent": "Note added",
+    "noteError": "Failed to add note",
+    "sharedNotes": "Shared Notes",
+    "noNotes": "No notes yet. Start a conversation with your strategist.",
+    "addNotePlaceholder": "Add a note for your strategist...",
+    "addNote": "Add Note",
+    "noStrategist": "No Strategist Assigned",
+    "postRole": "Post a Role",
+    "badge": "Strategist",
+    "ask": "Ask",
+    "activityFeed": "Strategist Activity",
+    "actions": "actions"
   }
 }

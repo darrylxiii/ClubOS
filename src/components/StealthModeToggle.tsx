@@ -32,7 +32,7 @@ export const StealthModeToggle = ({
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Shield className="h-5 w-5 text-primary" />
-            <CardTitle>Stealth Mode</CardTitle>
+            <CardTitle>{t('stealthMode.title', 'Stealth Mode')}</CardTitle>
             {stealthModeEnabled && (
               <Badge variant="secondary" className="ml-2">
                 <EyeOff className="h-3 w-3 mr-1" />
@@ -42,13 +42,13 @@ export const StealthModeToggle = ({
           </div>
         </div>
         <CardDescription>
-          Anonymize your profile for cold outreach and blind hiring scenarios
+          {t('stealthMode.description', 'Anonymize your profile for cold outreach and blind hiring scenarios')}
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
         <div className="flex items-center justify-between">
           <div className="space-y-0.5">
-            <Label htmlFor="stealth-mode">Enable Stealth Mode</Label>
+            <Label htmlFor="stealth-mode">{t('stealthMode.enable', 'Enable Stealth Mode')}</Label>
             <p className="text-sm text-muted-foreground">
               Hide personal details from your profile
             </p>
@@ -63,7 +63,7 @@ export const StealthModeToggle = ({
         {stealthModeEnabled && (
           <>
             <div className="space-y-4 pt-4 border-t">
-              <Label>Anonymization Level</Label>
+              <Label>{t('stealthMode.anonymizationLevel', 'Anonymization Level')}</Label>
               <RadioGroup
                 value={stealthModeLevel.toString()}
                 onValueChange={(value) => onStealthLevelChange(parseInt(value))}
@@ -72,7 +72,7 @@ export const StealthModeToggle = ({
                   <RadioGroupItem value="1" id="level-1" />
                   <div className="space-y-1">
                     <Label htmlFor="level-1" className="font-normal cursor-pointer">
-                      Level 1 - Basic Stealth
+                      Level 1 - {t('stealthMode.basicStealth', 'Basic Stealth')}
                     </Label>
                     <p className="text-sm text-muted-foreground">
                       Hides: Name, email, phone, avatar
@@ -83,7 +83,7 @@ export const StealthModeToggle = ({
                   <RadioGroupItem value="2" id="level-2" />
                   <div className="space-y-1">
                     <Label htmlFor="level-2" className="font-normal cursor-pointer">
-                      Level 2 - Enhanced Stealth
+                      Level 2 - {t('stealthMode.enhancedStealth', 'Enhanced Stealth')}
                     </Label>
                     <p className="text-sm text-muted-foreground">
                       + Generalizes location and job title, hides LinkedIn
@@ -94,7 +94,7 @@ export const StealthModeToggle = ({
                   <RadioGroupItem value="3" id="level-3" />
                   <div className="space-y-1">
                     <Label htmlFor="level-3" className="font-normal cursor-pointer">
-                      Level 3 - Full Stealth
+                      Level 3 - {t('stealthMode.fullStealth', 'Full Stealth')}
                     </Label>
                     <p className="text-sm text-muted-foreground">
                       + Maximum anonymization, region-only location
@@ -106,7 +106,7 @@ export const StealthModeToggle = ({
 
             <div className="flex items-center justify-between pt-4 border-t">
               <div className="space-y-0.5">
-                <Label htmlFor="cold-outreach">Allow Cold Outreach</Label>
+                <Label htmlFor="cold-outreach">{t('stealthMode.allowColdOutreach', 'Allow Cold Outreach')}</Label>
                 <p className="text-sm text-muted-foreground">
                   Let The Quantum Club use your stealth profile for client pitches
                 </p>

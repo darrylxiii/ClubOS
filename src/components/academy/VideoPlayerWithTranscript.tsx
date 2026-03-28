@@ -37,6 +37,9 @@ export function VideoPlayerWithTranscript({
   const [isMuted, setIsMuted] = useState(false);
   const [activeSegmentIndex, setActiveSegmentIndex] = useState<number | null>(null);
   const [activeWordIndex, setActiveWordIndex] = useState<number | null>(null);
+  const [playbackSpeed, setPlaybackSpeed] = useState(1);
+
+  const SPEED_OPTIONS = [0.5, 0.75, 1, 1.25, 1.5, 2];
 
   useEffect(() => {
     const video = videoRef.current;
@@ -116,6 +119,16 @@ export function VideoPlayerWithTranscript({
     return `${mins}:${secs.toString().padStart(2, "0")}`;
   };
 
+  const cycleSpeed = () => {
+    const currentIndex = SPEED_OPTIONS.indexOf(playbackSpeed);
+    const nextIndex = (currentIndex + 1) % SPEED_OPTIONS.length;
+    const newSpeed = SPEED_OPTIONS[nextIndex];
+    setPlaybackSpeed(newSpeed);
+    if (videoRef.current) {
+      videoRef.current.playbackRate = newSpeed;
+    }
+  };
+
   const toggleFullscreen = () => {
     if (videoRef.current) {
       if (document.fullscreenElement) {
@@ -126,11 +139,58 @@ export function VideoPlayerWithTranscript({
     }
   };
 
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
+      const video = videoRef.current;
+      if (!video) return;
+
+      switch (e.key) {
+        case ' ':
+          e.preventDefault();
+          isPlaying ? video.pause() : video.play();
+          break;
+        case 'ArrowLeft':
+          e.preventDefault();
+          video.currentTime = Math.max(0, video.currentTime - 10);
+          break;
+        case 'ArrowRight':
+          e.preventDefault();
+          video.currentTime = Math.min(video.duration, video.currentTime + 10);
+          break;
+        case 'ArrowUp':
+          e.preventDefault();
+          video.volume = Math.min(1, video.volume + 0.1);
+          setVolume(video.volume);
+          break;
+        case 'ArrowDown':
+          e.preventDefault();
+          video.volume = Math.max(0, video.volume - 0.1);
+          setVolume(video.volume);
+          break;
+        case 'f':
+        case 'F':
+          e.preventDefault();
+          toggleFullscreen();
+          break;
+        case 'm':
+        case 'M':
+          e.preventDefault();
+          toggleMute();
+          break;
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isPlaying]);
+
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
       {/* Video Player */}
       <div className="lg:col-span-2 space-y-4">
-        <Card className="squircle overflow-hidden">
+        <Card className="rounded-2xl overflow-hidden">
           <div className="relative bg-black aspect-video">
             <video
               ref={videoRef}
@@ -202,11 +262,12 @@ export function VideoPlayerWithTranscript({
 
                 <div className="flex items-center gap-2">
                   <Button
-                    size="icon"
+                    size="sm"
                     variant="ghost"
-                    className="text-white hover:bg-white/20"
+                    onClick={cycleSpeed}
+                    className="text-white hover:bg-white/20 text-xs font-mono min-w-[3rem]"
                   >
-                    <Settings className="h-5 w-5" />
+                    {playbackSpeed}x
                   </Button>
                   <Button
                     size="icon"
@@ -222,7 +283,7 @@ export function VideoPlayerWithTranscript({
           </div>
         </Card>
 
-        <Card className="squircle p-4">
+        <Card className="rounded-2xl p-4">
           <h3 className="font-semibold mb-2">{title}</h3>
           <p className="text-sm text-muted-foreground">
             Interactive video lesson with synchronized transcript
@@ -232,10 +293,10 @@ export function VideoPlayerWithTranscript({
 
       {/* Transcript Panel */}
       <div className="lg:col-span-1">
-        <Card className="squircle p-4 h-[600px] flex flex-col">
+        <Card className="rounded-2xl p-4 h-[600px] flex flex-col">
           <div className="flex items-center justify-between mb-4">
             <h3 className="font-semibold">{t("interactive_transcript", "Interactive Transcript")}</h3>
-            <Badge variant="outline" className="squircle-sm">
+            <Badge variant="outline" className="rounded-xl">
               AI Powered
             </Badge>
           </div>

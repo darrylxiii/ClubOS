@@ -1,26 +1,31 @@
 import { createAuthenticatedHandler } from '../_shared/handler.ts';
-import { EMAIL_SENDERS, EMAIL_COLORS } from "../_shared/email-config.ts";
+import { EMAIL_SENDERS, EMAIL_COLORS, getEmailHeaders } from "../_shared/email-config.ts";
+import { getAppUrl } from "../_shared/app-config.ts";
 import { sendEmail } from '../_shared/resend-client.ts';
 import { baseEmailTemplate } from "../_shared/email-templates/base-template.ts";
 import { Heading, Paragraph, Spacer, Card, Button, InfoRow } from "../_shared/email-templates/components.ts";
+import { z, parseBody, emailSchema, uuidSchema } from '../_shared/validation.ts';
+import { sanitizeForEmail } from '../_shared/sanitize.ts';
 
-interface TeamInviteRequest {
-  email: string;
-  inviteCode: string;
-  companyId?: string;
-  companyName: string;
-  inviterName?: string;
-  role: string;
-  recipientName?: string;
-  customMessage?: string;
-}
+const requestSchema = z.object({
+  email: emailSchema,
+  inviteCode: z.string().min(1).max(500),
+  companyId: uuidSchema.optional(),
+  companyName: z.string().min(1).max(300).trim(),
+  inviterName: z.string().max(200).trim().optional(),
+  role: z.string().min(1).max(100),
+  recipientName: z.string().max(200).trim().optional(),
+  customMessage: z.string().max(2000).trim().optional(),
+});
 
 Deno.serve(createAuthenticatedHandler(async (req, ctx) => {
-  const body: TeamInviteRequest = await req.json();
+  const parsed = await parseBody(req, requestSchema, ctx.corsHeaders);
+  if ('error' in parsed) return parsed.error;
+  const body = parsed.data;
 
   // companyId is optional for partner invites (partners are external)
   const isPartnerRole = body.role === 'partner';
-  if (!body.email || !body.inviteCode || !body.companyName || (!body.companyId && !isPartnerRole)) {
+  if (!body.companyId && !isPartnerRole) {
     return new Response(JSON.stringify({ error: 'Missing required fields' }), {
       status: 400,
       headers: { ...ctx.corsHeaders, 'Content-Type': 'application/json' }
@@ -62,23 +67,30 @@ Deno.serve(createAuthenticatedHandler(async (req, ctx) => {
     }
   }
 
-  const siteUrl = Deno.env.get('SITE_URL') || 'https://os.thequantumclub.com';
-  const signupUrl = `${siteUrl}/auth?invite=${body.inviteCode}`;
+  const appUrl = getAppUrl();
+  const signupUrl = `${appUrl}/auth?invite=${body.inviteCode}`;
+
+  // Sanitize user-supplied text before embedding in HTML
+  const safeRecipientName = sanitizeForEmail(body.recipientName);
+  const safeInviterName = sanitizeForEmail(body.inviterName);
+  const safeCompanyName = sanitizeForEmail(body.companyName);
+  const safeCustomMessage = sanitizeForEmail(body.customMessage);
+  const safeRole = sanitizeForEmail(body.role);
 
   // Personalized greeting
-  const greeting = body.recipientName
-    ? `Hi ${body.recipientName},`
+  const greeting = safeRecipientName
+    ? `Hi ${safeRecipientName},`
     : '';
 
-  const inviterLine = body.inviterName
-    ? `<strong>${body.inviterName}</strong> has invited you`
+  const inviterLine = safeInviterName
+    ? `<strong>${safeInviterName}</strong> has invited you`
     : 'You have been invited';
 
   // Custom message block
-  const customMessageBlock = body.customMessage
+  const customMessageBlock = safeCustomMessage
     ? `${Spacer(16)}${Card({
         variant: 'highlight',
-        content: `<p style="margin: 0; font-style: italic; color: ${EMAIL_COLORS.textSecondary};">"${body.customMessage}"</p><p style="margin: 8px 0 0; font-size: 13px; color: ${EMAIL_COLORS.textMuted};">— ${body.inviterName || 'Your inviter'}</p>`,
+        content: `<p style="margin: 0; font-style: italic; color: ${EMAIL_COLORS.textSecondary};">"${safeCustomMessage}"</p><p style="margin: 8px 0 0; font-size: 13px; color: ${EMAIL_COLORS.textMuted};">— ${safeInviterName || 'Your inviter'}</p>`,
       })}`
     : '';
 
@@ -86,8 +98,8 @@ Deno.serve(createAuthenticatedHandler(async (req, ctx) => {
   const isPartner = body.role === 'partner';
   const headingText = isPartner ? 'Partner Invitation' : "You're Invited";
   const subjectLine = isPartner
-    ? `${body.inviterName || 'The Quantum Club'} has invited you to partner with The Quantum Club`
-    : `You're invited to join ${body.companyName} on The Quantum Club`;
+    ? `${safeInviterName || 'The Quantum Club'} has invited you to partner with The Quantum Club`
+    : `You're invited to join ${safeCompanyName} on The Quantum Club`;
 
   const partnerValueProp = isPartner
     ? `${Spacer(16)}${Paragraph("As a partner, you will get access to curated shortlists, candidate dossiers, and a dedicated strategist to streamline your hiring process.", 'muted')}`
@@ -97,15 +109,15 @@ Deno.serve(createAuthenticatedHandler(async (req, ctx) => {
     ${greeting ? `${Paragraph(greeting, 'secondary')}${Spacer(8)}` : ''}
     ${Heading({ text: headingText, level: 1 })}
     ${Spacer(16)}
-    ${Paragraph(`${inviterLine} to join <strong>${body.companyName}</strong> on The Quantum Club as a <strong style="color: ${EMAIL_COLORS.gold};">${body.role}</strong>.`, 'secondary')}
+    ${Paragraph(`${inviterLine} to join <strong>${safeCompanyName}</strong> on The Quantum Club as a <strong style="color: ${EMAIL_COLORS.gold};">${safeRole}</strong>.`, 'secondary')}
     ${partnerValueProp}
     ${customMessageBlock}
     ${Spacer(24)}
     ${Card({
       variant: 'highlight',
       content: `
-        ${InfoRow({ icon: '🏢', label: 'Company', value: body.companyName })}
-        ${InfoRow({ icon: '👤', label: 'Role', value: body.role })}
+        ${InfoRow({ icon: '🏢', label: 'Company', value: safeCompanyName })}
+        ${InfoRow({ icon: '👤', label: 'Role', value: safeRole })}
       `,
     })}
     ${Spacer(32)}
@@ -121,7 +133,7 @@ Deno.serve(createAuthenticatedHandler(async (req, ctx) => {
   `;
 
   const htmlContent = baseEmailTemplate({
-    preheader: `${body.inviterName || 'Someone'} invited you to join ${body.companyName} on The Quantum Club`,
+    preheader: `${safeInviterName || 'Someone'} invited you to join ${safeCompanyName} on The Quantum Club`,
     content: emailContent,
     showHeader: true,
     showFooter: true,
@@ -135,10 +147,7 @@ Deno.serve(createAuthenticatedHandler(async (req, ctx) => {
     to: body.email,
     subject: subjectLine,
     html: htmlContent,
-    headers: {
-      'List-Unsubscribe': `<${siteUrl}/settings/notifications>`,
-      'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
-    },
+    headers: getEmailHeaders(),
   });
 
   // Log the sent invite

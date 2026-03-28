@@ -1,13 +1,22 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Card, CardContent } from '@/components/ui/card';
 import { supabase } from '@/integrations/supabase/client';
 import { cn } from '@/lib/utils';
+import {
+  Palette,
+  Briefcase,
+  Code2,
+  Megaphone,
+  Crown,
+  BarChart3,
+  Package,
+  Layers,
+  type LucideIcon,
+} from 'lucide-react';
 
 interface Category {
   id: string;
   name: string;
-  icon: string;
   description?: string;
   course_count: number;
 }
@@ -16,14 +25,27 @@ interface EnhancedCategoryGridProps {
   onCategoryClick?: (categoryId: string) => void;
 }
 
-const categoryGradients = [
-  'from-blue-500/20 to-cyan-500/20',
-  'from-purple-500/20 to-pink-500/20',
-  'from-orange-500/20 to-red-500/20',
-  'from-green-500/20 to-emerald-500/20',
-  'from-yellow-500/20 to-amber-500/20',
-  'from-indigo-500/20 to-violet-500/20',
-];
+const categoryIconMap: Record<string, LucideIcon> = {
+  Design: Palette,
+  Business: Briefcase,
+  Code: Code2,
+  Engineering: Code2,
+  Marketing: Megaphone,
+  Leadership: Crown,
+  Data: BarChart3,
+  'Data Science': BarChart3,
+  Product: Package,
+  'Product Management': Package,
+  Sales: Briefcase,
+};
+
+function getIconForCategory(name: string): LucideIcon {
+  if (categoryIconMap[name]) return categoryIconMap[name];
+  const key = Object.keys(categoryIconMap).find((k) =>
+    name.toLowerCase().includes(k.toLowerCase()),
+  );
+  return key ? categoryIconMap[key] : Layers;
+}
 
 export const EnhancedCategoryGrid = ({ onCategoryClick }: EnhancedCategoryGridProps) => {
   const { t } = useTranslation('common');
@@ -32,36 +54,23 @@ export const EnhancedCategoryGrid = ({ onCategoryClick }: EnhancedCategoryGridPr
 
   useEffect(() => {
     const fetchCategories = async () => {
-      // Get distinct categories from courses table
       const { data: coursesData } = await supabase
         .from('courses')
         .select('category')
         .not('category', 'is', null);
 
       if (coursesData) {
-        // Count courses per category
         const categoryMap = new Map<string, number>();
         coursesData.forEach((course: any) => {
           const cat = course.category;
           categoryMap.set(cat, (categoryMap.get(cat) || 0) + 1);
         });
 
-        // Create category objects with icons
-        const categoryIcons: Record<string, string> = {
-          'Product Management': '📊',
-          'Engineering': '⚙️',
-          'Design': '🎨',
-          'Data Science': '📈',
-          'Marketing': '📣',
-          'Sales': '💼',
-        };
-
         const categoriesArray = Array.from(categoryMap.entries())
           .slice(0, 6)
-          .map(([name, count], index) => ({
+          .map(([name, count]) => ({
             id: name.toLowerCase().replace(/\s+/g, '-'),
             name,
-            icon: categoryIcons[name] || '📚',
             course_count: count,
           }));
 
@@ -75,9 +84,9 @@ export const EnhancedCategoryGrid = ({ onCategoryClick }: EnhancedCategoryGridPr
 
   if (loading) {
     return (
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
         {[...Array(6)].map((_, i) => (
-          <Card key={i} className="h-32 animate-pulse" />
+          <div key={i} className="glass-subtle rounded-2xl h-32 animate-pulse" />
         ))}
       </div>
     );
@@ -86,37 +95,31 @@ export const EnhancedCategoryGrid = ({ onCategoryClick }: EnhancedCategoryGridPr
   return (
     <div className="space-y-4">
       <h2 className="text-2xl font-semibold">{t('academy.browseByCategory')}</h2>
-      <div className="grid grid-cols-3 gap-4">
-        {categories.map((category, index) => (
-          <Card
-            key={category.id}
-            className={cn(
-              'cursor-pointer transition-all hover:shadow-lg hover:-translate-y-1 group',
-              'bg-gradient-to-br',
-              categoryGradients[index % categoryGradients.length]
-            )}
-            onClick={() => onCategoryClick?.(category.id)}
-          >
-            <CardContent className="p-6 space-y-3">
-              <div className="flex items-start justify-between">
-                <span className="text-4xl">{category.icon}</span>
-                <span className="text-xs font-semibold bg-background/50 px-2 py-1 rounded-full">
-                  {category.course_count} courses
-                </span>
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+        {categories.map((category) => {
+          const Icon = getIconForCategory(category.name);
+          return (
+            <div
+              key={category.id}
+              className={cn(
+                'glass-subtle rounded-2xl hover-lift cursor-pointer',
+                'border border-transparent hover:border-primary/20',
+                'flex flex-col items-center justify-center p-5 gap-3 transition-all',
+              )}
+              onClick={() => onCategoryClick?.(category.id)}
+            >
+              <div className="glass rounded-xl p-3 bg-primary/5">
+                <Icon className="h-6 w-6 text-foreground/80" />
               </div>
-              <div>
-                <h3 className="font-semibold text-lg group-hover:text-primary transition-colors">
-                  {category.name}
-                </h3>
-                {category.description && (
-                  <p className="text-sm text-muted-foreground line-clamp-2 mt-1">
-                    {category.description}
-                  </p>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-        ))}
+              <span className="text-sm font-medium text-center leading-tight">
+                {category.name}
+              </span>
+              <span className="text-xs text-muted-foreground bg-muted/30 px-2 py-0.5 rounded-full">
+                {category.course_count} courses
+              </span>
+            </div>
+          );
+        })}
       </div>
     </div>
   );

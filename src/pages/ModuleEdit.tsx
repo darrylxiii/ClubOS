@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useTranslation } from 'react-i18next';
 import { useParams, useNavigate } from "react-router-dom";
 
@@ -13,6 +13,12 @@ import { useToast } from "@/lib/notify";
 import { ChevronLeft, Save, BookOpen, Upload, X, Link2, Sparkles, Bot } from "lucide-react";
 import { InlineLoader, SectionLoader } from "@/components/ui/unified-loader";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+
+interface FormErrors {
+  title?: string;
+  description?: string;
+  youtubeUrl?: string;
+}
 
 export default function ModuleEdit() {
   const { t } = useTranslation('common');
@@ -31,6 +37,9 @@ export default function ModuleEdit() {
     video_url: "",
     image_url: "",
   });
+  const [formErrors, setFormErrors] = useState<FormErrors>({});
+  const [isDirty, setIsDirty] = useState(false);
+  const initialFormData = useRef<typeof formData | null>(null);
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState<string>("");
   const [aiSuggestions, setAiSuggestions] = useState<any[]>([]);
@@ -92,6 +101,49 @@ export default function ModuleEdit() {
     });
   };
 
+  // Validate fields on change
+  const validateField = useCallback((field: string, value: string): string | undefined => {
+    switch (field) {
+      case "title":
+        if (!value.trim()) return "Title is required";
+        if (value.trim().length < 3) return "Title must be at least 3 characters";
+        return undefined;
+      case "description":
+        if (!value.trim()) return "Description is required";
+        return undefined;
+      default:
+        return undefined;
+    }
+  }, []);
+
+  const updateFormField = useCallback((field: string, value: string) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+    if (field === "title" || field === "description") {
+      setFormErrors(prev => ({ ...prev, [field]: validateField(field, value) }));
+    }
+  }, [validateField]);
+
+  // Track dirty state
+  useEffect(() => {
+    if (!initialFormData.current) return;
+    const changed = Object.keys(formData).some(
+      key => formData[key as keyof typeof formData] !== initialFormData.current![key as keyof typeof formData]
+    );
+    setIsDirty(changed);
+  }, [formData]);
+
+  // Warn on navigation with unsaved changes
+  useEffect(() => {
+    const handler = (e: BeforeUnloadEvent) => {
+      if (isDirty) {
+        e.preventDefault();
+        e.returnValue = "";
+      }
+    };
+    window.addEventListener("beforeunload", handler);
+    return () => window.removeEventListener("beforeunload", handler);
+  }, [isDirty]);
+
   useEffect(() => {
     loadModuleData();
   }, [id, user]);
@@ -122,13 +174,17 @@ export default function ModuleEdit() {
       }
 
       setModule(moduleData);
-      setFormData({
+      const loaded = {
         title: moduleData.title || "",
         description: moduleData.description || "",
         estimated_minutes: moduleData.estimated_minutes?.toString() || "",
         video_url: moduleData.video_url || "",
         image_url: moduleData.image_url || "",
-      });
+      };
+      setFormData(loaded);
+      initialFormData.current = loaded;
+      setFormErrors({});
+      setIsDirty(false);
     } catch (error: unknown) {
       toast({
         title: "Error loading module",
@@ -200,19 +256,68 @@ export default function ModuleEdit() {
     return url;
   };
 
-  const handleYouTubeUrl = (url: string) => {
-    const embedUrl = convertYouTubeUrl(url);
-    setFormData({ ...formData, video_url: embedUrl });
+  const isValidYouTubeUrl = (url: string): boolean => {
+    if (!url.trim()) return true; // empty is fine
+    const pattern = /^(https?:\/\/)?(www\.)?(youtube\.com\/(watch\?v=|embed\/|v\/)|youtu\.be\/)[a-zA-Z0-9_-]{11}/;
+    return pattern.test(url);
   };
+
+  const handleYouTubeUrl = async (url: string) => {
+    if (!url.trim()) {
+      setFormErrors(prev => ({ ...prev, youtubeUrl: undefined }));
+      return;
+    }
+
+    if (!isValidYouTubeUrl(url)) {
+      setFormErrors(prev => ({ ...prev, youtubeUrl: "Please enter a valid YouTube URL (e.g., https://youtube.com/watch?v=...)" }));
+      return;
+    }
+
+    setFormErrors(prev => ({ ...prev, youtubeUrl: undefined }));
+    const embedUrl = convertYouTubeUrl(url);
+    setFormData(prev => ({ ...prev, video_url: embedUrl }));
+
+    // Auto-fetch metadata from YouTube via noembed
+    const videoIdMatch = url.match(/(?:youtu\.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*)/);
+    if (videoIdMatch && videoIdMatch[1]) {
+      try {
+        const res = await fetch(`https://noembed.com/embed?url=https://www.youtube.com/watch?v=${videoIdMatch[1]}`);
+        const data = await res.json();
+        if (data && !data.error) {
+          setFormData(prev => ({
+            ...prev,
+            video_url: embedUrl,
+            title: prev.title || data.title || prev.title,
+            image_url: prev.image_url || data.thumbnail_url || prev.image_url,
+          }));
+          if (data.title) {
+            toast({
+              title: "Video found",
+              description: `Auto-filled from: ${data.title}`,
+            });
+          }
+        }
+      } catch {
+        // Silent fail — metadata fetch is optional
+      }
+    }
+  };
+
+  const hasFormErrors = !!(formErrors.title || formErrors.description || formErrors.youtubeUrl);
+  const isFormValid = formData.title.trim().length >= 3 && formData.description.trim().length > 0 && !hasFormErrors;
 
   const handleSubmit = async (e?: React.FormEvent) => {
     e?.preventDefault();
     if (!user || !id) return;
 
-    if (!formData.title.trim()) {
+    // Run full validation
+    const titleErr = validateField("title", formData.title);
+    const descErr = validateField("description", formData.description);
+    if (titleErr || descErr) {
+      setFormErrors(prev => ({ ...prev, title: titleErr, description: descErr }));
       toast({
-        title: "Title required",
-        description: "Please enter a module title",
+        title: "Validation errors",
+        description: "Please fix the highlighted fields",
         variant: "destructive",
       });
       return;
@@ -246,6 +351,7 @@ export default function ModuleEdit() {
         title: "Module updated",
         description: "Your changes have been saved successfully",
       });
+      setIsDirty(false);
 
       await loadModuleData();
     } catch (error: unknown) {
@@ -286,20 +392,20 @@ export default function ModuleEdit() {
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => navigate(`/courses/manage-modules/${module.course_id}`)}
+              onClick={() => navigate(`/courses/${module.courses?.id}/edit`)}
             >
               <ChevronLeft className="h-4 w-4 mr-1" />
-              Back to Modules
+              Back to Course
             </Button>
           </div>
           <div className="flex gap-2">
             <Button
               variant="outline"
-              onClick={() => navigate(`/courses/manage-modules/${module.course_id}`)}
+              onClick={() => navigate(`/courses/${module.courses?.id}/edit`)}
             >
               Cancel
             </Button>
-            <Button onClick={() => handleSubmit()} disabled={saving}>
+            <Button onClick={() => handleSubmit()} disabled={saving || !isFormValid}>
               {saving ? (
                 <>
                   <InlineLoader />
@@ -318,7 +424,7 @@ export default function ModuleEdit() {
         {/* Main Content */}
         <Card className="p-6">
           <div className="flex items-center gap-3 mb-6">
-            <div className="p-2 squircle-sm bg-primary/10">
+            <div className="p-2 rounded-xl bg-primary/10">
               <BookOpen className="h-5 w-5 text-primary" />
             </div>
             <div>
@@ -329,7 +435,7 @@ export default function ModuleEdit() {
 
           <form onSubmit={handleSubmit} className="space-y-6">
             <Tabs defaultValue="basic" className="w-full">
-              <TabsList className="squircle mb-6">
+              <TabsList className="rounded-2xl mb-6">
                 <TabsTrigger value="basic">{t('moduleEdit.text5')}</TabsTrigger>
                 <TabsTrigger value="media">{t('moduleEdit.text6')}</TabsTrigger>
               </TabsList>
@@ -340,12 +446,14 @@ export default function ModuleEdit() {
                   <Input
                     id="title"
                     value={formData.title}
-                    onChange={(e) =>
-                      setFormData({ ...formData, title: e.target.value })
-                    }
+                    onChange={(e) => updateFormField("title", e.target.value)}
                     placeholder={"e.g., Introduction to React Hooks"}
                     required
+                    className={formErrors.title ? "border-red-500 focus-visible:ring-red-500" : ""}
                   />
+                  {formErrors.title && (
+                    <p className="text-xs text-red-500">{formErrors.title}</p>
+                  )}
                 </div>
 
                 <div className="space-y-2">
@@ -353,13 +461,15 @@ export default function ModuleEdit() {
                   <Textarea
                     id="description"
                     value={formData.description}
-                    onChange={(e) =>
-                      setFormData({ ...formData, description: e.target.value })
-                    }
+                    onChange={(e) => updateFormField("description", e.target.value)}
                     placeholder={t('moduleEdit.text7')}
                     rows={6}
                     required
+                    className={formErrors.description ? "border-red-500 focus-visible:ring-red-500" : ""}
                   />
+                  {formErrors.description && (
+                    <p className="text-xs text-red-500">{formErrors.description}</p>
+                  )}
                 </div>
 
                 <div className="space-y-2">
@@ -443,6 +553,7 @@ export default function ModuleEdit() {
                         id="youtube_url"
                         placeholder="https://youtube.com/watch?v=..."
                         onBlur={(e) => handleYouTubeUrl(e.target.value)}
+                        className={formErrors.youtubeUrl ? "border-red-500 focus-visible:ring-red-500" : ""}
                       />
                       <Button
                         type="button"
@@ -456,6 +567,9 @@ export default function ModuleEdit() {
                         <Link2 className="h-4 w-4" />
                       </Button>
                     </div>
+                    {formErrors.youtubeUrl && (
+                      <p className="text-xs text-red-500">{formErrors.youtubeUrl}</p>
+                    )}
                   </div>
 
                   {/* OR Divider */}
@@ -494,6 +608,7 @@ export default function ModuleEdit() {
                         <Upload className="h-4 w-4" />
                       </Button>
                     </div>
+                    <p className="text-xs text-muted-foreground">Max 100MB</p>
                   </div>
 
                   {/* Video Preview */}
@@ -546,6 +661,7 @@ export default function ModuleEdit() {
                       disabled={uploading}
                       className="cursor-pointer"
                     />
+                    <p className="text-xs text-muted-foreground">Max 10MB</p>
                   </div>
 
                   {/* Image Preview */}

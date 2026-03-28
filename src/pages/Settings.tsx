@@ -9,6 +9,7 @@ import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { useLocation, useNavigate } from "react-router-dom";
 import { NotificationPreferences } from "@/components/settings/NotificationPreferences";
+import { SoundSettings } from "@/components/settings/SoundSettings";
 import { ProfileSettings } from "@/components/settings/ProfileSettings";
 import { CompensationSettings } from "@/components/settings/CompensationSettings";
 import { SecuritySettings } from "@/components/settings/SecuritySettings";
@@ -129,6 +130,7 @@ const Settings = () => {
             <TabsTrigger value="calendar">{t('text.settings.calendar', 'Calendar')}</TabsTrigger>
             <TabsTrigger value="communication">{t('text.settings.comms', 'Comms')}</TabsTrigger>
             <TabsTrigger value="notifications">{t('text.settings.alerts', 'Alerts')}</TabsTrigger>
+            <TabsTrigger value="sound">{t('text.settings.sound', 'Sound')}</TabsTrigger>
             <TabsTrigger value="privacy">{t('text.settings.privacy', 'Privacy')}</TabsTrigger>
             <TabsTrigger value="security">{t('text.settings.security', 'Security')}</TabsTrigger>
             <TabsTrigger value="api">{t('text.settings.api', 'API')}</TabsTrigger>
@@ -231,6 +233,10 @@ const Settings = () => {
 
           <TabsContent value="notifications" className="space-y-4">
             <NotificationPreferences />
+          </TabsContent>
+
+          <TabsContent value="sound" className="space-y-4">
+            <SoundSettings />
           </TabsContent>
 
           <TabsContent value="privacy" className="space-y-4">

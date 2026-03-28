@@ -305,9 +305,9 @@ export const UnifiedStatsBar = ({ role, stats, loading = false }: UnifiedStatsBa
             <MetricCard
               icon={stat.icon}
               iconColor={stat.isCTA ? 'warning' : stat.iconColor}
-              title={stat.titleFallback}
+              title={t(stat.titleKey, stat.titleFallback)}
               primaryMetric={stat.value}
-              secondaryText={stat.secondaryFallback}
+              secondaryText={t(stat.secondaryKey, stat.secondaryFallback)}
               className={
                 stat.isCTA
                   ? "border-primary/40 bg-primary/5 hover:border-primary/60 hover:bg-primary/10 transition-all duration-300 cursor-pointer animate-pulse-subtle"

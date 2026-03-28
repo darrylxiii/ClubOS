@@ -38,14 +38,14 @@ interface Achievement {
 }
 
 const getCategoryLabels = (t: (key: string) => string) => [
-  { value: "all", label: t('achievements.categories.all'), icon: Sparkles },
-  { value: "influence", label: t('achievements.categories.influence'), icon: Zap },
-  { value: "innovation", label: t('achievements.categories.innovation'), icon: Rocket },
-  { value: "social", label: t('achievements.categories.social'), icon: Users },
-  { value: "learning", label: t('achievements.categories.learning'), icon: Brain },
-  { value: "prestige", label: t('achievements.categories.prestige'), icon: Crown },
-  { value: "event", label: t('achievements.categories.event'), icon: Calendar },
-  { value: "pioneer", label: t('achievements.categories.pioneer'), icon: Sparkles },
+  { value: "all", label: 'All', icon: Sparkles },
+  { value: "influence", label: 'Influence', icon: Zap },
+  { value: "innovation", label: 'Innovation', icon: Rocket },
+  { value: "social", label: 'Social', icon: Users },
+  { value: "learning", label: 'Learning', icon: Brain },
+  { value: "prestige", label: 'Prestige', icon: Crown },
+  { value: "event", label: 'Event', icon: Calendar },
+  { value: "pioneer", label: 'Pioneer', icon: Sparkles },
 ];
 
 export const AchievementClusters = ({

@@ -207,7 +207,7 @@ export const HiringPipelineOverview = ({ companyId }: HiringPipelineOverviewProp
         </div>
 
         <Button className="w-full mt-4" variant="outline" asChild>
-          <Link to="/company-applications">View Full Pipeline</Link>
+          <Link to="/company-applications">{t('common:viewFullPipeline', 'View Full Pipeline')}</Link>
         </Button>
 
         {/* Contextual nudge when pipeline exists but few roles */}

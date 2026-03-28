@@ -187,9 +187,9 @@ export const NotificationPreferences = () => {
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="email">Email</SelectItem>
-              <SelectItem value="sms" disabled={!hasPhone}>SMS</SelectItem>
-              <SelectItem value="whatsapp" disabled={!hasPhone}>WhatsApp</SelectItem>
+              <SelectItem value="email">{t('notifications.email', 'Email')}</SelectItem>
+              <SelectItem value="sms" disabled={!hasPhone}>{t('notifications.sms', 'SMS')}</SelectItem>
+              <SelectItem value="whatsapp" disabled={!hasPhone}>{t('notifications.whatsApp', 'WhatsApp')}</SelectItem>
             </SelectContent>
           </Select>
         </CardContent>

@@ -1,15 +1,21 @@
 import { createHandler } from '../_shared/handler.ts';
 import { SupabaseClient } from "npm:@supabase/supabase-js@2";
 import { sendWhatsAppMessage, sendSMS, sendEmail, getCandidateContact, logAgentCommunication } from "../_shared/communication-utils.ts";
+import { baseEmailTemplate } from '../_shared/email-templates/base-template.ts';
+import { Heading, Paragraph, Spacer, Button, StatusBadge } from '../_shared/email-templates/components.ts';
+import { z, parseBody, uuidSchema } from '../_shared/validation.ts';
+import { sanitizeForEmail } from '../_shared/sanitize.ts';
 
-interface EventProcessorRequest {
-  operation: 'process_events' | 'publish_event' | 'check_autonomy' | 'execute_autonomous_action';
-  userId?: string;
-  data?: Record<string, unknown>;
-}
+const requestSchema = z.object({
+  operation: z.enum(['process_events', 'publish_event', 'check_autonomy', 'execute_autonomous_action']),
+  userId: uuidSchema.optional(),
+  data: z.record(z.unknown()).optional(),
+});
 
 Deno.serve(createHandler(async (req, ctx) => {
-    const { operation, userId, data } = await req.json() as EventProcessorRequest;
+    const parsed = await parseBody(req, requestSchema, ctx.corsHeaders);
+    if ('error' in parsed) return parsed.error;
+    const { operation, userId, data } = parsed.data;
     const supabase = ctx.supabase;
 
     let result: Record<string, unknown>;
@@ -202,17 +208,34 @@ async function handleNewApplication(supabase: SupabaseClient, event: Record<stri
     const contact = await getCandidateContact(supabase, applicationData.candidate_id);
     
     if (contact?.email) {
+      const greeting = sanitizeForEmail(contact.name) || 'there';
+      const safePosition = sanitizeForEmail(applicationData.position);
+      const safeCompanyName = sanitizeForEmail(applicationData.company_name);
+      const emailContent = `
+        ${StatusBadge({ status: 'pending', text: 'APPLICATION RECEIVED' })}
+        ${Heading({ text: 'Application Received', level: 1, align: 'center' })}
+        ${Spacer(24)}
+        ${Paragraph(`Hi ${greeting},`, 'secondary')}
+        ${Spacer(8)}
+        ${Paragraph(`Thank you for applying to <strong>${safePosition}</strong> at <strong>${safeCompanyName}</strong>.`, 'secondary')}
+        ${Spacer(8)}
+        ${Paragraph('Your application has been received and is now being reviewed. We\'ll be in touch soon with next steps.', 'secondary')}
+        ${Spacer(24)}
+        ${Paragraph('Best regards,<br><strong>The Quantum Club Team</strong>', 'secondary')}
+      `;
+
+      const brandedHtml = baseEmailTemplate({
+        preheader: `Application received for ${safePosition} at ${safeCompanyName}`,
+        content: emailContent,
+        showHeader: true,
+        showFooter: true,
+      });
+
       const emailResult = await sendEmail({
         to: contact.email,
-        subject: `Application Received: ${applicationData.position} at ${applicationData.company_name}`,
-        body: `Hi ${contact.name || 'there'},\n\nThank you for applying to ${applicationData.position} at ${applicationData.company_name}. Your application has been received and is now being reviewed.\n\nWe'll be in touch soon with next steps.\n\nBest regards,\nThe Quantum Club Team`,
-        html: `
-          <h2>Application Received</h2>
-          <p>Hi ${contact.name || 'there'},</p>
-          <p>Thank you for applying to <strong>${applicationData.position}</strong> at <strong>${applicationData.company_name}</strong>.</p>
-          <p>Your application has been received and is now being reviewed. We'll be in touch soon with next steps.</p>
-          <p>Best regards,<br>The Quantum Club Team</p>
-        `
+        subject: `Application Received: ${safePosition} at ${safeCompanyName}`,
+        body: `Hi ${greeting},\n\nThank you for applying to ${safePosition} at ${safeCompanyName}. Your application has been received and is now being reviewed.\n\nWe'll be in touch soon with next steps.\n\nBest regards,\nThe Quantum Club Team`,
+        html: brandedHtml,
       });
       
       await logAgentCommunication(supabase, {
@@ -246,7 +269,7 @@ async function handleDeadlineApproaching(supabase: SupabaseClient, event: Record
     const contact = await getCandidateContact(supabase, event.event_data.candidate_id);
     
     if (contact?.phone) {
-      const reminderMessage = `Hi ${contact.name || 'there'}! This is a friendly reminder from The Quantum Club: ${event.event_data?.message || 'You have an upcoming deadline.'}`;
+      const reminderMessage = `Hi ${sanitizeForEmail(contact.name) || 'there'}! This is a friendly reminder from The Quantum Club: ${event.event_data?.message || 'You have an upcoming deadline.'}`;
       
       // Try WhatsApp first, fall back to SMS
       let sent = await sendWhatsAppMessage(supabase, {

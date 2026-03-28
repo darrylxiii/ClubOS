@@ -86,7 +86,7 @@ const BlogEngine: React.FC = () => {
             <div>
               <h1 className="text-2xl md:text-3xl font-semibold text-foreground">{t('blogEngine.title')}</h1>
               <p className="text-muted-foreground mt-1">
-                AI-powered content generation and management.
+                {t('blogEngine.aiPoweredContent', 'AI-powered content generation and management.')}
                 {settings && (
                   <span className="ml-2">
                     {settings.preferred_formats?.length || 0} formats active
@@ -132,7 +132,7 @@ const BlogEngine: React.FC = () => {
                 <CardContent className="pt-4 pb-4">
                   <div className="flex items-center gap-2 text-muted-foreground mb-1">
                     <Eye className="h-3.5 w-3.5" />
-                    <span className="text-xs uppercase tracking-wide">Views (30d)</span>
+                    <span className="text-xs uppercase tracking-wide">{t('blogEngine.views30d', 'Views (30d)')}</span>
                   </div>
                   <p className="text-2xl font-semibold">{stats?.totalViews ?? '—'}</p>
                 </CardContent>
@@ -141,7 +141,7 @@ const BlogEngine: React.FC = () => {
                 <CardContent className="pt-4 pb-4">
                   <div className="flex items-center gap-2 text-muted-foreground mb-1">
                     <FileText className="h-3.5 w-3.5" />
-                    <span className="text-xs uppercase tracking-wide">Published</span>
+                    <span className="text-xs uppercase tracking-wide">{t('blogEngine.published', 'Published')}</span>
                   </div>
                   <p className="text-2xl font-semibold">{stats?.published ?? '—'}</p>
                 </CardContent>
@@ -150,7 +150,7 @@ const BlogEngine: React.FC = () => {
                 <CardContent className="pt-4 pb-4">
                   <div className="flex items-center gap-2 text-muted-foreground mb-1">
                     <ArrowDown className="h-3.5 w-3.5" />
-                    <span className="text-xs uppercase tracking-wide">Avg Scroll</span>
+                    <span className="text-xs uppercase tracking-wide">{t('blogEngine.avgScroll', 'Avg Scroll')}</span>
                   </div>
                   <p className="text-2xl font-semibold">{stats?.avgScroll ?? '—'}%</p>
                 </CardContent>
@@ -188,7 +188,7 @@ const BlogEngine: React.FC = () => {
             {stats?.topPosts && stats.topPosts.length > 0 && (
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-lg">Top Performing Articles</CardTitle>
+                  <CardTitle className="text-lg">{t('blogEngine.topPerformingArticles', 'Top Performing Articles')}</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-2">
@@ -253,7 +253,7 @@ const BlogEngine: React.FC = () => {
           <TabsContent value="settings" className="space-y-6">
             <Card>
               <CardHeader>
-                <CardTitle>Engine Configuration</CardTitle>
+                <CardTitle>{t('blogEngine.engineConfig', 'Engine Configuration')}</CardTitle>
                 <CardDescription>
                   Use the Engine Control button above for full configuration. This tab shows a summary.
                 </CardDescription>

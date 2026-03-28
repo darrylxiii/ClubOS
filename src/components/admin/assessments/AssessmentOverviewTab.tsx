@@ -56,40 +56,40 @@ export const AssessmentOverviewTab = memo(() => {
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Attempts</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('assessmentOverview.totalAttempts', 'Total Attempts')}</CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.totalAttempts}</div>
-            <p className="text-xs text-muted-foreground">All time assessments started</p>
+            <p className="text-xs text-muted-foreground">{t('assessmentOverview.allTimeStarted', 'All time assessments started')}</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Completion Rate</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('assessmentOverview.completionRate', 'Completion Rate')}</CardTitle>
             <TrendingUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.avgCompletionRate}%</div>
-            <p className="text-xs text-muted-foreground">Average across all assessments</p>
+            <p className="text-xs text-muted-foreground">{t('assessmentOverview.avgAcrossAll', 'Average across all assessments')}</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Average Score</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('assessmentOverview.averageScore', 'Average Score')}</CardTitle>
             <BarChart className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.avgScore}%</div>
-            <p className="text-xs text-muted-foreground">Platform-wide average</p>
+            <p className="text-xs text-muted-foreground">{t('assessmentOverview.platformWide', 'Platform-wide average')}</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Completed Today</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('assessmentOverview.completedToday', 'Completed Today')}</CardTitle>
             <CheckCircle className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -101,7 +101,7 @@ export const AssessmentOverviewTab = memo(() => {
 
       <Card>
         <CardHeader>
-          <CardTitle>Assessment Activity</CardTitle>
+          <CardTitle>{t('assessmentOverview.assessmentActivity', 'Assessment Activity')}</CardTitle>
         </CardHeader>
         <CardContent>
           <p className="text-sm text-muted-foreground">

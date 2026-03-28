@@ -201,7 +201,23 @@
     "desc": "Track your commissions, targets, and placements",
     "text2": "My Performance",
     "text3": "Hours This Month",
-    "text4": "Revenue per Hour"
+    "text4": "Revenue per Hour",
+    "refresh": "Refresh",
+    "timeProductivity": "Time & Productivity",
+    "noDataTitle": "No performance data yet",
+    "noDataDesc": "Start sourcing candidates and making placements to see your performance stats, pipeline value, and earnings here.",
+    "tabs": {
+      "overview": "Overview",
+      "pipeline": "Pipeline & Earnings",
+      "kpis": "KPIs",
+      "activity": "Activity",
+      "development": "Development"
+    },
+    "kpiHeading": "Key Performance Indicators",
+    "last7days": "Last 7 days",
+    "last30days": "Last 30 days",
+    "last60days": "Last 60 days",
+    "last90days": "Last 90 days"
   },
   "salaryInsights": {
     "desc": "Real market insights powered by platform data",
@@ -223,5 +239,35 @@
   "teamPerformance": {
     "desc": "Manage and track your team's performance and commissions",
     "text2": "Team Performance"
+  },
+  "clientAnalytics": {
+    "totalProjects": "Total Projects",
+    "completionRate": "Completion Rate",
+    "totalSpent": "Total Spent",
+    "avgProposals": "Avg. Proposals",
+    "statusDistribution": "Project Status Distribution",
+    "currentBreakdown": "Current project breakdown",
+    "monthlySpending": "Monthly Spending",
+    "avgTimeToProposal": "Avg. time to first proposal",
+    "avgTimeToHire": "Avg. time to hire",
+    "avgProjectDuration": "Avg. project duration",
+    "tipMoreDetails": "Add more project details to attract more proposals",
+    "tipMilestones": "Use milestone payments to reduce project risk",
+    "tipReviews": "Leave reviews to build your client reputation"
+  },
+  "freelancerAnalytics": {
+    "profileViews": "Profile Views",
+    "proposalSuccess": "Proposal Success",
+    "totalEarnings": "Total Earnings",
+    "avgRating": "Average Rating",
+    "profileViewsProposals": "Profile Views & Proposals",
+    "last30Days": "Last 30 days activity",
+    "successByCategory": "Success Rate by Category",
+    "proposalAcceptance": "Proposal acceptance rates",
+    "avgResponseTime": "Avg. response time",
+    "connectsRemaining": "Connects remaining",
+    "completionRate": "Completion rate",
+    "tipPersonalize": "Personalize proposals more — mention specific project details",
+    "tipVideoIntro": "Add a video introduction to increase profile views by 40%"
   }
 }

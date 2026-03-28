@@ -13,6 +13,7 @@
  */
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useTranslation } from "react-i18next";
+import { quantumSoundEngine } from "@/lib/sounds/QuantumSoundEngine";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -58,6 +59,15 @@ export function CandidateOnboardingSteps() {
   const [sessionId] = useState(() => crypto.randomUUID());
   const [showRecoveryBanner, setShowRecoveryBanner] = useState(true);
   const [startTime] = useState(Date.now());
+
+  // Endowed Progress: Play first note of 5-note sequence on mount
+  // This implies the journey has already started — Zeigarnik effect from minute zero
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      quantumSoundEngine.play('achievement.xp_earned');
+    }, 1500); // slight delay for page settle
+    return () => clearTimeout(timer);
+  }, []);
   const [stepStartTime, setStepStartTime] = useState(Date.now());
   const [phoneNumber, setPhoneNumber] = useState("");
   const [verificationCode, setVerificationCode] = useState("");
@@ -66,6 +76,8 @@ export function CandidateOnboardingSteps() {
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [termsConsent, setTermsConsent] = useState(false);
   const [privacyConsent, setPrivacyConsent] = useState(false);
+  const [marketingConsent, setMarketingConsent] = useState(false);
+  const [ageVerified, setAgeVerified] = useState(false);
   
   const { uploadResume, isUploading: isUploadingResume, validateFile } = useResumeUpload();
   
@@ -339,6 +351,19 @@ export function CandidateOnboardingSteps() {
     
     await savePartialProgress(currentStep);
     await trackStep("complete");
+
+    // Zeigarnik completion sequence: progressively richer sounds per step
+    // Step 0→1: common (2 notes), Step 1→2: rare (3 notes), etc.
+    const stepSounds = [
+      'achievement.common',     // step 0 complete
+      'achievement.rare',       // step 1 complete
+      'achievement.rare',       // step 2 complete
+      'achievement.epic',       // step 3 complete
+      'achievement.epic',       // step 4 complete
+      'achievement.legendary',  // final step — full resolution
+    ];
+    quantumSoundEngine.play(stepSounds[currentStep] || 'achievement.common');
+
     setCurrentStep(currentStep + 1);
   };
 
@@ -396,11 +421,19 @@ export function CandidateOnboardingSteps() {
         }
         break;
       case 5:
+        if (!ageVerified) {
+          toast({
+            title: t('candidate.validation.ageVerificationRequired', 'Age verification required'),
+            description: t('candidate.validation.mustConfirmAge', 'You must confirm that you are at least 16 years old to use this platform'),
+            variant: "destructive"
+          });
+          return false;
+        }
         if (!termsConsent || !privacyConsent) {
-          toast({ 
-            title: t('candidate.validation.consentRequired', 'Consent required'), 
+          toast({
+            title: t('candidate.validation.consentRequired', 'Consent required'),
             description: t('candidate.validation.acceptBothRequired', 'Please accept both the Terms of Service and Privacy Policy to continue'),
-            variant: "destructive" 
+            variant: "destructive"
           });
           return false;
         }
@@ -422,11 +455,20 @@ export function CandidateOnboardingSteps() {
   };
 
   const handleSubmit = async () => {
+    if (!ageVerified) {
+      toast({
+        title: t('candidate.validation.ageVerificationRequired', 'Age verification required'),
+        description: t('candidate.validation.mustConfirmAge', 'You must confirm that you are at least 16 years old to use this platform'),
+        variant: "destructive"
+      });
+      return;
+    }
+
     if (!termsConsent || !privacyConsent) {
-      toast({ 
-        title: t('candidate.validation.consentRequired', 'Consent required'), 
+      toast({
+        title: t('candidate.validation.consentRequired', 'Consent required'),
         description: t('candidate.validation.acceptBothRequired', 'Please accept both the Terms of Service and Privacy Policy to continue'),
-        variant: "destructive" 
+        variant: "destructive"
       });
       return;
     }
@@ -525,6 +567,9 @@ export function CandidateOnboardingSteps() {
             account_status: 'pending',
             terms_accepted_at: consentTimestamp,
             privacy_accepted_at: consentTimestamp,
+            marketing_consent_at: marketingConsent ? consentTimestamp : null,
+            age_verified: true,
+            age_verified_at: consentTimestamp,
           })
           .eq('id', authData.user.id);
 
@@ -539,9 +584,19 @@ export function CandidateOnboardingSteps() {
               },
               {
                 consent_type: 'privacy_policy',
-                scope: 'data_processing_and_communications',
-                consent_text: 'User accepted Privacy Policy during onboarding (includes marketing communications consent)'
-              }
+                scope: 'data_processing',
+                consent_text: 'User accepted Privacy Policy during onboarding'
+              },
+              {
+                consent_type: 'age_verification',
+                scope: 'platform_access',
+                consent_text: 'User confirmed they are at least 16 years of age (GDPR/COPPA compliance)'
+              },
+              ...(marketingConsent ? [{
+                consent_type: 'marketing_communications',
+                scope: 'marketing',
+                consent_text: 'User opted in to receive career opportunities, job alerts, and communications from The Quantum Club'
+              }] : [])
             ]
           }
         });
@@ -599,7 +654,7 @@ export function CandidateOnboardingSteps() {
         console.log('[Onboarding] Found existing candidate profile');
         
         if (existingCandidate.user_id && existingCandidate.user_id !== authData.user.id) {
-          throw new Error('This email is already linked to another account. Please contact support at hello@thequantumclub.com');
+          throw new Error('This email is already linked to another account. Please contact support at info@thequantumclub.com');
         }
         
         if (autoMergeEnabled) {
@@ -752,7 +807,7 @@ export function CandidateOnboardingSteps() {
       toast({ 
         title: t('candidate.messages.accountCreationFailed', 'Account creation failed'), 
         description: err.message?.includes('already linked') 
-          ? t('candidate.messages.emailAlreadyLinked', 'This email is already associated with another account. Please contact support@thequantumclub.com')
+          ? t('candidate.messages.emailAlreadyLinked', 'This email is already associated with another account. Please contact info@thequantumclub.com')
           : err.message?.includes('link your profile')
           ? t('candidate.messages.profileMergeFailed', "We found your profile but couldn't complete the merge. Please try again or contact support.")
           : err.message || t('candidate.messages.unexpectedError', 'An unexpected error occurred. Please try again or contact support.'), 
@@ -1078,6 +1133,12 @@ export function CandidateOnboardingSteps() {
                     </Button>
                   </div>
                 )}
+                <p className="text-xs text-muted-foreground mt-1.5">
+                  {t('candidate.professional.resumePrivacyNotice', 'Your resume will be securely stored and may be analyzed by AI to improve job matching. See our')}{' '}
+                  <Link to="/legal/privacy" className="text-primary hover:underline">{t('privacy_policy', 'Privacy Policy')}</Link>
+                  {' '}{t('common.and', 'and')}{' '}
+                  <Link to="/legal/ai-transparency" className="text-primary hover:underline">{t('ai_transparency_policy', 'AI Transparency Policy')}</Link>.
+                </p>
               </div>
             </div>
           </FunnelErrorBoundary>
@@ -1524,12 +1585,28 @@ export function CandidateOnboardingSteps() {
                   )}
                 </div>
 
-                {/* Legal Agreements - Two separate checkboxes */}
+                {/* Legal Agreements */}
                 <div className="p-4 border-2 border-border rounded-lg bg-accent/5 space-y-4">
                   <h3 className="text-sm font-semibold text-foreground">
                     {t('candidate.consent.sectionTitle', 'Legal Agreements')}
                   </h3>
-                  
+
+                  {/* Age Verification Checkbox (GDPR/COPPA) */}
+                  <div className="flex items-start gap-3">
+                    <Checkbox
+                      id="age-verification"
+                      checked={ageVerified}
+                      onCheckedChange={(checked) => setAgeVerified(checked === true)}
+                      aria-label={t('candidate.consent.ageVerificationLabel', 'Age verification')}
+                      aria-required="true"
+                      className="mt-0.5"
+                    />
+                    <Label htmlFor="age-verification" className="text-sm leading-relaxed cursor-pointer flex items-center gap-1.5">
+                      <Shield className="w-3.5 h-3.5 text-primary flex-shrink-0" aria-hidden="true" />
+                      {t('candidate.consent.ageVerificationText', 'I confirm that I am at least 16 years of age')} *
+                    </Label>
+                  </div>
+
                   {/* Terms of Service Checkbox */}
                   <div className="flex items-start gap-3">
                     <Checkbox
@@ -1566,15 +1643,24 @@ export function CandidateOnboardingSteps() {
                     </Label>
                   </div>
 
-                  {/* Communications Note */}
-                  <p className="text-xs text-muted-foreground pt-2 border-t border-border/50">
-                    {t('candidate.consent.communicationsNote', 'By creating an account, you consent to receiving career opportunities and communications from The Quantum Club.')}
-                  </p>
+                  {/* Marketing Communications Checkbox (optional) */}
+                  <div className="flex items-start gap-3 pt-2 border-t border-border/50">
+                    <Checkbox
+                      id="marketing-consent"
+                      checked={marketingConsent}
+                      onCheckedChange={(checked) => setMarketingConsent(checked === true)}
+                      aria-label={t('candidate.consent.marketingLabel', 'Marketing communications consent')}
+                      className="mt-0.5"
+                    />
+                    <Label htmlFor="marketing-consent" className="text-sm leading-relaxed cursor-pointer">
+                      {t('candidate.consent.marketingText', 'I agree to receive career opportunities, job alerts, and communications from The Quantum Club. You can unsubscribe at any time.')}
+                    </Label>
+                  </div>
 
                   {/* Validation hint */}
-                  {(!termsConsent || !privacyConsent) && (
+                  {(!ageVerified || !termsConsent || !privacyConsent) && (
                     <p className="text-xs text-destructive/80">
-                      {t('candidate.consent.mustAcceptBoth', 'Both agreements are required to continue')}
+                      {t('candidate.consent.mustAcceptAll', 'Age verification and both agreements are required to continue')}
                     </p>
                   )}
                 </div>
@@ -1584,8 +1670,10 @@ export function CandidateOnboardingSteps() {
                 <p className="text-sm text-muted-foreground">
                   ✓ {t('candidate.password.emailVerifiedLabel', 'Email verified')}: {formData.email}<br/>
                   ✓ {t('candidate.password.phoneVerifiedLabel', 'Phone verified')}: {phoneNumber}<br/>
+                  {ageVerified ? "✓" : "○"} {t('candidate.consent.ageVerificationSummary', 'Age verification (16+)')}<br/>
                   {termsConsent ? "✓" : "○"} {t('candidate.consent.termsLink', 'Terms of Service')}<br/>
                   {privacyConsent ? "✓" : "○"} {t('candidate.consent.privacyLink', 'Privacy Policy')}<br/>
+                  {marketingConsent ? "✓" : "○"} {t('candidate.consent.marketingSummary', 'Marketing communications (optional)')}<br/>
                   ○ {t('candidate.password.accountCreated', 'Account will be created after submission')}
                 </p>
               </div>
@@ -1738,7 +1826,7 @@ export function CandidateOnboardingSteps() {
           <Button 
             type="button" 
             onClick={handleSubmit} 
-            disabled={isLoading || !isOnline || !termsConsent || !privacyConsent}
+            disabled={isLoading || !isOnline || !ageVerified || !termsConsent || !privacyConsent}
             aria-label={t('candidate.navigation.createAccount', 'Create account')}
           >
             {isLoading ? t('candidate.navigation.creatingAccount', 'Creating Account...') : t('candidate.navigation.createAccount', 'Create Account')}

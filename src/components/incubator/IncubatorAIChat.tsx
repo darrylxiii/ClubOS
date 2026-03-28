@@ -4,7 +4,8 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Send, Bot, User, Loader2 } from 'lucide-react';
+import { Send, Bot, User, Loader2, Sparkles } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
 
 interface Message {
@@ -185,6 +186,16 @@ What would you like to work on?`,
 
   return (
     <div className="h-full flex flex-col">
+      <div className="px-4 pt-3">
+        <p className="flex items-center gap-1 text-xs text-muted-foreground">
+          <Sparkles className="w-3 h-3" />
+          {t('ai.powered', 'AI-powered')}
+          {' · '}
+          <Link to="/legal/ai-transparency" className="text-primary hover:underline">
+            {t('ai.learnMore', 'Learn more')}
+          </Link>
+        </p>
+      </div>
       <ScrollArea className="flex-1 p-4" ref={scrollRef}>
         <div className="space-y-4">
           {messages.map((message) => (

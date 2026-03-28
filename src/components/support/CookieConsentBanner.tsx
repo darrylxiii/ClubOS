@@ -142,10 +142,10 @@ export const CookieConsentBanner = () => {
                 </div>
                 
                 <p className="text-sm text-muted-foreground mb-4">
-                  We use cookies to enhance your experience, analyze site traffic, and personalize content.
+                  {t('support.cookieDescription', 'We use cookies to enhance your experience, analyze site traffic, and personalize content.')}
                   {' '}
-                  <a href="/legal/cookie-policy" className="text-primary hover:underline">
-                    Learn more
+                  <a href="/legal/cookies" className="text-primary hover:underline">
+                    {t('support.learnMore', 'Learn more')}
                   </a>
                 </p>
 
@@ -215,7 +215,7 @@ export const CookieConsentBanner = () => {
                         variant="ghost"
                         size="sm"
                       >
-                        Customize
+                        {t('support.customize', 'Customize')}
                       </Button>
                     </>
                   ) : (
@@ -230,7 +230,7 @@ export const CookieConsentBanner = () => {
                         variant="outline"
                         size="sm"
                       >
-                        Back
+                        {t('support.back', 'Back')}
                       </Button>
                     </>
                   )}

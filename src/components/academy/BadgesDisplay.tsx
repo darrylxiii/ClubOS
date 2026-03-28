@@ -63,7 +63,7 @@ export function BadgesDisplay() {
   };
 
   return (
-    <Card className="squircle p-6">
+    <Card className="rounded-2xl p-6">
       <div className="flex items-center gap-3 mb-4">
         <div className="p-2 rounded-lg bg-primary/10">
           <Award className="h-5 w-5 text-primary" />
@@ -80,12 +80,12 @@ export function BadgesDisplay() {
         {badges.map((badge) => (
           <Card
             key={badge.id}
-            className={`squircle p-4 text-center ${
+            className={`rounded-2xl p-4 text-center ${
               badge.earned ? 'hover-lift' : 'opacity-50'
             }`}
           >
             <div
-              className={`inline-flex p-3 squircle-sm mb-2 ${
+              className={`inline-flex p-3 rounded-xl mb-2 ${
                 badge.earned
                   ? 'bg-primary/10 text-primary'
                   : 'bg-muted text-muted-foreground'
@@ -102,13 +102,13 @@ export function BadgesDisplay() {
               {badge.badge_description}
             </p>
             {badge.earned ? (
-              <Badge variant="outline" className="squircle-sm text-xs">
+              <Badge variant="outline" className="rounded-xl text-xs">
                 {formatDistanceToNow(new Date(badge.earned.earned_at), {
                   addSuffix: true,
                 })}
               </Badge>
             ) : (
-              <Badge variant="outline" className="squircle-sm text-xs">
+              <Badge variant="outline" className="rounded-xl text-xs">
                 {badge.points} pts
               </Badge>
             )}

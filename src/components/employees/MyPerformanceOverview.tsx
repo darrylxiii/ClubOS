@@ -4,6 +4,7 @@ import { Progress } from "@/components/ui/progress";
 import { DollarSign, Trophy, TrendingUp, Flame, Target, Clock, Percent, Zap } from "lucide-react";
 import { motion } from "framer-motion";
 import type { MyPerformanceData } from "@/hooks/useMyPerformanceData";
+import { useTranslation } from 'react-i18next';
 
 const LEVEL_ICONS: Record<string, string> = {
   Scout: '🔍', Closer: '🎯', Strategist: '♟️', Elite: '⭐', Legend: '👑',
@@ -14,6 +15,7 @@ const formatCurrency = (v: number) => new Intl.NumberFormat('en-US', { style: 'c
 const RANK_COLORS = ['text-amber-500', 'text-slate-400', 'text-orange-600'];
 
 export function MyPerformanceOverview({ data }: { data: MyPerformanceData }) {
+  const { t } = useTranslation('admin');
   return (
     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
       {/* Hero Row */}
@@ -23,16 +25,16 @@ export function MyPerformanceOverview({ data }: { data: MyPerformanceData }) {
           <CardContent className="pt-6 space-y-5">
             {/* Revenue */}
             <div>
-              <p className="text-xs text-muted-foreground font-medium mb-1">Revenue Generated (YTD)</p>
+              <p className="text-xs text-muted-foreground font-medium mb-1">{t('myPerformance.revenueYtd', 'Revenue Generated (YTD)')}</p>
               <p className="text-3xl font-bold tracking-tight">{formatCurrency(data.totalRevenue)}</p>
               <div className="flex items-center gap-4 mt-2">
                 <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                   <div className="w-2 h-2 rounded-full bg-blue-500" />
-                  Sourced: {formatCurrency(data.revenueSourced)}
+                  {t('myPerformance.sourced', 'Sourced')}: {formatCurrency(data.revenueSourced)}
                 </div>
                 <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                   <div className="w-2 h-2 rounded-full bg-emerald-500" />
-                  Closed: {formatCurrency(data.revenueClosed)}
+                  {t('myPerformance.closed', 'Closed')}: {formatCurrency(data.revenueClosed)}
                 </div>
               </div>
               {/* Split bar */}
@@ -54,19 +56,19 @@ export function MyPerformanceOverview({ data }: { data: MyPerformanceData }) {
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <QuickStat
                 icon={DollarSign}
-                label="Earned"
+                label={t('myPerformance.earned', 'Earned')}
                 value={formatCurrency(data.commissionEarned)}
                 color="text-green-500"
               />
               <QuickStat
                 icon={TrendingUp}
-                label="Projected"
+                label={t('myPerformance.projected', 'Projected')}
                 value={formatCurrency(data.projectedCommission)}
                 color="text-amber-500"
               />
               <QuickStat
                 icon={Trophy}
-                label="Team Rank"
+                label={t('myPerformance.teamRank', 'Team Rank')}
                 value={data.teamSize > 0 ? `#${data.rank} of ${data.teamSize}` : '--'}
                 color={data.rank >= 1 && data.rank <= 3 ? RANK_COLORS[data.rank - 1] : 'text-muted-foreground'}
               />
@@ -84,8 +86,8 @@ export function MyPerformanceOverview({ data }: { data: MyPerformanceData }) {
             {data.commissionTier?.nextTier && (
               <div className="p-3 bg-muted/30 rounded-lg space-y-1.5">
                 <div className="flex items-center justify-between text-xs">
-                  <span className="text-muted-foreground">Next tier: <span className="font-medium text-foreground">{data.commissionTier.nextTier.name}</span> ({data.commissionTier.nextTier.percentage}%)</span>
-                  <span className="font-medium">{formatCurrency(data.commissionTier.nextTier.revenueNeeded)} to go</span>
+                  <span className="text-muted-foreground">{t('myPerformance.nextTier', 'Next tier')}: <span className="font-medium text-foreground">{data.commissionTier.nextTier.name}</span> ({data.commissionTier.nextTier.percentage}%)</span>
+                  <span className="font-medium">{formatCurrency(data.commissionTier.nextTier.revenueNeeded)} {t('myPerformance.toGo', 'to go')}</span>
                 </div>
                 <Progress
                   value={Math.min(100, (data.totalRevenue / data.commissionTier.nextTier.minRevenue) * 100)}
@@ -108,14 +110,14 @@ export function MyPerformanceOverview({ data }: { data: MyPerformanceData }) {
             <div className="w-full space-y-1.5">
               <div className="flex justify-between text-xs text-muted-foreground">
                 <span>{data.xp.toLocaleString()} XP</span>
-                <span>{data.xpToNextLevel.toLocaleString()} to next</span>
+                <span>{data.xpToNextLevel.toLocaleString()} {t('myPerformance.toNext', 'to next')}</span>
               </div>
               <Progress value={data.levelProgress} className="h-2" />
             </div>
             {data.streak > 0 && (
               <div className="flex items-center gap-1.5 text-sm">
                 <Flame className="h-4 w-4 text-orange-500" />
-                <span className="font-bold">{data.streak} day streak</span>
+                <span className="font-bold">{t('myPerformance.dayStreak', '{{count}} day streak', { count: data.streak })}</span>
               </div>
             )}
           </CardContent>
@@ -124,10 +126,10 @@ export function MyPerformanceOverview({ data }: { data: MyPerformanceData }) {
 
       {/* Quick Stats Grid */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <QuickStatCard icon={Trophy} label="Placements" value={data.placementCount} color="text-emerald-500" />
-        <QuickStatCard icon={Zap} label="Pipeline Value" value={formatCurrency(data.weightedPipelineValue)} color="text-blue-500" />
-        <QuickStatCard icon={Target} label="Placement Rate" value={`${data.placementRate}%`} color="text-violet-500" />
-        <QuickStatCard icon={Clock} label="Avg Time to Hire" value={`${data.avgTimeToHire}d`} color="text-amber-500" />
+        <QuickStatCard icon={Trophy} label={t('myPerformance.placements', 'Placements')} value={data.placementCount} color="text-emerald-500" />
+        <QuickStatCard icon={Zap} label={t('myPerformance.pipelineValue', 'Pipeline Value')} value={formatCurrency(data.weightedPipelineValue)} color="text-blue-500" />
+        <QuickStatCard icon={Target} label={t('myPerformance.placementRate', 'Placement Rate')} value={`${data.placementRate}%`} color="text-violet-500" />
+        <QuickStatCard icon={Clock} label={t('myPerformance.avgTimeToHire', 'Avg Time to Hire')} value={`${data.avgTimeToHire}d`} color="text-amber-500" />
       </div>
     </motion.div>
   );

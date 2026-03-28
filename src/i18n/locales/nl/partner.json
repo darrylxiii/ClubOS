@@ -2369,8 +2369,8 @@
     "editjobsheet": {
       "eurEuro": "EUR (€) - Euro",
       "usdUsDollar": "USD ($) - US Dollar",
-      "gbpBritishPound": "GBP (£) - British Pound",
-      "aedUaeDirham": "AED (د.إ) - UAE Dirham",
+      "gbpBritishPound": "GBP (£) - Britse Pond",
+      "aedUaeDirham": "AED (د.إ) - VAE Dirham",
       "unsavedChanges": "Niet-opgeslagen wijzigingen",
       "allChangesSaved": "Alle wijzigingen opgeslagen",
       "uploading": "Uploaden...",
@@ -2476,8 +2476,8 @@
     "editjobdialog": {
       "eurEuro": "EUR (€) - Euro",
       "usdUsDollar": "USD ($) - US Dollar",
-      "gbpBritishPound": "GBP (£) - British Pound",
-      "aedUaeDirham": "AED (د.إ) - UAE Dirham",
+      "gbpBritishPound": "GBP (£) - Britse Pond",
+      "aedUaeDirham": "AED (د.إ) - VAE Dirham",
       "requiredToolsTechnologies": "Vereiste tools & technologieën",
       "uploading": "Uploaden...",
       "updating": "Bijwerken..."

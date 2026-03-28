@@ -102,7 +102,7 @@ export function GenerateCourseDialog({ open, onOpenChange, academyId, onSuccess 
 
             onSuccess();
             onOpenChange(false);
-            navigate(`/courses/${course.slug}/edit`);
+            navigate(`/courses/${course.id}/edit`);
 
         } catch (error: unknown) {
             notify.error("Creation failed", { description: error instanceof Error ? error.message : 'Unknown error' });

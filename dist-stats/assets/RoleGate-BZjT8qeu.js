@@ -1,0 +1,1 @@
+import{j as r}from"./vendor-query-BZyYGKCt.js";import{p as l,U as a}from"./App-DsBphtVX.js";const m=({children:s,allowedRoles:o,fallback:i=null,showLoading:e=!1})=>{const{currentRole:n,loading:t}=l();return t&&e?r.jsx(a,{variant:"section"}):t&&!e?null:!n||!o.includes(n)?r.jsx(r.Fragment,{children:i}):r.jsx(r.Fragment,{children:s})};export{m as R};

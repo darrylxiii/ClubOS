@@ -3,6 +3,8 @@ import { sendEmail as sendEmailViaResend } from '../_shared/resend-client.ts';
 import { EMAIL_SENDERS } from "../_shared/email-config.ts";
 import { sendWhatsAppMessage } from '../_shared/whatsapp-client.ts';
 import { sendSMS as sendSMSViaTwilio } from '../_shared/twilio-client.ts';
+import { z, parseBody, uuidSchema } from '../_shared/validation.ts';
+import { sanitizeForEmail } from '../_shared/sanitize.ts';
 
 /**
  * Central notification orchestrator for candidate communications.
@@ -10,33 +12,26 @@ import { sendSMS as sendSMSViaTwilio } from '../_shared/twilio-client.ts';
  * routes to the appropriate channel(s): email, SMS, WhatsApp, in-app.
  */
 
-interface NotificationRequest {
-  user_id: string;
-  event_type: string;
-  event_id: string;
-  payload: {
-    title: string;
-    body: string;
-    email_html?: string;
-    route?: string;
-    data?: Record<string, unknown>;
-  };
-  /** Override: force specific channels regardless of prefs */
-  force_channels?: string[];
-}
+const bodySchema = z.object({
+  user_id: uuidSchema,
+  event_type: z.string().min(1).max(100),
+  event_id: z.string().min(1).max(200),
+  payload: z.object({
+    title: z.string().min(1).max(500),
+    body: z.string().min(1).max(5000),
+    email_html: z.string().optional(),
+    route: z.string().optional(),
+    data: z.record(z.unknown()).optional(),
+  }),
+  force_channels: z.array(z.enum(['email', 'sms', 'whatsapp', 'inapp'])).optional(),
+});
 
 Deno.serve(createHandler(async (req, ctx) => {
     const supabase = ctx.supabase;
 
-    const body: NotificationRequest = await req.json();
-    const { user_id, event_type, event_id, payload, force_channels } = body;
-
-    if (!user_id || !event_type || !event_id) {
-      return new Response(
-        JSON.stringify({ error: "user_id, event_type, and event_id are required" }),
-        { status: 400, headers: { ...ctx.corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
+    const parsed = await parseBody(req, bodySchema, ctx.corsHeaders);
+    if ('error' in parsed) return parsed.error;
+    const { user_id, event_type, event_id, payload, force_channels } = parsed.data;
 
     // 1. Check if already delivered (dedup)
     const { data: existing } = await supabase
@@ -89,8 +84,8 @@ Deno.serve(createHandler(async (req, ctx) => {
             if (profile?.email) {
               results.email = await sendEmail(supabaseUrl, serviceRoleKey, {
                 to: profile.email,
-                subject: payload.title,
-                body: payload.body,
+                subject: sanitizeForEmail(payload.title),
+                body: sanitizeForEmail(payload.body),
                 html: payload.email_html,
               });
             }
@@ -118,8 +113,8 @@ Deno.serve(createHandler(async (req, ctx) => {
           case "inapp":
             results.inapp = await createInAppNotification(supabase, {
               user_id,
-              title: payload.title,
-              body: payload.body,
+              title: sanitizeForEmail(payload.title),
+              body: sanitizeForEmail(payload.body),
               route: payload.route,
               event_type,
               data: payload.data,

@@ -36,37 +36,37 @@ export const PressureCookerIntro = memo(({ scenario, onStart }: PressureCookerIn
           <div className="space-y-4">
             <h3 className="font-semibold flex items-center gap-2">
               <Target className="h-5 w-5" />
-              How It Works
+              {t('pressureCooker.howItWorks', 'How It Works')}
             </h3>
             <ul className="space-y-2 text-sm text-muted-foreground">
-              <li>• Tasks will arrive throughout the 15-minute assessment</li>
-              <li>• Prioritize what matters most: urgency, impact, and deadlines</li>
-              <li>• Choose to Complete, Delegate, Defer, Skip, or Escalate each task</li>
-              <li>• We'll measure your prioritization accuracy and stress handling</li>
+              <li>• {t('pressureCooker.step1', 'Tasks will arrive throughout the 15-minute assessment')}</li>
+              <li>• {t('pressureCooker.step2', 'Prioritize what matters most: urgency, impact, and deadlines')}</li>
+              <li>• {t('pressureCooker.step3', 'Choose to Complete, Delegate, Defer, Skip, or Escalate each task')}</li>
+              <li>• {t('pressureCooker.step4', "We'll measure your prioritization accuracy and stress handling")}</li>
             </ul>
           </div>
 
           <div className="space-y-4">
             <h3 className="font-semibold flex items-center gap-2">
               <Clock className="h-5 w-5" />
-              What We Measure
+              {t('pressureCooker.whatWeMeasure', 'What We Measure')}
             </h3>
             <div className="grid grid-cols-2 gap-3 text-sm">
               <div className="p-3 rounded-lg bg-muted">
-                <div className="font-medium">Prioritization</div>
-                <div className="text-xs text-muted-foreground">Task ordering accuracy</div>
+                <div className="font-medium">{t('pressureCooker.prioritization', 'Prioritization')}</div>
+                <div className="text-xs text-muted-foreground">{t('pressureCooker.taskOrderingAccuracy', 'Task ordering accuracy')}</div>
               </div>
               <div className="p-3 rounded-lg bg-muted">
-                <div className="font-medium">Stress Handling</div>
-                <div className="text-xs text-muted-foreground">Performance under pressure</div>
+                <div className="font-medium">{t('pressureCooker.stressHandling', 'Stress Handling')}</div>
+                <div className="text-xs text-muted-foreground">{t('pressureCooker.performanceUnderPressure', 'Performance under pressure')}</div>
               </div>
               <div className="p-3 rounded-lg bg-muted">
-                <div className="font-medium">Multitasking</div>
-                <div className="text-xs text-muted-foreground">Action variety and flow</div>
+                <div className="font-medium">{t('pressureCooker.multitasking', 'Multitasking')}</div>
+                <div className="text-xs text-muted-foreground">{t('pressureCooker.actionVarietyAndFlow', 'Action variety and flow')}</div>
               </div>
               <div className="p-3 rounded-lg bg-muted">
-                <div className="font-medium">Communication</div>
-                <div className="text-xs text-muted-foreground">Delegation style</div>
+                <div className="font-medium">{t('pressureCooker.communication', 'Communication')}</div>
+                <div className="text-xs text-muted-foreground">{t('pressureCooker.delegationStyle', 'Delegation style')}</div>
               </div>
             </div>
           </div>

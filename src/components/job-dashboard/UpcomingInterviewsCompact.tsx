@@ -120,7 +120,7 @@ export const UpcomingInterviewsCompact = memo(({ jobId, limit = 3 }: UpcomingInt
             </DialogTrigger>
             <DialogContent className="max-w-lg">
               <DialogHeader>
-                <DialogTitle>Schedule Interview</DialogTitle>
+                <DialogTitle>{t('jobs:scheduleInterview', 'Schedule Interview')}</DialogTitle>
               </DialogHeader>
               <ManualInterviewEntryDialog 
                 jobId={jobId} 

@@ -1,0 +1,48 @@
+{
+  "applinks": {
+    "apps": [],
+    "details": [
+      {
+        "appIDs": [
+          "TEAMID.app.lovable.ed1ccbeab8dd4007bcc4b3329d10bf67"
+        ],
+        "components": [
+          {
+            "/": "/jobs/*",
+            "comment": "Match job detail pages"
+          },
+          {
+            "/": "/applications/*",
+            "comment": "Match application pages"
+          },
+          {
+            "/": "/messages/*",
+            "comment": "Match message threads"
+          },
+          {
+            "/": "/meetings/*",
+            "comment": "Match meeting pages"
+          },
+          {
+            "/": "/candidates/*",
+            "comment": "Match candidate profiles"
+          },
+          {
+            "/": "/booking/*",
+            "comment": "Match booking pages"
+          },
+          {
+            "/": "/install",
+            "exclude": true,
+            "comment": "Exclude install page from deep links"
+          }
+        ]
+      }
+    ]
+  },
+  "webcredentials": {
+    "apps": [
+      "TEAMID.app.lovable.ed1ccbeab8dd4007bcc4b3329d10bf67"
+    ]
+  }
+}

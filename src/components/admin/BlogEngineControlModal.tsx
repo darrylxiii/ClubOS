@@ -99,14 +99,14 @@ const BlogEngineControlModal: React.FC = () => {
       <DialogTrigger asChild>
         <Button variant="outline" className="gap-2">
           <Settings className="h-4 w-4" />
-          Engine Control
+          {t('blogEngine.engineControl', 'Engine Control')}
           <div className={`w-2 h-2 rounded-full ${isEngineActive ? 'bg-emerald-500' : 'bg-muted-foreground'}`} />
         </Button>
       </DialogTrigger>
       <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Blog Engine Control</DialogTitle>
-          <DialogDescription>Configure the AI content generation engine.</DialogDescription>
+          <DialogTitle>{t('blogEngine.blogEngineControl', 'Blog Engine Control')}</DialogTitle>
+          <DialogDescription>{t('blogEngine.configureEngine', 'Configure the AI content generation engine.')}</DialogDescription>
         </DialogHeader>
 
         {isLoading ? (
@@ -118,8 +118,8 @@ const BlogEngineControlModal: React.FC = () => {
             {/* Master Switch */}
             <div className="flex items-center justify-between">
               <div>
-                <Label className="text-base">Engine Active</Label>
-                <p className="text-sm text-muted-foreground">Master switch for automated generation.</p>
+                <Label className="text-base">{t('blogEngine.engineActive', 'Engine Active')}</Label>
+                <p className="text-sm text-muted-foreground">{t('blogEngine.masterSwitchDesc', 'Master switch for automated generation.')}</p>
               </div>
               <Switch
                 checked={localSettings.is_active}
@@ -131,7 +131,7 @@ const BlogEngineControlModal: React.FC = () => {
 
             {/* Posts per day */}
             <div className="space-y-2">
-              <Label>Posts per day: {localSettings.posts_per_day}</Label>
+              <Label>{t('blogEngine.postsPerDay', 'Posts per day')}: {localSettings.posts_per_day}</Label>
               <Slider
                 value={[localSettings.posts_per_day]}
                 onValueChange={([v]) => setLocalSettings((p) => ({ ...p, posts_per_day: v }))}
@@ -145,7 +145,7 @@ const BlogEngineControlModal: React.FC = () => {
 
             {/* Formats */}
             <div className="space-y-3">
-              <Label>Content Formats</Label>
+              <Label>{t('blogEngine.contentFormats', 'Content Formats')}</Label>
               <div className="grid grid-cols-2 gap-2">
                 {FORMATS.map((f) => (
                   <div key={f.value} className="flex items-center gap-2">
@@ -163,7 +163,7 @@ const BlogEngineControlModal: React.FC = () => {
 
             {/* Categories */}
             <div className="space-y-3">
-              <Label>Categories</Label>
+              <Label>{t('blogEngine.categories', 'Categories')}</Label>
               <div className="grid grid-cols-2 gap-2">
                 {CATEGORIES.map((c) => (
                   <div key={c.value} className="flex items-center gap-2">
@@ -182,8 +182,8 @@ const BlogEngineControlModal: React.FC = () => {
             {/* Auto-publish */}
             <div className="flex items-center justify-between">
               <div>
-                <Label>Auto-publish</Label>
-                <p className="text-xs text-muted-foreground">Publish articles automatically when quality passes.</p>
+                <Label>{t('blogEngine.autoPublish', 'Auto-publish')}</Label>
+                <p className="text-xs text-muted-foreground">{t('blogEngine.autoPublishDesc', 'Publish articles automatically when quality passes.')}</p>
               </div>
               <Switch
                 checked={localSettings.auto_publish}
@@ -193,15 +193,15 @@ const BlogEngineControlModal: React.FC = () => {
 
             {localSettings.auto_publish && (
               <Badge variant="outline" className="text-amber-500 border-amber-500/30">
-                Articles will publish without manual review.
+                {t('blogEngine.autoPublishWarning', 'Articles will publish without manual review.')}
               </Badge>
             )}
 
             {/* Expert Review */}
             <div className="flex items-center justify-between">
               <div>
-                <Label>Require expert review</Label>
-                <p className="text-xs text-muted-foreground">Hold articles for manual review before publishing.</p>
+                <Label>{t('blogEngine.requireExpertReview', 'Require expert review')}</Label>
+                <p className="text-xs text-muted-foreground">{t('blogEngine.expertReviewDesc', 'Hold articles for manual review before publishing.')}</p>
               </div>
               <Switch
                 checked={localSettings.require_medical_review}
@@ -213,7 +213,7 @@ const BlogEngineControlModal: React.FC = () => {
 
             {/* Quality Score */}
             <div className="space-y-2">
-              <Label>Min Quality Score: {localSettings.min_quality_score}</Label>
+              <Label>{t('blogEngine.minQualityScore', 'Min Quality Score')}: {localSettings.min_quality_score}</Label>
               <Slider
                 value={[localSettings.min_quality_score]}
                 onValueChange={([v]) => setLocalSettings((p) => ({ ...p, min_quality_score: v }))}
@@ -227,10 +227,10 @@ const BlogEngineControlModal: React.FC = () => {
 
             {/* Publishing Window */}
             <div className="space-y-3">
-              <Label>Publishing Window</Label>
+              <Label>{t('blogEngine.publishingWindow', 'Publishing Window')}</Label>
               <div className="flex gap-4">
                 <div className="space-y-1">
-                  <span className="text-xs text-muted-foreground">Start</span>
+                  <span className="text-xs text-muted-foreground">{t('blogEngine.windowStart', 'Start')}</span>
                   <Input
                     type="time"
                     value={localSettings.publishing_window_start}
@@ -238,7 +238,7 @@ const BlogEngineControlModal: React.FC = () => {
                   />
                 </div>
                 <div className="space-y-1">
-                  <span className="text-xs text-muted-foreground">End</span>
+                  <span className="text-xs text-muted-foreground">{t('blogEngine.windowEnd', 'End')}</span>
                   <Input
                     type="time"
                     value={localSettings.publishing_window_end}
@@ -251,10 +251,10 @@ const BlogEngineControlModal: React.FC = () => {
         )}
 
         <DialogFooter>
-          <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
+          <Button variant="outline" onClick={() => setOpen(false)}>{t('common.cancel', 'Cancel')}</Button>
           <Button onClick={handleSave} disabled={isSaving}>
             {isSaving && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
-            Save Configuration
+            {t('blogEngine.saveConfiguration', 'Save Configuration')}
           </Button>
         </DialogFooter>
       </DialogContent>

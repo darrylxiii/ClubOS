@@ -73,7 +73,7 @@ export const PartnerEngagementWidget = () => {
           {/* Active Engagement Rate */}
           <div>
             <div className="flex items-center justify-between mb-1">
-              <span className="text-xs text-muted-foreground">Active Rate (7 days)</span>
+              <span className="text-xs text-muted-foreground">{t('home.partnerEngagement.activeRate')}</span>
               <span className="text-xs font-medium">{activePercentage}%</span>
             </div>
             <Progress value={activePercentage} className="h-1.5" />
@@ -93,8 +93,10 @@ export const PartnerEngagementWidget = () => {
             <div className="flex items-center gap-2 p-2 rounded-lg bg-red-500/10 border border-red-500/20">
               <AlertTriangle className="h-4 w-4 text-red-500 shrink-0" />
               <div className="text-xs">
-                <span className="font-medium">{engagement.atRiskPartners} partners</span>
-                <span className="text-muted-foreground">inactive 14+ days</span>
+                <span className="font-medium">
+                  {engagement.atRiskPartners} {t('home.partnerEngagement.partners')}
+                </span>
+                <span className="text-muted-foreground"> {t('home.partnerEngagement.inactive14Days')}</span>
               </div>
             </div>
           )}
@@ -104,14 +106,14 @@ export const PartnerEngagementWidget = () => {
             <div className="pt-2 border-t border-border/50">
               <p className="text-xs text-muted-foreground mb-2 flex items-center gap-1">
                 <Users className="h-3 w-3" />
-                Top Performers
+                {t('home.partnerEngagement.topPerformers')}
               </p>
               <div className="space-y-1">
                 {engagement.topPartners.slice(0, 2).map((partner) => (
                   <div key={partner.id} className="flex items-center justify-between text-xs">
                     <span className="truncate">{partner.companyName}</span>
                     <Badge variant="secondary" className="text-xs">
-                      {partner.placements} hires
+                      {t('home.partnerEngagement.hiresCount', { count: partner.placements })}
                     </Badge>
                   </div>
                 ))}

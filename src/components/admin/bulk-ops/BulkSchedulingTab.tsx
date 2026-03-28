@@ -129,11 +129,11 @@ export const BulkSchedulingTab = () => {
       return { successCount, failureCount };
     },
     onSuccess: (result) => {
-      toast.success(`Scheduling links sent: ${result.successCount} success, ${result.failureCount} failed`);
+      toast.success(t('bulk-ops.bulkSchedulingTab.linksSentResult', 'Scheduling links sent: {{success}} success, {{failed}} failed', { success: result.successCount, failed: result.failureCount }));
       setSelectedCandidates([]);
     },
     onError: (error: Error) => {
-      toast.error(`Failed to send scheduling links: ${error.message}`);
+      toast.error(t('bulk-ops.bulkSchedulingTab.failedToSend', 'Failed to send scheduling links: {{error}}', { error: error.message }));
     },
   });
 
@@ -161,7 +161,7 @@ export const BulkSchedulingTab = () => {
             <SelectContent>
               {bookingLinks?.map((link) => (
                 <SelectItem key={link.id} value={link.id}>
-                  {link.title} ({link.duration_minutes} min)
+                  {link.title} ({link.duration_minutes} {t('bulk-ops.bulkSchedulingTab.min', 'min')})
                 </SelectItem>
               ))}
             </SelectContent>
@@ -188,12 +188,12 @@ export const BulkSchedulingTab = () => {
             id="message"
             value={customMessage}
             onChange={(e) => setCustomMessage(e.target.value)}
-            placeholder="Add a personal message... Use {{name}} for personalization, {{link}} for booking URL"
+            placeholder={t('bulk-ops.bulkSchedulingTab.customMessagePlaceholder', 'Add a personal message... Use {{name}} for personalization, {{link}} for booking URL')}
             rows={4}
             className="mt-1.5"
           />
           <p className="text-xs text-muted-foreground mt-1">
-            Variables: {"{{name}}"}, {"{{link}}"}
+            {t('bulk-ops.bulkSchedulingTab.variables', 'Variables')}: {"{{name}}"}, {"{{link}}"}
           </p>
         </div>
 
@@ -205,12 +205,12 @@ export const BulkSchedulingTab = () => {
           {sendSchedulingLinks.isPending ? (
             <>
               <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-              Sending...
+              {t('bulk-ops.bulkSchedulingTab.sending', 'Sending...')}
             </>
           ) : (
             <>
               <Send className="h-4 w-4 mr-2" />
-              Send to {selectedCandidates.length} Candidate{selectedCandidates.length !== 1 ? "s" : ""}
+              {t('bulk-ops.bulkSchedulingTab.sendToCandidates', 'Send to {{count}} Candidate(s)', { count: selectedCandidates.length })}
             </>
           )}
         </Button>

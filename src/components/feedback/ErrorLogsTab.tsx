@@ -348,10 +348,10 @@ export const ErrorLogsTab = () => {
                       </TableCell>
                       <TableCell>
                         {error.resolved ? (
-                          <Badge variant="default" className="bg-green-500 gap-1">
-                            <CheckCircle className="w-3 h-3" />
-                            Resolved
-                          </Badge>
+                            <Badge variant="default" className="bg-green-500 gap-1">
+                              <CheckCircle className="w-3 h-3" />
+                              {t('feedback.errorlogstab.resolved', 'Resolved')}
+                            </Badge>
                         ) : (
                           <Badge variant="secondary">{t('feedback.errorlogstab.unresolved', 'Unresolved')}</Badge>
                         )}
@@ -395,21 +395,21 @@ export const ErrorLogsTab = () => {
               <div className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <div className="text-sm font-medium text-muted-foreground">Severity</div>
+                    <div className="text-sm font-medium text-muted-foreground">{t('feedback.errorlogstab.severity', 'Severity')}</div>
                     <Badge variant={getSeverityColor(selectedError.severity) as any} className="mt-1">
                       {selectedError.severity}
                     </Badge>
                   </div>
                   <div>
-                    <div className="text-sm font-medium text-muted-foreground">Type</div>
+                    <div className="text-sm font-medium text-muted-foreground">{t('feedback.errorlogstab.type', 'Type')}</div>
                     <Badge variant="outline" className="mt-1">{selectedError.error_type}</Badge>
                   </div>
                   <div>
-                    <div className="text-sm font-medium text-muted-foreground">Component</div>
-                    <div className="mt-1">{selectedError.component_name || 'Unknown'}</div>
+                    <div className="text-sm font-medium text-muted-foreground">{t('feedback.errorlogstab.component', 'Component')}</div>
+                    <div className="mt-1">{selectedError.component_name || t('feedback.errorlogstab.unknown', 'Unknown')}</div>
                   </div>
                   <div>
-                    <div className="text-sm font-medium text-muted-foreground">Time</div>
+                    <div className="text-sm font-medium text-muted-foreground">{t('feedback.errorlogstab.time', 'Time')}</div>
                     <div className="mt-1 text-sm">
                       {formatDistanceToNow(new Date(selectedError.created_at), { addSuffix: true })}
                     </div>
@@ -417,22 +417,22 @@ export const ErrorLogsTab = () => {
                 </div>
 
                 <div>
-                  <div className="text-sm font-medium text-muted-foreground mb-2">User</div>
+                  <div className="text-sm font-medium text-muted-foreground mb-2">{t('feedback.errorlogstab.user', 'User')}</div>
                   <div className="text-sm">
-                    {selectedError.profiles?.full_name || 'Guest'} 
+                    {selectedError.profiles?.full_name || t('feedback.errorlogstab.guest', 'Guest')} 
                     {selectedError.profiles?.email && ` (${selectedError.profiles.email})`}
                   </div>
                 </div>
 
                 <div>
-                  <div className="text-sm font-medium text-muted-foreground mb-2">Error Message</div>
+                  <div className="text-sm font-medium text-muted-foreground mb-2">{t('feedback.errorlogstab.errorMessage', 'Error Message')}</div>
                   <div className="text-sm bg-muted/30 p-3 rounded-lg font-mono">
                     {selectedError.error_message}
                   </div>
                 </div>
 
                 <div>
-                  <div className="text-sm font-medium text-muted-foreground mb-2">Page URL</div>
+                  <div className="text-sm font-medium text-muted-foreground mb-2">{t('feedback.errorlogstab.pageUrl', 'Page URL')}</div>
                   <div className="text-sm bg-muted/30 p-3 rounded-lg break-all">
                     {selectedError.page_url}
                   </div>
@@ -440,7 +440,7 @@ export const ErrorLogsTab = () => {
 
                 {selectedError.error_stack && (
                   <div>
-                    <div className="text-sm font-medium text-muted-foreground mb-2">Stack Trace</div>
+                    <div className="text-sm font-medium text-muted-foreground mb-2">{t('feedback.errorlogstab.stackTrace', 'Stack Trace')}</div>
                     <pre className="text-xs bg-muted/30 p-3 rounded-lg overflow-auto max-h-64 font-mono">
                       {selectedError.error_stack}
                     </pre>

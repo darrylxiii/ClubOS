@@ -54,19 +54,19 @@ export default function SourcingCommandPanel() {
 
   const handleGenerateStrategy = async () => {
     if (!selectedJobId) {
-      toast.error(t('agentic.sourcingCommandPanel.selectAJobFirst'));
+      toast.error('Select A Job First');
       return;
     }
     const result = await generateStrategy.mutateAsync(selectedJobId);
     if (result?.strategy) {
       setStrategy(result.strategy);
-      toast.success(t('agentic.sourcingCommandPanel.sourcingStrategyGenerated'));
+      toast.success('Sourcing Strategy Generated');
     }
   };
 
   const handleImportUrls = async () => {
     if (!selectedJobId) {
-      toast.error(t('agentic.sourcingCommandPanel.selectAJobFirst'));
+      toast.error('Select A Job First');
       return;
     }
     const urls = urlInput
@@ -75,7 +75,7 @@ export default function SourcingCommandPanel() {
       .filter((u: string) => u.length > 0);
 
     if (urls.length === 0) {
-      toast.error(t('agentic.sourcingCommandPanel.pasteAtLeastOneLinkedinUrl'));
+      toast.error('Paste At Least One Linkedin Url');
       return;
     }
 
@@ -99,7 +99,7 @@ export default function SourcingCommandPanel() {
 
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
-    toast.success(t('agentic.sourcingCommandPanel.copiedToClipboard'));
+    toast.success('Copied To Clipboard');
   };
 
   const statusColor = (status: string) => {

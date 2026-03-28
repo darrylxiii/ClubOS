@@ -76,10 +76,10 @@ export const CandidateInvitationDialog = ({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Mail className="w-5 h-5" />
-            Invite Candidate to Platform
+            {t('candidateInvitationDialog.title', 'Invite Candidate to Platform')}
           </DialogTitle>
           <DialogDescription>
-            Send a personalized invitation to {candidateName} to join The Quantum Club
+            {t('candidateInvitationDialog.description', 'Send a personalized invitation to {{name}} to join The Quantum Club', { name: candidateName })}
           </DialogDescription>
         </DialogHeader>
 
@@ -123,10 +123,10 @@ export const CandidateInvitationDialog = ({
           <div className="bg-muted/30 border border-border rounded-lg p-4 text-sm">
             <p className="font-medium mb-2">{t('candidateInvitationDialog.whatHappensNext')}</p>
             <ul className="list-disc list-inside space-y-1 text-muted-foreground text-xs">
-              <li>Candidate receives invitation email with secure link</li>
-              <li>Link expires in 7 days</li>
-              <li>When they sign up, their profile data will be merged with user account</li>
-              <li>They'll have full access to platform features</li>
+              <li>{t('candidateInvitationDialog.step1', 'Candidate receives invitation email with secure link')}</li>
+              <li>{t('candidateInvitationDialog.step2', 'Link expires in 7 days')}</li>
+              <li>{t('candidateInvitationDialog.step3', 'When they sign up, their profile data will be merged with user account')}</li>
+              <li>{t('candidateInvitationDialog.step4', "They'll have full access to platform features")}</li>
             </ul>
           </div>
         </div>
@@ -139,12 +139,12 @@ export const CandidateInvitationDialog = ({
             {sending ? (
               <>
                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                Sending...
+                {t('candidateInvitationDialog.sending', 'Sending...')}
               </>
             ) : (
               <>
                 <Send className="w-4 h-4 mr-2" />
-                Send Invitation
+                {t('candidateInvitationDialog.sendInvitation', 'Send Invitation')}
               </>
             )}
           </Button>

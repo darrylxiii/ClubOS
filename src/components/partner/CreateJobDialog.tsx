@@ -54,43 +54,43 @@ interface FieldError {
 const TOTAL_STEPS = 5;
 
 const STEP_META = [
-  { label: t('partner.createjobdialog.basics', 'Basics'), icon: Briefcase },
-  { label: t('partner.createjobdialog.location', 'Location'), icon: MapPin },
-  { label: t('partner.createjobdialog.compensation', 'Compensation'), icon: ArrowUpRight },
-  { label: t('partner.createjobdialog.details', 'Details'), icon: FileSignature },
-  { label: t('partner.createjobdialog.review', 'Review'), icon: CheckCircle2 },
+  { label: 'Basics', icon: Briefcase },
+  { label: 'Location', icon: MapPin },
+  { label: 'Compensation', icon: ArrowUpRight },
+  { label: 'Details', icon: FileSignature },
+  { label: 'Review', icon: CheckCircle2 },
 ];
 
 const EMPLOYMENT_OPTIONS = [
-  { value: "fulltime", label: t('partner.createjobdialog.fulltime', 'Full-time'), icon: Briefcase },
-  { value: "parttime", label: t('partner.createjobdialog.parttime', 'Part-time'), icon: Clock },
-  { value: "contract", label: t('partner.createjobdialog.contract', 'Contract'), icon: FileSignature },
-  { value: "freelance", label: t('partner.createjobdialog.freelance', 'Freelance'), icon: Laptop },
-  { value: "internship", label: t('partner.createjobdialog.internship', 'Internship'), icon: GraduationCap },
+  { value: "fulltime", label: 'Full-time', icon: Briefcase },
+  { value: "parttime", label: 'Part-time', icon: Clock },
+  { value: "contract", label: 'Contract', icon: FileSignature },
+  { value: "freelance", label: 'Freelance', icon: Laptop },
+  { value: "internship", label: 'Internship', icon: GraduationCap },
 ];
 
 const SENIORITY_OPTIONS = [
-  { value: "junior", label: t('partner.createjobdialog.junior', 'Junior') },
-  { value: "mid", label: t('partner.createjobdialog.midlevel', 'Mid-Level') },
-  { value: "senior", label: t('partner.createjobdialog.senior', 'Senior') },
-  { value: "lead", label: t('partner.createjobdialog.lead', 'Lead') },
-  { value: "director", label: t('partner.createjobdialog.director', 'Director') },
-  { value: "vp_csuite", label: t('partner.createjobdialog.vpCsuite', 'VP / C-Suite') },
+  { value: "junior", label: 'Junior' },
+  { value: "mid", label: 'Mid-Level' },
+  { value: "senior", label: 'Senior' },
+  { value: "lead", label: 'Lead' },
+  { value: "director", label: 'Director' },
+  { value: "vp_csuite", label: 'VP / C-Suite' },
 ];
 
 const LOCATION_TYPE_OPTIONS = [
-  { value: "onsite", label: t('partner.createjobdialog.onsite', 'On-site'), icon: MapPin },
-  { value: "hybrid", label: t('partner.createjobdialog.hybrid', 'Hybrid'), icon: Building2 },
-  { value: "remote", label: t('partner.createjobdialog.remote', 'Remote'), icon: Globe },
-  { value: "flexible", label: t('partner.createjobdialog.flexible', 'Flexible'), icon: Compass },
+  { value: "onsite", label: 'On-site', icon: MapPin },
+  { value: "hybrid", label: 'Hybrid', icon: Building2 },
+  { value: "remote", label: 'Remote', icon: Globe },
+  { value: "flexible", label: 'Flexible', icon: Compass },
 ];
 
 const URGENCY_OPTIONS = [
-  { value: "immediate", label: t('partner.createjobdialog.immediate', 'Immediate') },
-  { value: "two_weeks", label: t('partner.createjobdialog.within2Weeks', 'Within 2 weeks') },
-  { value: "one_month", label: t('partner.createjobdialog.within1Month', 'Within 1 month') },
-  { value: "three_months", label: t('partner.createjobdialog.within3Months', 'Within 3 months') },
-  { value: "no_rush", label: t('partner.createjobdialog.noRush', 'No rush') },
+  { value: "immediate", label: 'Immediate' },
+  { value: "two_weeks", label: 'Within 2 weeks' },
+  { value: "one_month", label: 'Within 1 month' },
+  { value: "three_months", label: 'Within 3 months' },
+  { value: "no_rush", label: 'No rush' },
 ];
 
 const formatFileSize = (bytes: number): string => {

@@ -87,7 +87,7 @@ export const CreateModuleDialog = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="squircle max-w-2xl">
+      <DialogContent className="rounded-2xl max-w-2xl">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <BookOpen className="w-5 h-5 text-primary" />

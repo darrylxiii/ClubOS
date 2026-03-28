@@ -113,7 +113,7 @@ export default function AgentChatView({ initialAgent }: { initialAgent?: string 
       setMessages((prev) => [...prev, { role: 'assistant', content: data.message }]);
       if (data.conversation_id) setConversationId(data.conversation_id);
     } catch (err) {
-      toast.error(t('agentic.agentChatView.failedToGetResponseFromAgent'));
+      toast.error('Failed To Get Response From Agent');
       // Remove optimistic message
       setMessages((prev) => prev.slice(0, -1));
     } finally {

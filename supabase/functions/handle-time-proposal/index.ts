@@ -3,6 +3,8 @@ import { baseEmailTemplate } from "../_shared/email-templates/base-template.ts";
 import { EMAIL_SENDERS, EMAIL_COLORS } from "../_shared/email-config.ts";
 import { sendEmail } from '../_shared/resend-client.ts';
 import { Heading, Paragraph, Spacer, Card, StatusBadge, InfoRow, Button } from "../_shared/email-templates/components.ts";
+import { z, parseBody, uuidSchema, isoDateSchema } from '../_shared/validation.ts';
+import { sanitizeForEmail } from '../_shared/sanitize.ts';
 
 interface HandleProposalRequest {
   proposalId: string;
@@ -13,18 +15,21 @@ interface HandleProposalRequest {
   counterEnd?: string;
 }
 
+const proposalRequestSchema = z.object({
+  proposalId: uuidSchema,
+  action: z.enum(['accept', 'decline', 'counter']),
+  responseMessage: z.string().max(2000).trim().optional(),
+  counterStart: isoDateSchema.optional(),
+  counterEnd: isoDateSchema.optional(),
+});
+
 Deno.serve(createAuthenticatedHandler(async (req, ctx) => {
     const { supabase: supabaseClient, user, corsHeaders } = ctx;
 
-    const body: HandleProposalRequest = await req.json();
-    const { proposalId, action, responseMessage, counterStart, counterEnd } = body;
-
-    if (!proposalId || !action) {
-      return new Response(
-        JSON.stringify({ error: "proposalId and action are required" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
+    const parsed = await parseBody(req, proposalRequestSchema, corsHeaders);
+    if ('error' in parsed) return parsed.error;
+    const { proposalId, action, responseMessage, counterStart, counterEnd } = parsed.data;
+    const safeResponseMessage = sanitizeForEmail(responseMessage);
 
     // Get the proposal with booking and verify ownership
     const { data: proposal, error: fetchError } = await supabaseClient
@@ -105,7 +110,7 @@ Deno.serve(createAuthenticatedHandler(async (req, ctx) => {
               content: `
                 ${InfoRow({ icon: '📅', label: 'New Date', value: formattedDate })}
                 ${InfoRow({ icon: '🕐', label: 'New Time', value: formattedTime })}
-                ${responseMessage ? InfoRow({ icon: '💬', label: 'Message', value: responseMessage }) : ''}
+                ${safeResponseMessage ? InfoRow({ icon: '💬', label: 'Message', value: safeResponseMessage }) : ''}
               `,
             })}
             ${Spacer(16)}
@@ -152,11 +157,11 @@ Deno.serve(createAuthenticatedHandler(async (req, ctx) => {
             ${Heading({ text: 'Time Proposal Not Available', level: 1 })}
             ${Spacer(16)}
             ${Paragraph(`Unfortunately, your proposed time for "<strong>${proposal.bookings.booking_links.title}</strong>" could not be accommodated.`, 'secondary')}
-            ${responseMessage ? `
+            ${safeResponseMessage ? `
               ${Spacer(16)}
               ${Card({
                 variant: 'default',
-                content: InfoRow({ icon: '💬', label: 'Message from host', value: responseMessage }),
+                content: InfoRow({ icon: '💬', label: 'Message from host', value: safeResponseMessage }),
               })}
             ` : ''}
             ${Spacer(16)}
@@ -250,7 +255,7 @@ Deno.serve(createAuthenticatedHandler(async (req, ctx) => {
               content: `
                 ${InfoRow({ icon: '📅', label: 'Suggested Date', value: formattedDate })}
                 ${InfoRow({ icon: '🕐', label: 'Suggested Time', value: formattedTime })}
-                ${responseMessage ? InfoRow({ icon: '💬', label: 'Message', value: responseMessage }) : ''}
+                ${safeResponseMessage ? InfoRow({ icon: '💬', label: 'Message', value: safeResponseMessage }) : ''}
               `,
             })}
             ${Spacer(16)}

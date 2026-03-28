@@ -368,5 +368,124 @@
       "shareNotesWithTqcAndYour": "Share notes with TQC and your team about this candidate",
       "internalNotesAndObservationsAboutThis": "Internal notes and observations about this candidate"
     }
+  },
+  "assessment": {
+    "export": "Export",
+    "retake": "Retake",
+    "completed": "Completed",
+    "timeSpent": "Time Spent",
+    "overallPerformance": "Overall Performance",
+    "detailedResults": "Detailed Results",
+    "riskTolerance": "Risk Tolerance",
+    "decisionQuality": "Decision Quality",
+    "score": "Score",
+    "excellentPerformance": "Excellent performance! You demonstrated strong capabilities.",
+    "goodPerformance": "Good performance. There are opportunities for growth.",
+    "considerRetaking": "Consider retaking this assessment to improve your results.",
+    "yourArchetype": "Your Archetype",
+    "emotionalRegulation": "Emotional Regulation",
+    "pressurePerformance": "Pressure Performance"
+  },
+  "assessmentHistory": {
+    "noAssessments": "No assessments completed yet",
+    "assessmentsTaken": "Assessments Taken",
+    "totalAttempts": "Total Attempts",
+    "avgScore": "Avg Score",
+    "lastAssessment": "Last Assessment",
+    "title": "Assessment History"
+  },
+  "brief": {
+    "notGenerated": "Brief not yet generated. Run Deep Enrich to create.",
+    "confidence": "confidence",
+    "differentiators": "Differentiators",
+    "riskFactors": "Risk Factors",
+    "interviewAngles": "Interview Angles",
+    "skillVerification": "Skill Verification",
+    "talentSignals": "Talent Signals"
+  },
+  "commandCenter": {
+    "title": "Command Center",
+    "aiPowered": "AI-Powered",
+    "overview": "Overview",
+    "assessments": "Assessments",
+    "interviews": "Interviews",
+    "actions": "Actions",
+    "avgScore": "Avg Score",
+    "upcoming": "Upcoming",
+    "strengths": "Strengths",
+    "areasToExplore": "Areas to Explore",
+    "email": "Email",
+    "call": "Call",
+    "message": "Message",
+    "noAssessments": "No assessments completed yet",
+    "assignAssessment": "Assign Assessment",
+    "noInterviews": "No interviews scheduled",
+    "scheduleInterview": "Schedule Interview",
+    "schedule": "Schedule",
+    "assignTest": "Assign Test",
+    "advance": "Advance",
+    "salaryInsights": "Salary Insights"
+  },
+  "about_me": "About Me",
+  "core_capabilities": "Core Capabilities",
+  "technical_expertise": "Technical Expertise",
+  "languages": "Languages",
+  "professional_experience": "Professional Experience",
+  "education_accolades": "Education & Accolades",
+  "certifications": "Certifications",
+  "publicPresence": {
+    "title": "Public Presence",
+    "notYetScanned": "Public presence not yet scanned.",
+    "noMentionsFound": "No significant public mentions found."
+  },
+  "candidateHero": {
+    "notEnoughData": "Not enough data",
+    "partialData": "Partial data",
+    "highConfidence": "High confidence",
+    "noData": "No data",
+    "pendingSetup": "Pending Setup",
+    "activeMember": "Active Member",
+    "yrsExp": "y exp",
+    "notice": "Notice",
+    "clubProfile": "Club Profile",
+    "invite": "Invite",
+    "message": "Message",
+    "schedule": "Schedule",
+    "sync": "Sync",
+    "enrich": "Enrich",
+    "addToJob": "Add to Job",
+    "assessment": "Assessment",
+    "computing": "Computing...",
+    "refresh": "Refresh",
+    "compute": "Compute",
+    "aiSummary": "AI Summary"
+  },
+  "common:actions": {
+    "edit": "Edit"
+  },
+  "enrichment": {
+    "processing": "Processing...",
+    "complete": "Complete",
+    "starting": "Starting...",
+    "summary": "Enrichment Summary",
+    "noNewData": "No new data was found during this enrichment run.",
+    "viewUpdatedProfile": "View Updated Profile",
+    "close": "Close"
+  },
+  "portfolioGrid": {
+    "resumeCv": "Resume / CV",
+    "clickToDownload": "Click to download",
+    "download": "Download",
+    "linksAndProfiles": "Links & Profiles",
+    "addLink": "Add Link",
+    "portfolioProjects": "Portfolio Projects",
+    "viewProject": "View Project"
+  },
+  "technicalFootprint": {
+    "title": "Technical Footprint",
+    "noProfileFound": "No GitHub profile found for this candidate.",
+    "notYetScanned": "GitHub profile not yet scanned.",
+    "topLanguages": "Top Languages",
+    "notableRepos": "Notable Repositories"
   }
 }

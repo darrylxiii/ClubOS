@@ -207,7 +207,7 @@ const JobTableRow = memo(({
                     <TooltipTrigger>
                       <Lock className="h-3 w-3 text-amber-500" />
                     </TooltipTrigger>
-                    <TooltipContent>{t('jobTableView.tooltip.confidential')}</TooltipContent>
+                    <TooltipContent>{'Confidential'}</TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
               )}
@@ -319,7 +319,7 @@ const JobTableRow = memo(({
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={onClose}>
                   <XCircle className="h-4 w-4 mr-2" />
-                  {t('common:close')}
+                  {'Common:close'}
                 </DropdownMenuItem>
               </>
             )}
@@ -332,7 +332,7 @@ const JobTableRow = memo(({
             {job.status !== 'archived' && (
               <DropdownMenuItem onClick={onArchive} className="text-destructive">
                 <Archive className="h-4 w-4 mr-2" />
-                {t('common:archive')}
+                {'Common:archive'}
               </DropdownMenuItem>
             )}
             {job.status === 'archived' && (
@@ -538,7 +538,7 @@ export const JobTableView = memo(({
               sortDirection={sortDirection}
               onSort={handleSort}
             />
-            {columnVisibility.location && <TableHead>Location</TableHead>}
+            {columnVisibility.location && <TableHead>{t('partner:jobTable.location', 'Location')}</TableHead>}
             {columnVisibility.status && (
               <SortableHeader
                 label="Status"

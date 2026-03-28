@@ -1,0 +1,13 @@
+---
+description: All user-visible UI copy must use i18n (react-i18next), not raw JSX strings
+alwaysApply: true
+---
+
+# Internationalization (required)
+
+- **Never** introduce new user-visible English (or any fixed locale) as raw JSX text or string literals inside JSX in `src/**/*.tsx`, except under ignored paths below.
+- **Always** use `useTranslation` + `t('…')` (or `Trans`). Add keys to `src/i18n/locales/en/<namespace>.json` first; extend `fr`, `de`, etc. when the task involves those languages.
+- **Ignored for this rule:** `src/components/ui/**`, `**/*.test.tsx`, `**/__tests__/**`, `tests/**`, `src/pages/legal/**`.
+- ESLint **`i18n/no-raw-jsx-text`** enforces this; fix warnings rather than disabling unless there is a documented exception.
+
+**Full playbook** (repo map, security, workflow, anti-patterns): **`AGENTS.md`** in this folder — not only i18n.

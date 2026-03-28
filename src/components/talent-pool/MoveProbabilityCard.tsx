@@ -49,7 +49,6 @@ const factorWeights: Record<keyof FactorBreakdown, number> = {
 };
 
 function getScoreColor(score: number): string {
-  const { t } = useTranslation('common');
   if (score >= 70) return 'text-green-400';
   if (score >= 40) return 'text-yellow-400';
   return 'text-muted-foreground';

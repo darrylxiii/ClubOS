@@ -1,3 +1,4 @@
+import { Helmet } from 'react-helmet-async';
 import { useTranslation } from 'react-i18next';
 import { LegalPageLayout } from "@/components/legal/LegalPageLayout";
 import { LegalSection } from "@/components/legal/LegalSection";
@@ -10,7 +11,7 @@ import quantumLogoDark from "@/assets/quantum-club-logo.png";
 
 export default function AcceptableUsePolicy() {
   const { t } = useTranslation('common');
-  const lastUpdated = "January 15, 2025";
+  const lastUpdated = "March 28, 2026";
 
   const sections = [
     { id: "purpose", title: "Purpose" },
@@ -46,6 +47,10 @@ export default function AcceptableUsePolicy() {
         </div>
       </div>
 
+      <Helmet>
+        <title>{t('legalPages.acceptableUsePolicy', 'Acceptable Use Policy')} | The Quantum Club</title>
+        <meta name="description" content={t('legalPages.acceptableUsePolicyDesc', 'Legal documentation for The Quantum Club recruitment platform.')} />
+      </Helmet>
       <LegalPageLayout
         title={t('legalPages.acceptableUsePolicy', 'Acceptable Use Policy')}
         lastUpdated={lastUpdated}
@@ -262,8 +267,8 @@ export default function AcceptableUsePolicy() {
                 <h4 className="font-semibold mb-2">{"How to Report"}</h4>
                 <ul className="list-disc pl-6 space-y-1 text-muted-foreground">
                   <li>{"Use the ')Report' button available on messages, profiles, and listings"}</li>
-                  <li>Email: <a href="mailto:trust@thequantumclub.com" className="text-primary hover:underline">{"trust@thequantumclub.com"}</a></li>
-                  <li>For security issues: <a href="mailto:security@thequantumclub.com" className="text-primary hover:underline">{"security@thequantumclub.com"}</a></li>
+                  <li>Email: <a href="mailto:info@thequantumclub.com" className="text-primary hover:underline">{"info@thequantumclub.com"}</a></li>
+                  <li>For security issues: <a href="mailto:info@thequantumclub.com" className="text-primary hover:underline">{"info@thequantumclub.com"}</a></li>
                 </ul>
               </div>
               <div>
@@ -286,11 +291,17 @@ export default function AcceptableUsePolicy() {
               If you have questions about this Acceptable Use Policy, please contact us:
             </p>
             <div className="mt-4 space-y-2">
-              <p><strong>{"General Inquiries:"}</strong> <a href="mailto:support@thequantumclub.com" className="text-primary hover:underline">{"support@thequantumclub.com"}</a></p>
-              <p><strong>{"Trust & Safety:"}</strong> <a href="mailto:trust@thequantumclub.com" className="text-primary hover:underline">{"trust@thequantumclub.com"}</a></p>
-              <p><strong>{"Security:"}</strong> <a href="mailto:security@thequantumclub.com" className="text-primary hover:underline">{"security@thequantumclub.com"}</a></p>
+              <p><strong>{"General Inquiries:"}</strong> <a href="mailto:info@thequantumclub.com" className="text-primary hover:underline">{"info@thequantumclub.com"}</a></p>
+              <p><strong>{"Trust & Safety:"}</strong> <a href="mailto:info@thequantumclub.com" className="text-primary hover:underline">{"info@thequantumclub.com"}</a></p>
+              <p><strong>{"Security:"}</strong> <a href="mailto:info@thequantumclub.com" className="text-primary hover:underline">{"info@thequantumclub.com"}</a></p>
             </div>
           </LegalSection>
+        <div className="mt-12 p-6 bg-muted/50 rounded-lg">
+          <p className="text-sm text-muted-foreground text-center">
+            &copy; {new Date().getFullYear()} The Quantum Club B.V. All rights reserved. | Pieter Cornelisz. Hooftstraat 41-2, 1071BM, Amsterdam, The Netherlands | KvK: 93498871
+          </p>
+        </div>
+
         </div>
       </LegalPageLayout>
     </div>

@@ -75,7 +75,7 @@ export const CompanySearch = ({ value, onChange, onSelect }: CompanySearchProps)
     <div className="relative">
       <div className="flex gap-2">
         <Input
-          placeholder="Search for a company..."
+          placeholder={t('companySearch.placeholder', 'Search for a company...')}
           value={value}
           onChange={(e) => onChange(e.target.value)}
           onFocus={() => value.length >= 2 && setShowResults(true)}
@@ -90,7 +90,7 @@ export const CompanySearch = ({ value, onChange, onSelect }: CompanySearchProps)
           className="bg-foreground text-background hover:bg-foreground/90 flex-shrink-0"
         >
           <Plus className="w-4 h-4 mr-2" />
-          Add
+          {t('companySearch.add', 'Add')}
         </Button>
       </div>
       
@@ -99,11 +99,11 @@ export const CompanySearch = ({ value, onChange, onSelect }: CompanySearchProps)
           <Command className="bg-transparent">
             <CommandList>
               {isLoading ? (
-                <CommandEmpty>Searching companies...</CommandEmpty>
+                <CommandEmpty>{t('companySearch.searching', 'Searching companies...')}</CommandEmpty>
               ) : companies.length === 0 ? (
                 <div className="p-4 text-sm text-center">
-                  <p className="text-muted-foreground mb-2">No companies found in database</p>
-                  <p className="text-xs text-muted-foreground">Click "Add" to manually add "{value}"</p>
+                  <p className="text-muted-foreground mb-2">{t('companySearch.noResults', 'No companies found in database')}</p>
+                  <p className="text-xs text-muted-foreground">{t('companySearch.clickAdd', 'Click "Add" to manually add "{{value}}"', { value })}</p>
                 </div>
               ) : (
                 <CommandGroup>

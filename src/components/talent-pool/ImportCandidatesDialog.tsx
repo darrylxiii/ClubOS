@@ -14,6 +14,7 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Upload, FileSpreadsheet, AlertCircle, CheckCircle2, Loader2 } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
@@ -177,6 +178,10 @@ export function ImportCandidatesDialog({
                 </p>
               </label>
             </div>
+            <p className="text-xs text-muted-foreground">
+              {t('import.csvPrivacyNotice', 'Imported candidate data will be stored securely and processed per our')}{' '}
+              <Link to="/legal/privacy" className="text-primary hover:underline">{t('privacy_policy', 'Privacy Policy')}</Link>.
+            </p>
           </div>
 
           {/* Parse Status */}

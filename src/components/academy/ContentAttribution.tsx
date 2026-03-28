@@ -26,7 +26,7 @@ export function ContentAttribution({ attribution }: ContentAttributionProps) {
   }
 
   return (
-    <Card className="squircle p-4 bg-muted/50">
+    <Card className="rounded-2xl p-4 bg-muted/50">
       <div className="flex items-start gap-3">
         <div className="p-2 rounded-lg bg-primary/10">
           <Shield className="h-4 w-4 text-primary" />
@@ -34,7 +34,7 @@ export function ContentAttribution({ attribution }: ContentAttributionProps) {
         <div className="flex-1 space-y-2">
           <div className="flex items-center gap-2">
             <h4 className="text-sm font-semibold">{t("content_attribution", "Content Attribution")}</h4>
-            <Badge variant="outline" className="squircle-sm text-xs">
+            <Badge variant="outline" className="rounded-xl text-xs">
               {attribution.license.license_name}
             </Badge>
           </div>

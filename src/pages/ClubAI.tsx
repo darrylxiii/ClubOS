@@ -102,7 +102,7 @@ const ClubAI = () => {
                 </Button>
               </SheetTrigger>
               <SheetContent>
-                <SheetHeader><SheetTitle>Conversation History</SheetTitle></SheetHeader>
+                <SheetHeader><SheetTitle>{t('common:conversationHistory', 'Conversation History')}</SheetTitle></SheetHeader>
                 <ScrollArea className="h-[calc(100vh-120px)] mt-6">
                   <div className="space-y-2">
                     {conversations.length === 0 ? (
@@ -296,7 +296,7 @@ const ClubAI = () => {
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogCancel>{t('common:cancel', 'Cancel')}</AlertDialogCancel>
               <AlertDialogAction onClick={handleConfirm} className="bg-primary hover:bg-primary/90">Confirm</AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>

@@ -28,20 +28,20 @@ export const ValuesPokerIntro = memo(({ onStart }: ValuesPokerIntroProps) => {
           <div className="space-y-4">
             <h3 className="font-semibold flex items-center gap-2">
               <Scale className="h-5 w-5" />
-              How It Works
+              {t('valuesPoker.howItWorks', 'How It Works')}
             </h3>
             <div className="space-y-3 text-sm text-muted-foreground">
               <div className="flex gap-3">
                 <span className="flex-shrink-0 w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs">1</span>
-                <p><strong>Allocate Points:</strong>Distribute 100 points across 10 work values</p>
+                <p><strong>{t('valuesPoker.allocatePoints', 'Allocate Points')}:</strong>{t('valuesPoker.allocatePointsDesc', 'Distribute 100 points across 10 work values')}</p>
               </div>
               <div className="flex gap-3">
                 <span className="flex-shrink-0 w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs">2</span>
-                <p><strong>Make Trade-offs:</strong>Choose between 20 realistic job scenarios</p>
+                <p><strong>{t('valuesPoker.makeTradeoffs', 'Make Trade-offs')}:</strong>{t('valuesPoker.makeTradeoffsDesc', 'Choose between 20 realistic job scenarios')}</p>
               </div>
               <div className="flex gap-3">
                 <span className="flex-shrink-0 w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs">3</span>
-                <p><strong>Reveal Truth:</strong>See if your actions match your words</p>
+                <p><strong>{t('valuesPoker.revealTruth', 'Reveal Truth')}:</strong>{t('valuesPoker.revealTruthDesc', 'See if your actions match your words')}</p>
               </div>
             </div>
           </div>
@@ -49,24 +49,24 @@ export const ValuesPokerIntro = memo(({ onStart }: ValuesPokerIntroProps) => {
           <div className="space-y-4">
             <h3 className="font-semibold flex items-center gap-2">
               <Target className="h-5 w-5" />
-              What You'll Discover
+              {t('valuesPoker.whatYoullDiscover', "What You'll Discover")}
             </h3>
             <div className="grid grid-cols-2 gap-3 text-sm">
               <div className="p-3 rounded-lg bg-muted">
-                <div className="font-medium">Your Archetype</div>
-                <div className="text-xs text-muted-foreground">Core motivation profile</div>
+                <div className="font-medium">{t('valuesPoker.yourArchetype', 'Your Archetype')}</div>
+                <div className="text-xs text-muted-foreground">{t('valuesPoker.coreMotivation', 'Core motivation profile')}</div>
               </div>
               <div className="p-3 rounded-lg bg-muted">
-                <div className="font-medium">Consistency</div>
-                <div className="text-xs text-muted-foreground">Do you walk your talk?</div>
+                <div className="font-medium">{t('valuesPoker.consistency', 'Consistency')}</div>
+                <div className="text-xs text-muted-foreground">{t('valuesPoker.walkYourTalk', 'Do you walk your talk?')}</div>
               </div>
               <div className="p-3 rounded-lg bg-muted">
-                <div className="font-medium">Culture Fit</div>
-                <div className="text-xs text-muted-foreground">Which companies match</div>
+                <div className="font-medium">{t('valuesPoker.cultureFit', 'Culture Fit')}</div>
+                <div className="text-xs text-muted-foreground">{t('valuesPoker.whichCompaniesMatch', 'Which companies match')}</div>
               </div>
               <div className="p-3 rounded-lg bg-muted">
-                <div className="font-medium">Trade-off Patterns</div>
-                <div className="text-xs text-muted-foreground">What you'll sacrifice</div>
+                <div className="font-medium">{t('valuesPoker.tradeOffPatterns', 'Trade-off Patterns')}</div>
+                <div className="text-xs text-muted-foreground">{t('valuesPoker.whatYoullSacrifice', "What you'll sacrifice")}</div>
               </div>
             </div>
           </div>

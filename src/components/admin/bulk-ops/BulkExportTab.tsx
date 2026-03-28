@@ -157,10 +157,10 @@ export const BulkExportTab = () => {
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
 
-      toast.success(`Exported ${result.data.length} candidates`);
+      toast.success(t('bulk-ops.bulkExportTab.exportSuccess', 'Exported {{count}} candidates', { count: result.data.length }));
     },
     onError: (error: Error) => {
-      toast.error(`Export failed: ${error.message}`);
+      toast.error(t('bulk-ops.bulkExportTab.exportFailed', 'Export failed: {{message}}', { message: error.message }));
     },
   });
 
@@ -175,7 +175,7 @@ export const BulkExportTab = () => {
               <SelectValue placeholder={t('bulk-ops.bulkExportTab.allCandidates')} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All Candidates</SelectItem>
+              <SelectItem value="all">{t('bulk-ops.bulkExportTab.allCandidatesOption', 'All Candidates')}</SelectItem>
               {jobs?.map((job) => (
                 <SelectItem key={job.id} value={job.id}>
                   {job.title} - {(job.companies as any)?.name}
@@ -192,7 +192,7 @@ export const BulkExportTab = () => {
               <SelectValue placeholder={t('bulk-ops.bulkExportTab.allStages')} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All Stages</SelectItem>
+              <SelectItem value="all">{t('bulk-ops.bulkExportTab.allStagesOption', 'All Stages')}</SelectItem>
               {stages.map((stage) => (
                 <SelectItem key={stage} value={stage}>
                   {stage}
@@ -259,12 +259,12 @@ export const BulkExportTab = () => {
         {exportData.isPending ? (
           <>
             <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-            Exporting...
+            {t('bulk-ops.bulkExportTab.exporting', 'Exporting...')}
           </>
         ) : (
           <>
             <Download className="h-4 w-4 mr-2" />
-            Export Data
+            {t('bulk-ops.bulkExportTab.exportData', 'Export Data')}
           </>
         )}
       </Button>

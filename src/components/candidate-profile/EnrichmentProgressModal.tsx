@@ -352,7 +352,7 @@ export const EnrichmentProgressModal: React.FC<EnrichmentProgressModalProps> = (
         {/* Progress bar */}
         <div className="space-y-1">
           <div className="flex justify-between text-xs text-muted-foreground">
-            <span>{isRunning ? 'Processing...' : isDone ? 'Complete' : 'Starting...'}</span>
+            <span>{isRunning ? t('enrichment.processing', 'Processing...') : isDone ? t('enrichment.complete', 'Complete') : t('enrichment.starting', 'Starting...')}</span>
             <span>{progress}%</span>
           </div>
           <div className="h-2 rounded-full bg-muted/50 overflow-hidden">
@@ -428,7 +428,7 @@ export const EnrichmentProgressModal: React.FC<EnrichmentProgressModalProps> = (
             >
               <h4 className="text-sm font-semibold flex items-center gap-2">
                 <Sparkles className="w-4 h-4 text-primary" />
-                Enrichment Summary
+                {t('enrichment.summary', 'Enrichment Summary')}
               </h4>
               {summary.highlights.length > 0 ? (
                 <ul className="space-y-1">
@@ -440,7 +440,7 @@ export const EnrichmentProgressModal: React.FC<EnrichmentProgressModalProps> = (
                   ))}
                 </ul>
               ) : (
-                <p className="text-xs text-muted-foreground">No new data was found during this enrichment run.</p>
+                <p className="text-xs text-muted-foreground">{t('enrichment.noNewData', 'No new data was found during this enrichment run.')}</p>
               )}
             </motion.div>
           )}
@@ -458,10 +458,10 @@ export const EnrichmentProgressModal: React.FC<EnrichmentProgressModalProps> = (
             {isDone ? (
               <>
                 <Eye className="w-4 h-4 mr-1" />
-                View Updated Profile
+                {t('enrichment.viewUpdatedProfile', 'View Updated Profile')}
               </>
             ) : (
-              'Close'
+              t('enrichment.close', 'Close')
             )}
           </Button>
         </div>

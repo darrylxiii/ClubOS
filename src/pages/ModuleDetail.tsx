@@ -15,8 +15,12 @@ import {
   CheckCircle2,
   PlayCircle,
   ChevronRight,
+  Check,
 } from "lucide-react";
 import { SectionLoader } from "@/components/ui/unified-loader";
+import { SharedModuleChat } from "@/components/academy/SharedModuleChat";
+import { VideoPlayerWithTranscript } from "@/components/academy/VideoPlayerWithTranscript";
+import { NoteEditor } from "@/components/academy/NoteEditor";
 
 interface Module {
   id: string;
@@ -56,6 +60,7 @@ export default function ModuleDetail() {
   const [currentModuleIndex, setCurrentModuleIndex] = useState(0);
   const [videoRef, setVideoRef] = useState<HTMLVideoElement | null>(null);
   const [lastSavedPosition, setLastSavedPosition] = useState(0);
+  const [completedModuleIds, setCompletedModuleIds] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     fetchModule();
@@ -91,6 +96,25 @@ export default function ModuleDetail() {
           setCourseModules(modulesData);
           const index = modulesData.findIndex(m => m.slug === slug);
           setCurrentModuleIndex(index);
+
+          // Fetch completion status for all modules in the course
+          if (user) {
+            const moduleIds = modulesData.map(m => m.id);
+            const { data: allProgress } = await supabase
+              .from('learner_progress')
+              .select('module_id, progress_percentage')
+              .eq('user_id', user.id)
+              .in('module_id', moduleIds);
+
+            if (allProgress) {
+              const completed = new Set<string>(
+                allProgress
+                  .filter(p => p.progress_percentage === 100)
+                  .map(p => p.module_id)
+              );
+              setCompletedModuleIds(completed);
+            }
+          }
         }
       }
 
@@ -112,14 +136,16 @@ export default function ModuleDetail() {
     } catch (error: unknown) {
       console.error('Error fetching module:', error);
       toast({
-        title: "Error loading module",
-        description: error instanceof Error ? error.message : 'Unknown error',
+        title: t('moduleDetail.errorLoadingModule', 'Error loading module'),
+        description: error instanceof Error ? error.message : t('moduleDetail.unknownError', 'Unknown error'),
         variant: "destructive",
       });
     } finally {
       setLoading(false);
     }
   };
+
+  const isLastModule = currentModuleIndex === courseModules.length - 1;
 
   const markComplete = async () => {
     if (!module || !user) return;
@@ -137,14 +163,29 @@ export default function ModuleDetail() {
       if (error) throw error;
 
       setProgress(100);
+      setCompletedModuleIds(prev => new Set(prev).add(module.id));
+
+      // If last module, navigate back to course overview with success toast
+      if (isLastModule) {
+        toast({
+          title: t('moduleDetail.courseCompleted', 'Course completed!'),
+          description: t('moduleDetail.courseCompletedDescription', 'Congratulations! You have finished all modules.'),
+        });
+        navigate(`/courses/${module.course.slug}`);
+        return;
+      }
+
       toast({
-        title: "Module completed!",
-        description: "Great job!",
+        title: t('moduleDetail.moduleCompleted', 'Module completed!'),
+        description: t('moduleDetail.greatJob', 'Great job!'),
       });
+
+      // Auto-advance to next module
+      goToNextModule();
     } catch (error: unknown) {
       toast({
-        title: "Error",
-        description: error instanceof Error ? error.message : 'Unknown error',
+        title: t('moduleDetail.error', 'Error'),
+        description: error instanceof Error ? error.message : t('moduleDetail.unknownError', 'Unknown error'),
         variant: "destructive",
       });
     }
@@ -153,14 +194,14 @@ export default function ModuleDetail() {
   const goToNextModule = () => {
     if (currentModuleIndex < courseModules.length - 1) {
       const nextModule = courseModules[currentModuleIndex + 1];
-      navigate(`/academy/modules/${nextModule.slug}`);
+      navigate(`/modules/${nextModule.slug}`);
     }
   };
 
   const goToPreviousModule = () => {
     if (currentModuleIndex > 0) {
       const prevModule = courseModules[currentModuleIndex - 1];
-      navigate(`/academy/modules/${prevModule.slug}`);
+      navigate(`/modules/${prevModule.slug}`);
     }
   };
 
@@ -273,6 +314,8 @@ export default function ModuleDetail() {
 
   const hasNextModule = currentModuleIndex < courseModules.length - 1;
   const hasPreviousModule = currentModuleIndex > 0;
+  const completedCount = completedModuleIds.size;
+  const totalModules = courseModules.length;
 
   return (
     <>
@@ -281,7 +324,7 @@ export default function ModuleDetail() {
         <div className="flex items-center gap-2 text-sm text-muted-foreground mb-6">
           <Link to="/academy" className="hover:text-foreground">
             <BookOpen className="h-4 w-4 inline mr-1" />
-            Academy
+            {t('moduleDetail.academy', 'Academy')}
           </Link>
           <ChevronRight className="h-4 w-4" />
           <Link
@@ -316,9 +359,9 @@ export default function ModuleDetail() {
 
           {/* Video Player */}
           {module.video_url && (
-            <Card className="overflow-hidden">
-              <div className="aspect-video bg-muted flex items-center justify-center">
-                {module.video_url.includes('youtube.com') || module.video_url.includes('youtu.be') ? (
+            module.video_url.includes('youtube.com') || module.video_url.includes('youtu.be') ? (
+              <Card className="overflow-hidden">
+                <div className="aspect-video bg-muted flex items-center justify-center">
                   <iframe
                     src={module.video_url}
                     className="w-full h-full"
@@ -326,7 +369,17 @@ export default function ModuleDetail() {
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                     title={module.title}
                   />
-                ) : (
+                </div>
+              </Card>
+            ) : (module as any).transcript && Array.isArray((module as any).transcript) && (module as any).transcript.length > 0 ? (
+              <VideoPlayerWithTranscript
+                videoUrl={module.video_url}
+                transcript={(module as any).transcript}
+                title={module.title}
+              />
+            ) : (
+              <Card className="overflow-hidden">
+                <div className="aspect-video bg-muted flex items-center justify-center">
                   <video
                     ref={setVideoRef}
                     src={module.video_url}
@@ -334,9 +387,9 @@ export default function ModuleDetail() {
                     className="w-full h-full"
                     poster={module.image_url}
                   />
-                )}
-              </div>
-            </Card>
+                </div>
+              </Card>
+            )
           )}
 
           {/* No media placeholder */}
@@ -371,7 +424,72 @@ export default function ModuleDetail() {
                 </ul>
               </div>
             </div>
+
+            {/* Note Editor - shown for authenticated users */}
+            {user && (
+              <div className="mt-8 pt-6 border-t">
+                <h3 className="text-lg font-semibold mb-3">
+                  {t('moduleDetail.yourNotes', 'Your Notes')}
+                </h3>
+                <NoteEditor moduleId={module.id} />
+              </div>
+            )}
           </Card>
+
+          {/* Module Discussion */}
+          {user && module && (
+            <SharedModuleChat moduleId={module.id} moduleName={module.title} />
+          )}
+
+          {/* Module List Sidebar */}
+          {courseModules.length > 0 && (
+            <Card className="p-6">
+              <div className="space-y-3">
+                <div className="flex items-center justify-between mb-2">
+                  <h3 className="font-bold">
+                    {t('moduleDetail.courseModules', 'Course Modules')}
+                  </h3>
+                  <span className="text-sm text-muted-foreground">
+                    {t('moduleDetail.completedCount', '{{completed}} of {{total}} completed', {
+                      completed: completedCount,
+                      total: totalModules,
+                    })}
+                  </span>
+                </div>
+                <div className="space-y-1">
+                  {courseModules.map((cm, index) => {
+                    const isCurrentModule = cm.slug === slug;
+                    const isCompleted = completedModuleIds.has(cm.id);
+                    return (
+                      <button
+                        key={cm.id}
+                        onClick={() => navigate(`/modules/${cm.slug}`)}
+                        className={`w-full flex items-center gap-3 px-3 py-2 rounded-md text-left text-sm transition-colors ${
+                          isCurrentModule
+                            ? 'bg-primary/10 text-primary font-semibold'
+                            : 'hover:bg-muted'
+                        }`}
+                        aria-label={t('moduleDetail.goToModule', 'Go to module {{number}}: {{title}}', {
+                          number: index + 1,
+                          title: cm.title,
+                        })}
+                        aria-current={isCurrentModule ? 'true' : undefined}
+                      >
+                        <span className="flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-xs font-medium border border-current">
+                          {isCompleted ? (
+                            <Check className="h-3.5 w-3.5" />
+                          ) : (
+                            index + 1
+                          )}
+                        </span>
+                        <span className="truncate">{cm.title}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            </Card>
+          )}
 
           {/* Progress and Navigation */}
           {user && (
@@ -381,7 +499,23 @@ export default function ModuleDetail() {
                   <h3 className="font-bold">{t('moduleDetail.text11')}</h3>
                   <span className="text-sm font-semibold">{Math.round(progress)}%</span>
                 </div>
-                <Progress value={progress} className="h-2" />
+
+                {/* Module X of Y indicator */}
+                {totalModules > 0 && (
+                  <p className="text-sm text-muted-foreground">
+                    {t('moduleDetail.moduleXOfY', 'Module {{current}} of {{total}}', {
+                      current: currentModuleIndex + 1,
+                      total: totalModules,
+                    })}
+                  </p>
+                )}
+
+                <Progress
+                  value={progress}
+                  className="h-2"
+                  aria-valuenow={Math.round(progress)}
+                  aria-valuemax={100}
+                />
 
                 {module?.video_url && !module.video_url.includes('youtube.com') && !module.video_url.includes('youtu.be') && (
                   <div className="pt-2 border-t">
@@ -389,7 +523,12 @@ export default function ModuleDetail() {
                       <span className="text-muted-foreground">{t('moduleDetail.text12')}</span>
                       <span className="font-semibold">{videoWatchedPercentage}%</span>
                     </div>
-                    <Progress value={videoWatchedPercentage} className="h-1 mt-2" />
+                    <Progress
+                      value={videoWatchedPercentage}
+                      className="h-1 mt-2"
+                      aria-valuenow={videoWatchedPercentage}
+                      aria-valuemax={100}
+                    />
                   </div>
                 )}
 
@@ -399,23 +538,31 @@ export default function ModuleDetail() {
                     onClick={goToPreviousModule}
                     disabled={!hasPreviousModule}
                     className="flex-1"
+                    aria-label={t('moduleDetail.previous', 'Previous')}
                   >
                     <ArrowLeft className="mr-2 h-4 w-4" />
-                    Previous
+                    {t('moduleDetail.previous', 'Previous')}
                   </Button>
 
                   <Button
                     onClick={markComplete}
-                    disabled={progress === 100}
+                    disabled={progress === 100 && !isLastModule}
                     variant={progress === 100 ? "outline" : "default"}
                   >
                     {progress === 100 ? (
-                      <>
-                        <CheckCircle2 className="mr-2 h-4 w-4" />
-                        Completed
-                      </>
+                      isLastModule ? (
+                        <>
+                          <CheckCircle2 className="mr-2 h-4 w-4" />
+                          {t('moduleDetail.backToCourse', 'Back to Course')}
+                        </>
+                      ) : (
+                        <>
+                          <CheckCircle2 className="mr-2 h-4 w-4" />
+                          {t('moduleDetail.completed', 'Completed')}
+                        </>
+                      )
                     ) : (
-                      "Complete & Continue"
+                      t('moduleDetail.completeAndContinue', 'Complete & Continue')
                     )}
                   </Button>
 
@@ -424,8 +571,9 @@ export default function ModuleDetail() {
                     onClick={goToNextModule}
                     disabled={!hasNextModule}
                     className="flex-1"
+                    aria-label={t('moduleDetail.next', 'Next')}
                   >
-                    Next
+                    {t('moduleDetail.next', 'Next')}
                     <ArrowRight className="ml-2 h-4 w-4" />
                   </Button>
                 </div>
@@ -436,9 +584,12 @@ export default function ModuleDetail() {
           {/* Back to Course */}
           <div className="flex justify-center pt-6">
             <Link to={`/courses/${module.course.slug}`}>
-              <Button variant="ghost">
+              <Button
+                variant="ghost"
+                aria-label={t('moduleDetail.backToCourseOverview', 'Back to Course Overview')}
+              >
                 <ArrowLeft className="mr-2 h-4 w-4" />
-                Back to Course Overview
+                {t('moduleDetail.backToCourseOverview', 'Back to Course Overview')}
               </Button>
             </Link>
           </div>

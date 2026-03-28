@@ -3,31 +3,39 @@
  * Sends magic link invitation to non-platform users for interview panel participation
  */
 import { createAuthenticatedHandler } from '../_shared/handler.ts';
-import { EMAIL_SENDERS, EMAIL_COLORS, getEmailAppUrl } from "../_shared/email-config.ts";
+import { EMAIL_SENDERS, EMAIL_COLORS, getEmailAppUrl, getEmailHeaders } from "../_shared/email-config.ts";
 import { sendEmail } from '../_shared/resend-client.ts';
 import { baseEmailTemplate } from "../_shared/email-templates/base-template.ts";
 import { Heading, Paragraph, Spacer, Card, Button, InfoRow } from "../_shared/email-templates/components.ts";
+import { z, parseBody, uuidSchema, emailSchema } from '../_shared/validation.ts';
+import { sanitizeForEmail } from '../_shared/sanitize.ts';
+
+const requestSchema = z.object({
+  jobId: uuidSchema,
+  email: emailSchema,
+  fullName: z.string().max(200).trim().optional(),
+  jobTitle: z.string().max(300).trim().optional(),
+  companyId: uuidSchema,
+  jobRole: z.string().max(100).optional().default('external_interviewer'),
+  permissions: z.object({ can_view_candidates: z.boolean().optional() }).passthrough().optional().default({ can_view_candidates: true }),
+  expiresInDays: z.number().int().min(1).max(90).optional().default(7),
+});
 
 Deno.serve(createAuthenticatedHandler(async (req, ctx) => {
     const { supabase, user, corsHeaders } = ctx;
 
+    const parsed = await parseBody(req, requestSchema, corsHeaders);
+    if ('error' in parsed) return parsed.error;
     const {
-      jobId, 
-      email, 
-      fullName, 
+      jobId,
+      email,
+      fullName,
       jobTitle,
       companyId,
-      jobRole = 'external_interviewer',
-      permissions = { can_view_candidates: true },
-      expiresInDays = 7
-    } = await req.json();
-
-    if (!jobId || !email || !companyId) {
-      return new Response(JSON.stringify({ error: 'Job ID, email, and company ID are required' }), {
-        status: 400,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-      });
-    }
+      jobRole,
+      permissions,
+      expiresInDays,
+    } = parsed.data;
 
     // Check if interviewer already exists for this company
     let { data: existingInterviewer } = await supabase
@@ -139,10 +147,10 @@ Deno.serve(createAuthenticatedHandler(async (req, ctx) => {
     const appUrl = getEmailAppUrl();
     const magicLinkUrl = `${appUrl}/external-interview?token=${magicToken}&job=${jobId}`;
 
-    // Send invitation email using base template
-    const positionTitle = job?.title || 'Open Position';
-    const companyName = company?.name || 'the hiring team';
-    const inviterName = inviterProfile?.full_name || 'A team member';
+    // Send invitation email using base template — sanitize DB-fetched names for safe HTML embedding
+    const positionTitle = sanitizeForEmail(job?.title) || 'Open Position';
+    const companyName = sanitizeForEmail(company?.name) || 'the hiring team';
+    const inviterName = sanitizeForEmail(inviterProfile?.full_name) || 'A team member';
 
     const emailContent = `
       ${Heading({ text: "You're Invited to Interview", level: 1 })}
@@ -183,6 +191,7 @@ Deno.serve(createAuthenticatedHandler(async (req, ctx) => {
           showHeader: true,
           showFooter: true,
         }),
+        headers: getEmailHeaders(),
       });
     } catch (emailErr) {
       console.error('Email send failed:', emailErr);

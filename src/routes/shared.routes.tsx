@@ -23,6 +23,7 @@ const CourseDetail = lazy(() => import("@/pages/CourseDetail"));
 const ModuleManagement = lazy(() => import("@/pages/ModuleManagement"));
 const ModuleEdit = lazy(() => import("@/pages/ModuleEdit"));
 const CourseEdit = lazy(() => import("@/pages/CourseEdit"));
+const LearningPathDetail = lazy(() => import("@/pages/LearningPathDetail"));
 const Settings = lazy(() => import("@/pages/Settings"));
 const EnhancedProfile = lazy(() => import("@/pages/EnhancedProfile"));
 const PublicUserProfile = lazy(() => import("@/pages/PublicUserProfile"));
@@ -30,6 +31,8 @@ const UnifiedCandidateProfile = lazy(() => import("@/pages/UnifiedCandidateProfi
 const ClubDJ = lazy(() => import("@/pages/ClubDJ"));
 const Radio = lazy(() => import("@/pages/Radio"));
 const RadioListen = lazy(() => import("@/pages/RadioListen"));
+const Sets = lazy(() => import("@/pages/Sets"));
+const SetPlayer = lazy(() => import("@/pages/SetPlayer"));
 const DocumentManagement = lazy(() => import("@/pages/DocumentManagement"));
 
 // Workspace / Quantum OS Pages
@@ -82,11 +85,12 @@ export const sharedRoutes = (
     {/* Academy & Learning */}
     <Route path="/academy" element={<ProtectedRoute><Academy /></ProtectedRoute>} />
     <Route path="/academy/creator" element={<ProtectedRoute><AcademyCreatorHub /></ProtectedRoute>} />
-    <Route path="/modules/:moduleId" element={<ProtectedRoute><ModuleDetail /></ProtectedRoute>} />
-    <Route path="/modules/:moduleId/manage" element={<ProtectedRoute><ModuleManagement /></ProtectedRoute>} />
-    <Route path="/modules/:moduleId/edit" element={<ProtectedRoute><ModuleEdit /></ProtectedRoute>} />
+    <Route path="/modules/:slug" element={<ProtectedRoute><ModuleDetail /></ProtectedRoute>} />
+    <Route path="/modules/:slug/manage" element={<ProtectedRoute><ModuleManagement /></ProtectedRoute>} />
+    <Route path="/modules/:id/edit" element={<ProtectedRoute><ModuleEdit /></ProtectedRoute>} />
     <Route path="/courses/:slug" element={<ProtectedRoute><CourseDetail /></ProtectedRoute>} />
-    <Route path="/courses/:slug/edit" element={<ProtectedRoute><CourseEdit /></ProtectedRoute>} />
+    <Route path="/courses/:id/edit" element={<ProtectedRoute><CourseEdit /></ProtectedRoute>} />
+    <Route path="/learning-paths/:slug" element={<ProtectedRoute><LearningPathDetail /></ProtectedRoute>} />
     
     {/* Profile & Settings - Consolidated */}
     <Route path="/profile" element={<ProtectedRoute><EnhancedProfile /></ProtectedRoute>} />
@@ -102,7 +106,10 @@ export const sharedRoutes = (
     {/* Radio & Music */}
     <Route path="/club-dj" element={<ProtectedRoute><ClubDJ /></ProtectedRoute>} />
     <Route path="/radio" element={<ProtectedRoute><Radio /></ProtectedRoute>} />
-    <Route path="/radio/:playlistId" element={<ProtectedRoute><RadioListen /></ProtectedRoute>} />
+    <Route path="/radio/:sessionId" element={<ProtectedRoute><RadioListen /></ProtectedRoute>} />
+    <Route path="/radio/playlist/:sessionId" element={<ProtectedRoute><RadioListen /></ProtectedRoute>} />
+    <Route path="/sets" element={<ProtectedRoute><Sets /></ProtectedRoute>} />
+    <Route path="/radio/set/:setId" element={<ProtectedRoute><SetPlayer /></ProtectedRoute>} />
     
     {/* Documents */}
     <Route path="/documents" element={<ProtectedRoute><DocumentManagement /></ProtectedRoute>} />

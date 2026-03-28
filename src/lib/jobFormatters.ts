@@ -10,20 +10,41 @@ export const formatSalary = (
 ): string | null => {
   if (!max && !min) return null;
   
-  const formatter = new Intl.NumberFormat('en-US', {
+  // Get geo-preferences from local storage or fallback to browser
+  const storedLocale = localStorage.getItem('i18nextLng') || navigator.language || 'en-US';
+  const storedCountry = localStorage.getItem('tqc_geo_country') || 'US';
+  
+  const formatter = new Intl.NumberFormat(storedLocale, {
     style: 'currency',
     currency,
     maximumFractionDigits: 0,
   });
   
-  if (min && max) {
-    return `${formatter.format(min)} - ${formatter.format(max)}`;
+  // NL prefers monthly gross, US prefers annual
+  // If the data is annual and we are in NL, divide by 12
+  const isMonthlyMarket = ['NL', 'BE', 'AE', 'SA'].includes(storedCountry);
+  const adjustValue = (val: number) => {
+    // Basic heuristic: if it's > 25000, it's likely annual. If market prefers monthly, convert it.
+    if (isMonthlyMarket && val > 25000) {
+      return Math.round(val / 12);
+    }
+    return val;
+  };
+
+  const adjMin = min ? adjustValue(min) : undefined;
+  const adjMax = max ? adjustValue(max) : undefined;
+  const suffix = isMonthlyMarket && (min! > 25000 || max! > 25000) ? '/mo' : '';
+
+  const premiumSuffix = ` Base + Equity Access`;
+  
+  if (adjMin && adjMax) {
+    return `${formatter.format(adjMin)} - ${formatter.format(adjMax)}${suffix}${premiumSuffix}`;
   }
-  if (max) {
-    return `Up to ${formatter.format(max)}`;
+  if (adjMax) {
+    return `Up to ${formatter.format(adjMax)}${suffix}${premiumSuffix}`;
   }
-  if (min) {
-    return `From ${formatter.format(min)}`;
+  if (adjMin) {
+    return `Starting at ${formatter.format(adjMin)}${suffix}${premiumSuffix}`;
   }
   return null;
 };
@@ -35,23 +56,37 @@ export const formatSalaryCompact = (
 ): string | null => {
   if (!max && !min) return null;
   
+  const storedCountry = localStorage.getItem('tqc_geo_country') || 'US';
+  const isMonthlyMarket = ['NL', 'BE', 'AE', 'SA'].includes(storedCountry);
+  
+  const adjustValue = (val: number) => {
+    if (isMonthlyMarket && val > 25000) return Math.round(val / 12);
+    return val;
+  };
+
+  const adjMin = min ? adjustValue(min) : undefined;
+  const adjMax = max ? adjustValue(max) : undefined;
+  const suffix = isMonthlyMarket && (min! > 25000 || max! > 25000) ? '/mo' : '';
+  
   const symbol = currency === 'EUR' ? '€' : currency === 'USD' ? '$' : currency === 'GBP' ? '£' : currency;
   
   const formatK = (num: number) => {
     if (num >= 1000) {
       return `${Math.round(num / 1000)}k`;
     }
-    return num.toString();
+    return new Intl.NumberFormat(navigator.language).format(num);
   };
   
-  if (min && max) {
-    return `${symbol}${formatK(min)}-${formatK(max)}`;
+  const premiumSuffix = ` Base + Equity`;
+
+  if (adjMin && adjMax) {
+    return `${symbol}${formatK(adjMin)}-${formatK(adjMax)}${suffix}${premiumSuffix}`;
   }
-  if (max) {
-    return `Up to ${symbol}${formatK(max)}`;
+  if (adjMax) {
+    return `Up to ${symbol}${formatK(adjMax)}${suffix}${premiumSuffix}`;
   }
-  if (min) {
-    return `From ${symbol}${formatK(min)}`;
+  if (adjMin) {
+    return `${symbol}${formatK(adjMin)}${suffix}${premiumSuffix}`;
   }
   return null;
 };

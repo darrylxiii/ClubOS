@@ -1,0 +1,2 @@
+const __vite__mapDeps=(i,m=__vite__mapDeps,d=(m.f||(m.f=["assets/vendor-charts-BgEcMk5-.js","assets/vendor-react-CuFUCoS-.js"])))=>i.map(i=>d[i]);
+import{_ as u}from"./vendor-supabase-6U_Eb7vz.js";import{r}from"./vendor-react-CuFUCoS-.js";function f(){const[o,a]=r.useState(null),[n,s]=r.useState(!0);return r.useEffect(()=>{let t=!0;return u(()=>import("./vendor-charts-BgEcMk5-.js").then(e=>e.$),__vite__mapDeps([0,1])).then(e=>{t&&(a(e),s(!1))}).catch(e=>{console.error("Failed to load recharts:",e),t&&s(!1)}),()=>{t=!1}},[]),{recharts:o,isLoading:n}}export{f as u};

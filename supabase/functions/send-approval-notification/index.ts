@@ -1,30 +1,30 @@
 import { createHandler } from '../_shared/handler.ts';
-import { EMAIL_SENDERS, EMAIL_COLORS, getEmailAppUrl } from "../_shared/email-config.ts";
+import { EMAIL_SENDERS, EMAIL_COLORS, getEmailAppUrl, getEmailHeaders } from "../_shared/email-config.ts";
 import { sendEmail } from '../_shared/resend-client.ts';
 import { baseEmailTemplate } from "../_shared/email-templates/base-template.ts";
 import {
   Heading, Paragraph, Spacer, Card, Button, AlertBox, StatusBadge, InfoRow,
 } from "../_shared/email-templates/components.ts";
 import { getAppUrl } from "../_shared/app-config.ts";
+import { z, parseBody, emailSchema, nameSchema } from '../_shared/validation.ts';
+import { sanitizeForEmail } from '../_shared/sanitize.ts';
 
-interface NotificationRequest {
-  userId: string;
-  email: string;
-  fullName: string;
-  requestType?: 'candidate' | 'partner';
-  status: 'approved' | 'declined';
-  declineReason?: string;
-  testMode?: boolean;
-}
+const bodySchema = z.object({
+  userId: z.string().optional(),
+  email: emailSchema,
+  fullName: nameSchema,
+  requestType: z.enum(['candidate', 'partner']).optional().default('candidate'),
+  status: z.enum(['approved', 'declined']),
+  declineReason: z.string().max(2000).optional(),
+  testMode: z.boolean().optional(),
+});
 
 Deno.serve(createHandler(async (req, ctx) => {
-    const { userId, email, fullName, requestType = 'candidate', status, declineReason, testMode }: NotificationRequest = await req.json();
+    const parsed = await parseBody(req, bodySchema, ctx.corsHeaders);
+    if ('error' in parsed) return parsed.error;
+    const { userId, email, fullName, requestType, status, declineReason, testMode } = parsed.data;
 
     console.log('[send-approval-notification] Processing:', { userId, email, requestType, status, testMode });
-
-    if (!email || !fullName) {
-      throw new Error('Missing required fields: email or fullName');
-    }
 
     const appUrl = getAppUrl();
     let loginUrl = `${appUrl}/auth`;
@@ -119,32 +119,20 @@ Deno.serve(createHandler(async (req, ctx) => {
         ${StatusBadge({ status: 'confirmed', text: 'APPROVED' })}
         ${Heading({ text: 'Welcome to The Quantum Club!', level: 1, align: 'center' })}
         ${Spacer(24)}
-        ${Paragraph(`Dear ${fullName},`, 'primary')}
+        ${Paragraph(`Dear ${sanitizeForEmail(fullName)},`, 'primary')}
         ${Spacer(8)}
-        ${Paragraph('Congratulations. Your application has been <strong style="color: #22c55e;">approved</strong>. You are now a member of The Quantum Club\'s exclusive talent network.', 'secondary')}
+        ${Paragraph(`Congratulations. Your application has been <strong style="color: ${EMAIL_COLORS.success};">approved</strong>. You are now a member of The Quantum Club's exclusive talent network.`, 'secondary')}
         ${Spacer(32)}
         ${Card({
           variant: 'highlight',
           content: `
             ${Heading({ text: 'What\'s Next', level: 3 })}
             ${Spacer(12)}
-            ${nextSteps.map(step => `
-              <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin-bottom: 8px;">
-                <tr>
-                  <td style="font-size: 14px; color: ${EMAIL_COLORS.textSecondary}; line-height: 1.6;">• ${step}</td>
-                </tr>
-              </table>
-            `).join('')}
+            ${nextSteps.map(step => Paragraph(`• ${step}`, 'secondary')).join(Spacer(4))}
           `,
         })}
         ${Spacer(32)}
-        <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
-          <tr>
-            <td align="center">
-              ${Button({ url: loginUrl, text: 'Access Your Dashboard', variant: 'primary' })}
-            </td>
-          </tr>
-        </table>
+        ${Button({ url: loginUrl, text: 'Access Your Dashboard', variant: 'primary' })}
         ${Spacer(16)}
         ${Paragraph('This link expires in 24 hours. After that, please use the regular login page.', 'muted')}
         ${Spacer(24)}
@@ -156,7 +144,7 @@ Deno.serve(createHandler(async (req, ctx) => {
       emailContent = `
         ${Heading({ text: 'Application Update', level: 1 })}
         ${Spacer(24)}
-        ${Paragraph(`Dear ${fullName},`, 'primary')}
+        ${Paragraph(`Dear ${sanitizeForEmail(fullName)},`, 'primary')}
         ${Spacer(8)}
         ${Paragraph('Thank you for your interest in joining The Quantum Club.', 'secondary')}
         ${Spacer(8)}
@@ -168,7 +156,7 @@ Deno.serve(createHandler(async (req, ctx) => {
             content: `
               ${Heading({ text: 'Feedback', level: 3 })}
               ${Spacer(8)}
-              ${Paragraph(declineReason, 'secondary')}
+              ${Paragraph(sanitizeForEmail(declineReason), 'secondary')}
             `,
           })}
         ` : ''}
@@ -194,6 +182,7 @@ Deno.serve(createHandler(async (req, ctx) => {
       to: [email],
       subject: subject,
       html: htmlContent,
+      headers: getEmailHeaders(),
     });
 
     console.log('[send-approval-notification] Email sent successfully to:', email);

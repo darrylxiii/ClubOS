@@ -16,14 +16,14 @@ export const TechnicalFootprintCard = ({ githubData }: Props) => {
         <CardHeader className="pb-3">
           <CardTitle className="flex items-center gap-2 text-base">
             <Github className="w-4 h-4" />
-            Technical Footprint
+            {t('technicalFootprint.title', 'Technical Footprint')}
           </CardTitle>
         </CardHeader>
         <CardContent>
           <p className="text-sm text-muted-foreground">
             {githubData?.searched_at
-              ? "No GitHub profile found for this candidate."
-              : "GitHub profile not yet scanned."}
+              ? t('technicalFootprint.noProfileFound', 'No GitHub profile found for this candidate.')
+              : t('technicalFootprint.notYetScanned', 'GitHub profile not yet scanned.')}
           </p>
         </CardContent>
       </Card>
@@ -38,7 +38,7 @@ export const TechnicalFootprintCard = ({ githubData }: Props) => {
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-2 text-base">
             <Github className="w-4 h-4" />
-            Technical Footprint
+            {t('technicalFootprint.title', 'Technical Footprint')}
           </CardTitle>
           <Button variant="ghost" size="sm" asChild>
             <a href={`https://github.com/${username}`} target="_blank" rel="noopener noreferrer">
@@ -73,7 +73,7 @@ export const TechnicalFootprintCard = ({ githubData }: Props) => {
         {/* Top Languages */}
         {top_languages?.length > 0 && (
           <div>
-            <p className="text-[11px] text-muted-foreground mb-1.5">Top Languages</p>
+            <p className="text-[11px] text-muted-foreground mb-1.5">{t('technicalFootprint.topLanguages', 'Top Languages')}</p>
             <div className="flex flex-wrap gap-1">
               {top_languages.slice(0, 8).map((lang: string, i: number) => (
                 <Badge key={i} variant="secondary" className="text-xs">
@@ -88,7 +88,7 @@ export const TechnicalFootprintCard = ({ githubData }: Props) => {
         {/* Pinned Repos */}
         {pinned_repos?.length > 0 && (
           <div>
-            <p className="text-[11px] text-muted-foreground mb-1.5">Notable Repositories</p>
+            <p className="text-[11px] text-muted-foreground mb-1.5">{t('technicalFootprint.notableRepos', 'Notable Repositories')}</p>
             <div className="space-y-2">
               {pinned_repos.slice(0, 4).map((repo: any, i: number) => (
                 <a

@@ -245,7 +245,7 @@ export const EmployeeDetailView = ({ employeeId, employee: passedEmployee, onBac
             {/* Performance Summary */}
             {memberStats && (
               <Card className="md:col-span-2 bg-gradient-to-br from-card/90 to-card/60 backdrop-blur-xl border-border/50">
-                <CardHeader><CardTitle className="text-base">Performance Summary</CardTitle></CardHeader>
+                <CardHeader><CardTitle className="text-base">{t('employees.performanceSummary', 'Performance Summary')}</CardTitle></CardHeader>
                 <CardContent>
                   <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
                     <div className="text-center p-3 bg-muted/30 rounded-lg">
@@ -306,7 +306,7 @@ export const EmployeeDetailView = ({ employeeId, employee: passedEmployee, onBac
                         <div className="text-sm font-medium">
                           {activityStats.lastLogin
                             ? formatDistanceToNow(new Date(activityStats.lastLogin), { addSuffix: true })
-                            : 'Never'}
+                            : t('employees.never', 'Never')}
                         </div>
                       </div>
                     </div>
@@ -334,7 +334,7 @@ export const EmployeeDetailView = ({ employeeId, employee: passedEmployee, onBac
           <div className="flex justify-end mb-4">
             <Select value={String(kpiDays)} onValueChange={(v) => setKpiDays(Number(v))}>
               <SelectTrigger className="w-[140px]">
-                <SelectValue placeholder="Select period" />
+                <SelectValue placeholder={t('employees.selectPeriod', 'Select period')} />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="7">Last 7 days</SelectItem>

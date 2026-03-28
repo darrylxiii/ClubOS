@@ -80,7 +80,7 @@ export const InviteSystem = () => {
       setInviteCodes(data || []);
     } catch (error) {
       console.error("Error loading invite codes:", error);
-      toast.error("Failed to load invite codes");
+      toast.error(t('inviteSystem.failedToLoad', 'Failed to load invite codes'));
     } finally {
       setIsLoading(false);
     }
@@ -124,8 +124,8 @@ export const InviteSystem = () => {
     ).length;
 
     if (activeUnusedCount >= 5) {
-      toast.error("You already have 5 active invite codes", {
-        description: "Wait for some to be used or expire before generating more.",
+      toast.error(t('inviteSystem.limitReached', 'You already have 5 active invite codes'), {
+        description: t('inviteSystem.limitReachedDesc', 'Wait for some to be used or expire before generating more.'),
       });
       return;
     }
@@ -147,8 +147,8 @@ export const InviteSystem = () => {
 
       if (insertError) throw insertError;
 
-      toast.success("Invite code generated!", {
-        description: "Share this exclusive link with elite talent.",
+      toast.success(t('inviteSystem.codeGenerated', 'Invite code generated!'), {
+        description: t('inviteSystem.codeGeneratedDesc', 'Share this exclusive link with elite talent.'),
       });
 
       loadInviteCodes();
@@ -156,11 +156,11 @@ export const InviteSystem = () => {
       console.error("Error generating invite code:", error);
       const errMsg = error instanceof Error ? error.message : '';
       if (errMsg.includes("Maximum of 5")) {
-        toast.error("Invite limit reached", {
-          description: "You can only have 5 active invite codes at a time.",
+        toast.error(t('inviteSystem.inviteLimitReached', 'Invite limit reached'), {
+          description: t('inviteSystem.inviteLimitReachedDesc', 'You can only have 5 active invite codes at a time.'),
         });
       } else {
-        toast.error("Failed to generate invite code");
+        toast.error(t('inviteSystem.failedToGenerate', 'Failed to generate invite code'));
       }
     } finally {
       setIsGenerating(false);
@@ -171,7 +171,7 @@ export const InviteSystem = () => {
     const inviteUrl = `${baseUrl}/auth?invite=${code}`;
     navigator.clipboard.writeText(inviteUrl);
     setCopiedCode(code);
-    toast.success("Invite link copied to clipboard!");
+    toast.success(t('inviteSystem.linkCopied', 'Invite link copied to clipboard!'));
     setTimeout(() => setCopiedCode(null), 2000);
   };
 
@@ -186,7 +186,7 @@ export const InviteSystem = () => {
     if (navigator.share) {
       try {
         await navigator.share(shareData);
-        toast.success("Invite shared successfully!");
+        toast.success(t('inviteSystem.shareSuccess', 'Invite shared successfully!'));
       } catch (error) {
         if (error instanceof Error && error.name !== "AbortError") {
           copyInviteLink(code);
@@ -217,7 +217,7 @@ export const InviteSystem = () => {
     return (
       <Card className="border-2 border-accent/20">
         <CardContent className="p-6">
-          <p className="text-center text-muted-foreground">Loading invite system...</p>
+          <p className="text-center text-muted-foreground">{t('inviteSystem.loading', 'Loading invite system...')}</p>
         </CardContent>
       </Card>
     );
@@ -235,7 +235,7 @@ export const InviteSystem = () => {
                 Exclusive Invites
               </CardTitle>
               <CardDescription className="text-base">
-                Share The Quantum Club with elite professionals
+                {t('inviteSystem.shareDesc', 'Share The Quantum Club with elite professionals')}
               </CardDescription>
             </div>
             <Badge variant="secondary" className="text-lg px-4 py-2">
@@ -246,7 +246,7 @@ export const InviteSystem = () => {
         <CardContent className="space-y-4">
           <Alert className="border-accent/50 bg-accent/5">
             <Network className="h-5 w-5 text-accent" />
-            <AlertTitle className="font-bold">Curated Platform</AlertTitle>
+            <AlertTitle className="font-bold">{t('inviteSystem.curatedPlatform', 'Curated Platform')}</AlertTitle>
             <AlertDescription>
               The Quantum Club is invite-only. Each member receives 5 exclusive invite links to share
               with exceptional talent. We track every connection to maintain our elite community.
@@ -287,7 +287,7 @@ export const InviteSystem = () => {
             size="lg"
           >
             <LinkIcon className="w-5 h-5 mr-2" />
-            {isGenerating ? "Generating..." : "Generate New Invite Code"}
+            {isGenerating ? t('inviteSystem.generating', 'Generating...') : t('inviteSystem.generateNew', 'Generate New Invite Code')}
           </Button>
         </CardContent>
       </Card>
@@ -295,13 +295,13 @@ export const InviteSystem = () => {
       {/* Invite Codes List */}
       <Card className="border-2 border-foreground">
         <CardHeader>
-          <CardTitle className="text-lg font-black uppercase">Your Invite Codes</CardTitle>
+          <CardTitle className="text-lg font-black uppercase">{t('inviteSystem.yourInviteCodes', 'Your Invite Codes')}</CardTitle>
         </CardHeader>
         <CardContent>
           {inviteCodes.length === 0 ? (
             <div className="text-center py-8">
               <Users className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
-              <p className="text-muted-foreground">No invite codes generated yet</p>
+              <p className="text-muted-foreground">{t('inviteSystem.noCodesGenerated', 'No invite codes generated yet')}</p>
               <p className="text-sm text-muted-foreground mt-2">
                 Generate your first invite to start building your network
               </p>

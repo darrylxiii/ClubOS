@@ -300,8 +300,8 @@
     "systemDefault": "الافتراضي للنظام",
     "videoQuality": "جودة الفيديو",
     "autoRecommended": "تلقائي (موصى به)",
-    "hd720": "720p HD",
-    "fullHd1080": "1080p Full HD",
+    "hd720": "HD 720p",
+    "fullHd1080": "Full HD 1080p",
     "mirrorVideo": "عكس الفيديو",
     "mirrorVideoDesc": "عكس معاينة الكاميرا (لا يؤثر على ما يراه الآخرون)",
     "backgroundBlur": "ضبابية الخلفية",
@@ -681,22 +681,22 @@
   },
   "settings": {
     "connectionssettings": {
-      "nameYourCalendar": "Name Your Calendar",
+      "nameYourCalendar": "اسم التقويم الخاص بك",
       "cancel": "إلغاء",
-      "connect": "Connect",
-      "setAsPrimary": "Set as primary",
-      "preview": "Preview",
+      "connect": "اتصال",
+      "setAsPrimary": "تعيين كافتراضي",
+      "preview": "معاينة",
       "download": "تنزيل",
       "delete": "حذف",
-      "resumePreview": "Resume Preview",
+      "resumePreview": "استئناف المعاينة",
       "google": "Google",
       "microsoft": "Microsoft",
       "gmail": "Gmail",
       "outlook": "Outlook",
-      "failedToCompleteConnection": "Failed to complete connection",
-      "we": "We\\",
-      "unknownError": "Unknown error",
-      "failedToConnectEmail": "Failed to connect email"
+      "failedToCompleteConnection": "فشل إكمال الاتصال",
+      "we": "نحن\\",
+      "unknownError": "خطأ غير معروف",
+      "failedToConnectEmail": "فشل الاتصال بالبريد الإلكتروني"
     }
   }
 }

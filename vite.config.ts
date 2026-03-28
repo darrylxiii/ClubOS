@@ -126,10 +126,24 @@ export default defineConfig(({ mode, command }) => ({
         // CRITICAL: Do NOT precache HTML - use NetworkFirst at runtime
         // This prevents stale index.html from bricking the app after deploy
         globPatterns: ['**/*.{js,css,ico,png,svg,woff2}'],
-        // PERF: Exclude locale chunks from precache — they are loaded on-demand
-        // when a user switches language, not needed for initial load
-        globIgnores: ['**/common-*.js'],
+        // PERF: Exclude locale chunks and KaTeX fonts from precache
+        // They are loaded on-demand as needed
+        globIgnores: ['**/common-*.js', '**/KaTeX*.woff2', '**/KaTeX*.woff'],
         
+        // PERF: Only precache core shell JS chunks to keep SW payload small (< 1MB vs 26MB)
+        manifestTransforms: [
+          (entries) => {
+            const manifest = entries.filter((entry) => {
+              if (!entry.url.endsWith('.js')) return true;
+              
+              // Only keep core entry points and vendor bundles
+              const name = entry.url.split('/').pop() || '';
+              return name.startsWith('index-') || name.startsWith('App-') || name.startsWith('vendor-');
+            });
+            return { manifest, warnings: [] };
+          }
+        ],
+
         // CRITICAL: Auto-activate new service worker immediately
         // Prevents users from being stuck on old cached version
         skipWaiting: true,
@@ -304,6 +318,7 @@ export default defineConfig(({ mode, command }) => ({
           'vendor-editor': ['@blocknote/core', '@blocknote/react', '@blocknote/mantine'],
           'vendor-motion': ['framer-motion'],
           'vendor-i18n': ['i18next', 'react-i18next', 'i18next-browser-languagedetector'],
+          'vendor-lucide': ['lucide-react'],
           'vendor-forms': ['zod', 'react-hook-form', '@hookform/resolvers'],
           // PERF: Isolate heavy libs that should only load on-demand
           'vendor-pdf': ['jspdf', 'jspdf-autotable'],

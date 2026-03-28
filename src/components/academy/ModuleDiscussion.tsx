@@ -138,7 +138,7 @@ export function ModuleDiscussion({ moduleId }: ModuleDiscussionProps) {
       </div>
 
       {showNewDiscussion && (
-        <Card className="squircle p-4 space-y-3">
+        <Card className="rounded-2xl p-4 space-y-3">
           <Input
             placeholder={t("question_title", "Question title...")}
             value={newTitle}
@@ -171,7 +171,7 @@ export function ModuleDiscussion({ moduleId }: ModuleDiscussionProps) {
 
       <div className="space-y-3">
         {discussions.length === 0 ? (
-          <Card className="squircle p-8 text-center">
+          <Card className="rounded-2xl p-8 text-center">
             <MessageSquare className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
             <p className="text-muted-foreground">
               No discussions yet. Be the first to ask a question!
@@ -179,7 +179,7 @@ export function ModuleDiscussion({ moduleId }: ModuleDiscussionProps) {
           </Card>
         ) : (
           discussions.map((discussion) => (
-            <Card key={discussion.id} className="squircle p-4 hover-lift cursor-pointer">
+            <Card key={discussion.id} className="rounded-2xl p-4 hover-lift cursor-pointer">
               <div className="flex gap-4">
                 <Avatar className="h-10 w-10">
                   <AvatarImage src={discussion.user?.avatar_url} />
@@ -200,7 +200,7 @@ export function ModuleDiscussion({ moduleId }: ModuleDiscussionProps) {
                       </p>
                     </div>
                     {discussion.is_resolved && (
-                      <Badge variant="outline" className="squircle-sm gap-1">
+                      <Badge variant="outline" className="rounded-xl gap-1">
                         <CheckCircle2 className="h-3 w-3" />
                         Resolved
                       </Badge>

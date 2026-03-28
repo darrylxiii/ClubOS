@@ -53,7 +53,7 @@ export default function MyPerformance() {
           <Alert>
             <AlertCircle className="h-4 w-4" />
             <AlertDescription>
-              Your employee profile hasn't been set up yet. Some features like commission tracking and targets require admin setup. Your pipeline and activity stats are still available below.
+              {t('myPerformance.noProfileAlert', "Your employee profile hasn't been set up yet. Some features like commission tracking and targets require admin setup. Your pipeline and activity stats are still available below.")}
             </AlertDescription>
           </Alert>
         )}
@@ -70,9 +70,9 @@ export default function MyPerformance() {
           <Card className="py-16">
             <CardContent className="text-center space-y-3">
               <BarChart3 className="h-12 w-12 mx-auto text-muted-foreground/50" />
-              <h3 className="text-lg font-semibold">No performance data yet</h3>
+              <h3 className="text-lg font-semibold">{t('myPerformance.noDataTitle', 'No performance data yet')}</h3>
               <p className="text-muted-foreground text-sm max-w-md mx-auto">
-                Start sourcing candidates and making placements to see your performance stats, pipeline value, and earnings here.
+                {t('myPerformance.noDataDesc', 'Start sourcing candidates and making placements to see your performance stats, pipeline value, and earnings here.')}
               </p>
             </CardContent>
           </Card>
@@ -82,11 +82,11 @@ export default function MyPerformance() {
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
             <Tabs defaultValue="overview" className="space-y-6">
               <TabsList>
-                <TabsTrigger value="overview" className="gap-2"><LayoutDashboard className="h-4 w-4" />Overview</TabsTrigger>
-                <TabsTrigger value="pipeline" className="gap-2"><Wallet className="h-4 w-4" />Pipeline & Earnings</TabsTrigger>
-                <TabsTrigger value="kpis" className="gap-2"><BarChart3 className="h-4 w-4" />KPIs</TabsTrigger>
-                <TabsTrigger value="activity" className="gap-2"><Activity className="h-4 w-4" />Activity</TabsTrigger>
-                <TabsTrigger value="development" className="gap-2"><GraduationCap className="h-4 w-4" />Development</TabsTrigger>
+                <TabsTrigger value="overview" className="gap-2"><LayoutDashboard className="h-4 w-4" />{t('myPerformance.tabs.overview', 'Overview')}</TabsTrigger>
+                <TabsTrigger value="pipeline" className="gap-2"><Wallet className="h-4 w-4" />{t('myPerformance.tabs.pipeline', 'Pipeline & Earnings')}</TabsTrigger>
+                <TabsTrigger value="kpis" className="gap-2"><BarChart3 className="h-4 w-4" />{t('myPerformance.tabs.kpis', 'KPIs')}</TabsTrigger>
+                <TabsTrigger value="activity" className="gap-2"><Activity className="h-4 w-4" />{t('myPerformance.tabs.activity', 'Activity')}</TabsTrigger>
+                <TabsTrigger value="development" className="gap-2"><GraduationCap className="h-4 w-4" />{t('myPerformance.tabs.development', 'Development')}</TabsTrigger>
               </TabsList>
 
               <TabsContent value="overview" className="space-y-6">
@@ -124,14 +124,14 @@ export default function MyPerformance() {
 
               <TabsContent value="kpis" className="space-y-6">
                 <div className="flex items-center justify-between">
-                  <h3 className="text-sm font-medium text-muted-foreground">Key Performance Indicators</h3>
+                  <h3 className="text-sm font-medium text-muted-foreground">{t('myPerformance.kpiHeading', 'Key Performance Indicators')}</h3>
                   <Select value={String(kpiDays)} onValueChange={v => setKpiDays(Number(v))}>
                     <SelectTrigger className="w-[130px] h-8 text-xs"><SelectValue /></SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="7">Last 7 days</SelectItem>
-                      <SelectItem value="30">Last 30 days</SelectItem>
-                      <SelectItem value="60">Last 60 days</SelectItem>
-                      <SelectItem value="90">Last 90 days</SelectItem>
+                      <SelectItem value="7">{t('myPerformance.last7days', 'Last 7 days')}</SelectItem>
+                      <SelectItem value="30">{t('myPerformance.last30days', 'Last 30 days')}</SelectItem>
+                      <SelectItem value="60">{t('myPerformance.last60days', 'Last 60 days')}</SelectItem>
+                      <SelectItem value="90">{t('myPerformance.last90days', 'Last 90 days')}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>

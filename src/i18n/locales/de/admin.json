@@ -1111,7 +1111,7 @@
   },
   "moneybirdSettingsCard": {
     "administration": "Administration",
-    "administrationId": "Administration ID",
+    "administrationId": "Administrations-ID",
     "country": "Land",
     "currency": "Waehrung",
     "refresh": "Aktualisieren"
@@ -1181,8 +1181,8 @@
     "pipeline": "Pipeline",
     "recruitment": "Recruitment",
     "experience": "Experience",
-    "utilisation": "Utilisation",
-    "financial": "Financial",
+    "utilisation": "Auslastung",
+    "financial": "Finanziell",
     "kpiMetricsRefreshedSuccessfully": "KPI-Metriken erfolgreich aktualisiert",
     "failedToRefreshKpiMetrics": "Aktualisieren KPI metrics fehlgeschlagen"
   },
@@ -2685,7 +2685,7 @@
       "goalAttainment": "Zielerreichung:"
     },
     "kPIHeatMap": {
-      "kpiHealthHeatMap": "KPI Health Heat Map",
+      "kpiHealthHeatMap": "KPI-Health-Heatmap",
       "onTarget": "Im Soll",
       "warning": "Warnung",
       "critical": "Kritisch"

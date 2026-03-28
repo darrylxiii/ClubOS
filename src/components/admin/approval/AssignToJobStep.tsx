@@ -154,7 +154,7 @@ export const AssignToJobStep = ({ onAssign, onBack }: AssignToJobStepProps) => {
               disabled={skipAssignment}
               className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
             >
-              <option value="">Select a company...</option>
+              <option value="">{t('approval.assignToJobStep.selectCompany', 'Select a company...')}</option>
               {companies.map((company) => (
                 <option key={company.id} value={company.id}>
                   {company.name}
@@ -173,7 +173,7 @@ export const AssignToJobStep = ({ onAssign, onBack }: AssignToJobStepProps) => {
               disabled={skipAssignment}
               className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
             >
-              <option value="">Select a role...</option>
+              <option value="">{t('approval.assignToJobStep.selectRole', 'Select a role...')}</option>
               {jobs.map((job) => {
                 const details = [
                   job.location,
@@ -228,7 +228,7 @@ export const AssignToJobStep = ({ onAssign, onBack }: AssignToJobStepProps) => {
                 }}
               />
               <Label htmlFor="skip_assignment" className="cursor-pointer">
-                Add as general candidate (no role assignment)
+                {t('approval.assignToJobStep.addAsGeneralCandidate', 'Add as general candidate (no role assignment)')}
               </Label>
             </div>
             <p className="text-sm text-muted-foreground mt-2 ml-6">
@@ -240,7 +240,7 @@ export const AssignToJobStep = ({ onAssign, onBack }: AssignToJobStepProps) => {
 
       <div className="flex items-center justify-between pt-4">
         <Button variant="outline" onClick={onBack}>
-          Back
+          {t('common:back', 'Back')}
         </Button>
         <Button 
           onClick={handleContinue}

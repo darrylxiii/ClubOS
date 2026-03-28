@@ -169,7 +169,7 @@
     "mediaNotConnected": "Your Caméra and Microphone are not connected",
     "connectCameraMic": "Connecter Caméra & Mic",
     "connected": "Connecté",
-    "participantCount": "{{count}} participant",
+    "participantCount": "{{count}} participant{{count > 1 ? 's' : ''}}",
     "you": "Vous",
     "annotate": "Annoter",
     "startVideoCall": "Démarrer video call",

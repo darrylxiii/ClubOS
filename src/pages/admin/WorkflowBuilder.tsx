@@ -31,10 +31,10 @@ interface RecruitingWorkflow {
 }
 
 const TRIGGER_TYPES = [
-  { value: "stage_change", label: "Stage Change", icon: ArrowRight, description: t('toast.whenApplicationMovesToA', 'When application moves to a stage') },
-  { value: "field_change", label: "Field Change", icon: Pencil, description: t('toast.whenAFieldValueChanges', 'When a field value changes') },
-  { value: "time_based", label: "Time-Based", icon: Clock, description: t('toast.afterXDaysInA', 'After X days in a stage') },
-  { value: "event", label: "Event", icon: Zap, description: t('toast.whenAPlatformEventFires', 'When a platform event fires') },
+  { value: "stage_change", label: "Stage Change", icon: ArrowRight, description: 'When application moves to a stage' },
+  { value: "field_change", label: "Field Change", icon: Pencil, description: 'When a field value changes' },
+  { value: "time_based", label: "Time-Based", icon: Clock, description: 'After X days in a stage' },
+  { value: "event", label: "Event", icon: Zap, description: 'When a platform event fires' },
 ];
 
 const ACTION_TYPES = [

@@ -104,7 +104,7 @@ const ClientAnalyticsPage = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Total Projects</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('clientAnalytics.totalProjects', 'Total Projects')}</CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -115,7 +115,7 @@ const ClientAnalyticsPage = () => {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Completion Rate</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('clientAnalytics.completionRate', 'Completion Rate')}</CardTitle>
             <CheckCircle className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -128,7 +128,7 @@ const ClientAnalyticsPage = () => {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Total Spent</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('clientAnalytics.totalSpent', 'Total Spent')}</CardTitle>
             <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -139,7 +139,7 @@ const ClientAnalyticsPage = () => {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Avg. Proposals</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('clientAnalytics.avgProposals', 'Avg. Proposals')}</CardTitle>
             <TrendingUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -153,8 +153,8 @@ const ClientAnalyticsPage = () => {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card>
           <CardHeader>
-            <CardTitle>Project Status Distribution</CardTitle>
-            <CardDescription>Current project breakdown</CardDescription>
+            <CardTitle>{t('clientAnalytics.statusDistribution', 'Project Status Distribution')}</CardTitle>
+            <CardDescription>{t('clientAnalytics.currentBreakdown', 'Current project breakdown')}</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="h-64 flex items-center justify-center">
@@ -190,7 +190,7 @@ const ClientAnalyticsPage = () => {
 
         <Card>
           <CardHeader>
-            <CardTitle>Monthly Spending</CardTitle>
+            <CardTitle>{t('clientAnalytics.monthlySpending', 'Monthly Spending')}</CardTitle>
             <CardDescription>Last 6 months</CardDescription>
           </CardHeader>
           <CardContent>
@@ -220,15 +220,15 @@ const ClientAnalyticsPage = () => {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex justify-between items-center">
-              <span className="text-sm text-muted-foreground">Avg. time to first proposal</span>
+              <span className="text-sm text-muted-foreground">{t('clientAnalytics.avgTimeToProposal', 'Avg. time to first proposal')}</span>
               <span className="font-medium">2.5 hours</span>
             </div>
             <div className="flex justify-between items-center">
-              <span className="text-sm text-muted-foreground">Avg. time to hire</span>
+              <span className="text-sm text-muted-foreground">{t('clientAnalytics.avgTimeToHire', 'Avg. time to hire')}</span>
               <span className="font-medium">4.2 days</span>
             </div>
             <div className="flex justify-between items-center">
-              <span className="text-sm text-muted-foreground">Avg. project duration</span>
+              <span className="text-sm text-muted-foreground">{t('clientAnalytics.avgProjectDuration', 'Avg. project duration')}</span>
               <span className="font-medium">12.5 days</span>
             </div>
           </CardContent>
@@ -246,7 +246,7 @@ const ClientAnalyticsPage = () => {
               {avgProposalsPerProject < 5 && (
                 <li className="flex items-start gap-2">
                   <span className="text-primary">•</span>
-                  <span>Add more project details to attract more proposals</span>
+                  <span>{t('clientAnalytics.tipMoreDetails', 'Add more project details to attract more proposals')}</span>
                 </li>
               )}
               <li className="flex items-start gap-2">
@@ -255,11 +255,11 @@ const ClientAnalyticsPage = () => {
               </li>
               <li className="flex items-start gap-2">
                 <span className="text-primary">•</span>
-                <span>Use milestone payments to reduce project risk</span>
+                <span>{t('clientAnalytics.tipMilestones', 'Use milestone payments to reduce project risk')}</span>
               </li>
               <li className="flex items-start gap-2">
                 <span className="text-primary">•</span>
-                <span>Leave reviews to build your client reputation</span>
+                <span>{t('clientAnalytics.tipReviews', 'Leave reviews to build your client reputation')}</span>
               </li>
             </ul>
           </CardContent>

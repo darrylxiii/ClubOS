@@ -5,6 +5,7 @@
 
 import { sendSMS as sendSMSViaTwilio } from './twilio-client.ts';
 import { sendWhatsAppMessage as sendWhatsAppViaClient } from './whatsapp-client.ts';
+import { EMAIL_SENDERS } from './email-config.ts';
 
 interface SendWhatsAppOptions {
   phone: string;
@@ -99,7 +100,7 @@ export async function sendEmailComm(
     console.log('[communication] Sending email to:', to);
 
     const result = await sendEmailViaResend({
-      from: 'The Quantum Club <notifications@thequantumclub.com>',
+      from: EMAIL_SENDERS.notifications,
       to,
       subject,
       html: html || body,

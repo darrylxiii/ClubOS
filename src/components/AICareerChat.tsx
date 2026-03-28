@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Send, Sparkles } from "lucide-react";
+import { Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -121,6 +122,14 @@ export const AICareerChat = () => {
           <Sparkles className="w-5 h-5 text-primary" />
           <h3 className="font-semibold">{t('aiCareerChat.aiCareerAdvisor', 'AI Career Advisor')}</h3>
         </div>
+        <p className="flex items-center gap-1 text-xs text-muted-foreground mt-1">
+          <Sparkles className="w-3 h-3" />
+          {t('ai.powered', 'AI-powered')}
+          {' · '}
+          <Link to="/legal/ai-transparency" className="text-primary hover:underline">
+            {t('ai.learnMore', 'Learn more')}
+          </Link>
+        </p>
       </div>
 
       <ScrollArea ref={scrollRef} className="flex-1 p-4">

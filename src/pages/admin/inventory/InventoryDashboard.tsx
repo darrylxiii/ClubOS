@@ -105,7 +105,7 @@ const InventoryDashboard = () => {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card>
           <CardHeader>
-            <CardTitle>Monthly Depreciation Trend</CardTitle>
+            <CardTitle>{t('inventory.monthlyDepreciationTrend', 'Monthly Depreciation Trend')}</CardTitle>
           </CardHeader>
           <CardContent>
             <DynamicChart

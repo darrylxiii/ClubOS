@@ -29,11 +29,11 @@ export function ContinueLearningCard({
   };
 
   return (
-    <Card className="squircle overflow-hidden hover-lift">
+    <Card className="rounded-2xl overflow-hidden hover-lift">
       <div className="grid md:grid-cols-[300px_1fr] gap-6 p-6">
         {/* Illustration */}
-        <div className={`squircle bg-gradient-to-br ${bgColors[illustration as keyof typeof bgColors] || bgColors.design} p-8 flex items-center justify-center relative overflow-hidden`}>
-          <Badge className="absolute top-4 left-4 squircle-sm bg-background/80 backdrop-blur-sm">
+        <div className={`rounded-2xl bg-gradient-to-br ${bgColors[illustration as keyof typeof bgColors] || bgColors.design} p-8 flex items-center justify-center relative overflow-hidden`}>
+          <Badge className="absolute top-4 left-4 rounded-xl bg-background/80 backdrop-blur-sm">
             {materials} Materials
           </Badge>
           <div className="relative z-10">
@@ -45,7 +45,7 @@ export function ContinueLearningCard({
         <div className="flex flex-col justify-between">
           <div className="space-y-4">
             <div>
-              <Badge variant="outline" className="squircle-sm mb-2">
+              <Badge variant="outline" className="rounded-xl mb-2">
                 {category}
               </Badge>
               <h3 className="text-xl font-bold line-clamp-2">{title}</h3>
@@ -67,7 +67,7 @@ export function ContinueLearningCard({
                 <span>Advance your learning with <span className="text-primary font-medium">{nextLesson.split('with ')[1]}</span></span>
               </p>
             )}
-            <Button className="squircle-sm">{t("continue", "Continue")}</Button>
+            <Button className="rounded-xl">{t("continue", "Continue")}</Button>
           </div>
         </div>
       </div>

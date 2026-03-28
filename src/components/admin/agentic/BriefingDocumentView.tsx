@@ -50,7 +50,7 @@ export default function BriefingDocumentView() {
     try {
       const { error } = await supabase.functions.invoke('generate-daily-briefing', {});
       if (error) throw error;
-      toast.success(t('agentic.briefingDocumentView.briefingGenerated'));
+      toast.success('Briefing Generated');
       // Refetch
       const { data } = await supabase
         .from('daily_briefings')
@@ -62,7 +62,7 @@ export default function BriefingDocumentView() {
         if (data.length > 0) setSelectedBriefing(data[0]);
       }
     } catch (err) {
-      toast.error(t('agentic.briefingDocumentView.failedToGenerateBriefing'));
+      toast.error('Failed To Generate Briefing');
     } finally {
       setGenerating(false);
     }

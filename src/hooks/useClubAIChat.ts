@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { migrateToast as toast } from "@/lib/notify";
 import { logger } from "@/lib/logger";
+import { quantumSoundEngine } from "@/lib/sounds/QuantumSoundEngine";
 
 export interface Message {
   role: "user" | "assistant";
@@ -373,6 +374,7 @@ export function useClubAIChat() {
     setMessages(prev => {
       const updated = [...prev, userMessage];
       setIsLoading(true);
+      quantumSoundEngine.play('ambient.ai_thinking');
       streamChat({
         messages: updated,
         userId: user?.id,
@@ -383,6 +385,8 @@ export function useClubAIChat() {
         onDelta: updateAssistant,
         onDone: async () => {
           setIsLoading(false);
+          quantumSoundEngine.stopContinuous('ambient.ai_thinking');
+          quantumSoundEngine.play('ambient.ai_ready');
           setMessages((prev) => {
             saveConversation(prev).catch(e => logger.error("Save error:", { error: e }));
             loadConversations().catch(e => logger.error("Load error:", { error: e }));
@@ -397,6 +401,7 @@ export function useClubAIChat() {
         logger.error("Error sending message:", { error });
         toast({ title: "Error", description: "Failed to send message. Please try again.", variant: "destructive" });
         setIsLoading(false);
+        quantumSoundEngine.stopContinuous('ambient.ai_thinking');
       });
       return updated;
     });

@@ -42,7 +42,7 @@ export const PortfolioGrid = ({ candidate, portfolioItems = [], canEdit, onAddLi
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <FileText className="w-5 h-5" />
-              Resume / CV
+              {t('portfolioGrid.resumeCv', 'Resume / CV')}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -53,13 +53,13 @@ export const PortfolioGrid = ({ candidate, portfolioItems = [], canEdit, onAddLi
                 </div>
                 <div>
                   <p className="font-semibold">{candidate.resume_filename || 'Resume.pdf'}</p>
-                  <p className="text-sm text-muted-foreground">Click to download</p>
+                  <p className="text-sm text-muted-foreground">{t('portfolioGrid.clickToDownload', 'Click to download')}</p>
                 </div>
               </div>
               <Button asChild>
                 <a href={candidate.resume_url} target="_blank" rel="noopener noreferrer">
                   <Download className="w-4 h-4 mr-2" />
-                  Download
+                  {t('portfolioGrid.download', 'Download')}
                 </a>
               </Button>
             </div>
@@ -73,7 +73,7 @@ export const PortfolioGrid = ({ candidate, portfolioItems = [], canEdit, onAddLi
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <LinkIcon className="w-5 h-5" />
-              Links & Profiles
+              {t('portfolioGrid.linksAndProfiles', 'Links & Profiles')}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -119,7 +119,7 @@ export const PortfolioGrid = ({ candidate, portfolioItems = [], canEdit, onAddLi
                   className="border-2 border-dashed border-border rounded-xl p-4 flex items-center justify-center gap-2 text-muted-foreground hover:text-foreground hover:border-primary transition-all"
                 >
                   <Plus className="w-4 h-4" />
-                  <span className="text-sm font-medium">Add Link</span>
+                  <span className="text-sm font-medium">{t('portfolioGrid.addLink', 'Add Link')}</span>
                 </motion.button>
               )}
             </div>
@@ -133,7 +133,7 @@ export const PortfolioGrid = ({ candidate, portfolioItems = [], canEdit, onAddLi
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Globe className="w-5 h-5" />
-              Portfolio Projects
+              {t('portfolioGrid.portfolioProjects', 'Portfolio Projects')}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -173,7 +173,7 @@ export const PortfolioGrid = ({ candidate, portfolioItems = [], canEdit, onAddLi
                       <Button variant="outline" size="sm" className="w-full" asChild>
                         <a href={item.url} target="_blank" rel="noopener noreferrer">
                           <ExternalLink className="w-3 h-3 mr-2" />
-                          View Project
+                          {t('portfolioGrid.viewProject', 'View Project')}
                         </a>
                       </Button>
                     )}

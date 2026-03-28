@@ -28,13 +28,13 @@ export function StrategistWorkloadTab() {
   const { data: workloads, isLoading, error } = useStrategistWorkload(period);
 
   if (isLoading) return <div className="flex items-center justify-center py-12"><Loader2 className="h-8 w-8 animate-spin text-muted-foreground" /></div>;
-  if (error) return <div className="text-center py-12 text-destructive">Failed to load workload data</div>;
+  if (error) return <div className="text-center py-12 text-destructive">{t('strategist.failedToLoad', 'Failed to load workload data')}</div>;
 
   const getCapacityColor = (p: number) => p >= 90 ? 'text-destructive' : p >= 70 ? 'text-warning' : 'text-success';
   const getCapacityBadge = (p: number) => {
-    if (p >= 90) return { label: 'At Capacity', variant: 'destructive' as const, icon: AlertTriangle };
-    if (p >= 70) return { label: 'High Load', variant: 'secondary' as const, icon: AlertTriangle };
-    return { label: 'Available', variant: 'outline' as const, icon: CheckCircle };
+    if (p >= 90) return { label: t('strategist.atCapacity', 'At Capacity'), variant: 'destructive' as const, icon: AlertTriangle };
+    if (p >= 70) return { label: t('strategist.highLoad', 'High Load'), variant: 'secondary' as const, icon: AlertTriangle };
+    return { label: t('strategist.available', 'Available'), variant: 'outline' as const, icon: CheckCircle };
   };
 
   const sorted = [...(workloads || [])].sort((a, b) => {
@@ -58,29 +58,29 @@ export function StrategistWorkloadTab() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h3 className="text-sm font-medium text-muted-foreground">Team Performance</h3>
+        <h3 className="text-sm font-medium text-muted-foreground">{t('strategist.teamPerformance', 'Team Performance')}</h3>
         <Select value={period} onValueChange={(v) => setPeriod(v as Period)}>
           <SelectTrigger className="w-[140px] h-8 text-xs"><SelectValue /></SelectTrigger>
           <SelectContent>
-            <SelectItem value="weekly">Weekly</SelectItem>
-            <SelectItem value="monthly">Monthly</SelectItem>
-            <SelectItem value="quarterly">Quarterly</SelectItem>
-            <SelectItem value="annual">Annual</SelectItem>
+            <SelectItem value="weekly">{t('strategist.weekly', 'Weekly')}</SelectItem>
+            <SelectItem value="monthly">{t('strategist.monthly', 'Monthly')}</SelectItem>
+            <SelectItem value="quarterly">{t('strategist.quarterly', 'Quarterly')}</SelectItem>
+            <SelectItem value="annual">{t('strategist.annual', 'Annual')}</SelectItem>
           </SelectContent>
         </Select>
       </div>
 
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-        <SummaryCard icon={Building2} iconColor="text-blue-500" value={totals.companies} label="Total Companies" subtitle={`across ${sorted.length} strategists`} />
-        <SummaryCard icon={Users} iconColor="text-violet-500" value={totals.candidates} label="Total Candidates" subtitle="assigned to strategists" />
-        <SummaryCard icon={Briefcase} iconColor="text-cyan-500" value={totals.pipelines} label="Active Pipelines" subtitle="jobs being worked" />
-        <SummaryCard icon={Trophy} iconColor="text-amber-500" value={totals.placements} label="Placements" subtitle={periodLabel} />
-        <SummaryCard icon={DollarSign} iconColor="text-emerald-500" value={formatRevenue(totals.revenue)} label="Revenue" subtitle={periodLabel} />
-        <SummaryCard icon={Activity} iconColor="text-rose-500" value={totals.actions} label="Pipeline Actions" subtitle="last 7 days" />
+        <SummaryCard icon={Building2} iconColor="text-blue-500" value={totals.companies} label={t('strategist.totalCompanies', 'Total Companies')} subtitle={t('strategist.acrossStrategists', 'across {{count}} strategists', { count: sorted.length })} />
+        <SummaryCard icon={Users} iconColor="text-violet-500" value={totals.candidates} label={t('strategist.totalCandidates', 'Total Candidates')} subtitle={t('strategist.assignedToStrategists', 'assigned to strategists')} />
+        <SummaryCard icon={Briefcase} iconColor="text-cyan-500" value={totals.pipelines} label={t('strategist.activePipelines', 'Active Pipelines')} subtitle={t('strategist.jobsBeingWorked', 'jobs being worked')} />
+        <SummaryCard icon={Trophy} iconColor="text-amber-500" value={totals.placements} label={t('strategist.placements', 'Placements')} subtitle={periodLabel} />
+        <SummaryCard icon={DollarSign} iconColor="text-emerald-500" value={formatRevenue(totals.revenue)} label={t('strategist.revenue', 'Revenue')} subtitle={periodLabel} />
+        <SummaryCard icon={Activity} iconColor="text-rose-500" value={totals.actions} label={t('strategist.pipelineActions', 'Pipeline Actions')} subtitle={t('strategist.last7days', 'last 7 days')} />
       </div>
 
       <div className="hidden md:flex items-center gap-2 px-4 py-2 text-[10px] font-semibold text-muted-foreground uppercase tracking-wider border-b border-border/30">
-        <div className="flex-1 min-w-0">Strategist</div>
+        <div className="flex-1 min-w-0">{t('strategist.strategist', 'Strategist')}</div>
         {(['performanceScore', 'placements', 'revenue', 'candidatesSourced', 'pipelineActions', 'capacityPercent'] as SortKey[]).map(key => (
           <button key={key} onClick={() => toggleSort(key)} className={cn("flex items-center gap-0.5 w-16 justify-center cursor-pointer hover:text-foreground transition-colors", sortKey === key && "text-primary")}>
             {key === 'performanceScore' ? 'Score' : key === 'placements' ? 'Placed' : key === 'revenue' ? 'Revenue' : key === 'candidatesSourced' ? 'Sourced' : key === 'pipelineActions' ? 'Actions' : 'Capacity'}
@@ -108,7 +108,7 @@ export function StrategistWorkloadTab() {
                 <div className="flex items-center gap-2 text-xs text-muted-foreground">
                   {strategist.title && <span>{strategist.title}</span>}
                   {strategist.title && strategist.lastActiveAt && <span className="text-border">|</span>}
-                  {strategist.lastActiveAt && <span className="text-muted-foreground/60">Active {formatDistanceToNow(new Date(strategist.lastActiveAt), { addSuffix: false })} ago</span>}
+                  {strategist.lastActiveAt && <span className="text-muted-foreground/60">{t('strategist.activeAgo', 'Active {{time}} ago', { time: formatDistanceToNow(new Date(strategist.lastActiveAt), { addSuffix: false }) })}</span>}
                 </div>
               </div>
               {/* Mobile compact stats */}
@@ -132,13 +132,13 @@ export function StrategistWorkloadTab() {
                 <div className="flex items-center justify-between text-[10px] mb-1"><span className="text-muted-foreground">Capacity</span><span className={getCapacityColor(strategist.capacityPercent)}>{strategist.capacityPercent}%</span></div>
                 <Progress value={strategist.capacityPercent} className="h-1.5" />
                 {strategist.target?.revenueTarget != null && strategist.target.revenueTarget > 0 && (
-                  <div className="pt-1"><div className="flex items-center justify-between text-[9px] text-muted-foreground/70"><span>Revenue target</span><span>{Math.round((strategist.target.revenueAchieved / strategist.target.revenueTarget) * 100)}%</span></div><Progress value={Math.min(100, (strategist.target.revenueAchieved / strategist.target.revenueTarget) * 100)} className="h-1" /></div>
+                  <div className="pt-1"><div className="flex items-center justify-between text-[9px] text-muted-foreground/70"><span>{t('strategist.revenueTarget', 'Revenue target')}</span><span>{Math.round((strategist.target.revenueAchieved / strategist.target.revenueTarget) * 100)}%</span></div><Progress value={Math.min(100, (strategist.target.revenueAchieved / strategist.target.revenueTarget) * 100)} className="h-1" /></div>
                 )}
               </div>
             </div>
           );
         })}
-        {(!workloads || workloads.length === 0) && <div className="text-center py-8 text-muted-foreground">No strategists found</div>}
+        {(!workloads || workloads.length === 0) && <div className="text-center py-8 text-muted-foreground">{t('strategist.noStrategistsFound', 'No strategists found')}</div>}
       </div>
     </div>
   );

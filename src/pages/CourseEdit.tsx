@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useTranslation } from 'react-i18next';
 import { useParams, useNavigate, Link } from "react-router-dom";
 
@@ -30,6 +30,14 @@ import {
 import { CourseBuilder, Module } from "@/components/academy/CourseBuilder";
 import { CreateModuleDialog } from "@/components/academy/CreateModuleDialog";
 
+const TITLE_MAX = 100;
+const DESC_MAX = 2000;
+
+interface FormErrors {
+  title?: string;
+  description?: string;
+}
+
 export default function CourseEdit() {
   const { t } = useTranslation('common');
   const { id } = useParams();
@@ -39,9 +47,13 @@ export default function CourseEdit() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [aiLoading, setAiLoading] = useState(false);
+  const [aiConfirmPending, setAiConfirmPending] = useState(false);
   const [course, setCourse] = useState<any>(null);
   const [modules, setModules] = useState<any[]>([]);
   const [showCreateDialog, setShowCreateDialog] = useState(false);
+  const [formErrors, setFormErrors] = useState<FormErrors>({});
+  const [isDirty, setIsDirty] = useState(false);
+  const initialFormData = useRef<typeof formData | null>(null);
   const [formData, setFormData] = useState({
     title: "",
     description: "",
@@ -50,11 +62,68 @@ export default function CourseEdit() {
     category: "",
     course_image_url: "",
     course_video_url: "",
+    visibility: "private",
   });
+
+  // Validate fields on change
+  const validateField = useCallback((field: string, value: string): string | undefined => {
+    switch (field) {
+      case "title":
+        if (!value.trim()) return "Title is required";
+        if (value.trim().length < 3) return "Title must be at least 3 characters";
+        if (value.length > TITLE_MAX) return `Title must be ${TITLE_MAX} characters or fewer`;
+        return undefined;
+      case "description":
+        if (!value.trim()) return "Description is required";
+        if (value.trim().length < 10) return "Description must be at least 10 characters";
+        if (value.length > DESC_MAX) return `Description must be ${DESC_MAX} characters or fewer`;
+        return undefined;
+      default:
+        return undefined;
+    }
+  }, []);
+
+  const updateFormField = useCallback((field: string, value: string) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+    if (field === "title" || field === "description") {
+      setFormErrors(prev => ({ ...prev, [field]: validateField(field, value) }));
+    }
+  }, [validateField]);
+
+  // Track dirty state
+  useEffect(() => {
+    if (!initialFormData.current) return;
+    const changed = Object.keys(formData).some(
+      key => formData[key as keyof typeof formData] !== initialFormData.current![key as keyof typeof formData]
+    );
+    setIsDirty(changed);
+  }, [formData]);
+
+  // Warn on navigation with unsaved changes
+  useEffect(() => {
+    const handler = (e: BeforeUnloadEvent) => {
+      if (isDirty) {
+        e.preventDefault();
+        e.returnValue = "";
+      }
+    };
+    window.addEventListener("beforeunload", handler);
+    return () => window.removeEventListener("beforeunload", handler);
+  }, [isDirty]);
 
   useEffect(() => {
     loadCourseData();
   }, [id, user]);
+
+  // Auto-calculate estimated hours from module durations
+  useEffect(() => {
+    if (modules.length === 0) return;
+    const totalMinutes = modules.reduce((sum, m) => sum + (m.estimated_minutes || 0), 0);
+    if (totalMinutes > 0) {
+      const totalHours = Math.round((totalMinutes / 60) * 10) / 10; // round to 1 decimal
+      setFormData((prev) => ({ ...prev, estimated_hours: totalHours.toString() }));
+    }
+  }, [modules]);
 
   const loadCourseData = async () => {
     if (!id) return;
@@ -82,7 +151,7 @@ export default function CourseEdit() {
 
       setCourse(courseData);
       setModules(courseData.modules || []);
-      setFormData({
+      const loaded = {
         title: courseData.title || "",
         description: courseData.description || "",
         difficulty_level: courseData.difficulty_level || "beginner",
@@ -90,7 +159,12 @@ export default function CourseEdit() {
         category: courseData.category || "",
         course_image_url: courseData.course_image_url || "",
         course_video_url: courseData.course_video_url || "",
-      });
+        visibility: courseData.visibility || "private",
+      };
+      setFormData(loaded);
+      initialFormData.current = loaded;
+      setFormErrors({});
+      setIsDirty(false);
     } catch (error: unknown) {
       notify.error("Error loading course", { description: error instanceof Error ? error.message : 'Unknown error' });
       navigate("/academy/creator");
@@ -100,11 +174,17 @@ export default function CourseEdit() {
   };
 
   const enhanceDescription = async () => {
-    if (!formData.title || !formData.description) {
-      notify.error("Missing information", { description: "Please add a title and description first" });
+    // Two-click confirmation: first click sets pending, second click executes
+    if (!aiConfirmPending) {
+      if (!formData.title || !formData.description) {
+        notify.error("Missing information", { description: "Please add a title and description first" });
+        return;
+      }
+      setAiConfirmPending(true);
       return;
     }
 
+    setAiConfirmPending(false);
     setAiLoading(true);
     try {
       const { data, error } = await supabase.functions.invoke('ai-course-generator', {
@@ -117,7 +197,7 @@ export default function CourseEdit() {
 
       if (error) throw error;
 
-      setFormData({ ...formData, description: data.content });
+      updateFormField("description", data.content);
       notify.success("Description enhanced", { description: "AI has improved your course description" });
     } catch (error: unknown) {
       notify.error("Enhancement failed", { description: error instanceof Error ? error.message : 'Unknown error' });
@@ -172,12 +252,19 @@ export default function CourseEdit() {
     }
   };
 
+  const hasFormErrors = !!(formErrors.title || formErrors.description);
+  const isFormValid = formData.title.trim().length >= 3 && formData.description.trim().length >= 10 && !hasFormErrors;
+
   const handleSubmit = async (e?: React.FormEvent) => {
     e?.preventDefault();
     if (!user || !id) return;
 
-    if (!formData.title.trim()) {
-      notify.error("Title required", { description: "Please enter a course title" });
+    // Run full validation
+    const titleErr = validateField("title", formData.title);
+    const descErr = validateField("description", formData.description);
+    if (titleErr || descErr) {
+      setFormErrors({ title: titleErr, description: descErr });
+      notify.error("Validation errors", { description: "Please fix the highlighted fields" });
       return;
     }
 
@@ -199,6 +286,7 @@ export default function CourseEdit() {
           category: formData.category || null,
           course_image_url: formData.course_image_url || null,
           course_video_url: formData.course_video_url || null,
+          visibility: formData.visibility || "private",
           updated_at: new Date().toISOString(),
         })
         .eq("id", id)
@@ -207,6 +295,7 @@ export default function CourseEdit() {
       if (error) throw error;
 
       notify.success("Course updated", { description: "Your changes have been saved successfully" });
+      setIsDirty(false);
 
       // Reload the course data to show updated values
       await loadCourseData();
@@ -262,7 +351,7 @@ export default function CourseEdit() {
             >
               Cancel
             </Button>
-            <Button onClick={handleSubmit} disabled={saving}>
+            <Button onClick={handleSubmit} disabled={saving || !isFormValid || !isDirty}>
               {saving ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -281,7 +370,7 @@ export default function CourseEdit() {
         {/* Main Content */}
         <Card className="p-6">
           <div className="flex items-center gap-3 mb-6">
-            <div className="p-2 squircle-sm bg-primary/10">
+            <div className="p-2 rounded-xl bg-primary/10">
               <BookOpen className="h-5 w-5 text-primary" />
             </div>
             <div>
@@ -292,7 +381,7 @@ export default function CourseEdit() {
 
           <form onSubmit={handleSubmit} className="space-y-6">
             <Tabs defaultValue="basic" className="w-full">
-              <TabsList className="squircle mb-6">
+              <TabsList className="rounded-2xl mb-6">
                 <TabsTrigger value="basic">{t('courseEdit.text9')}</TabsTrigger>
                 <TabsTrigger value="details">{t('courseEdit.text10')}</TabsTrigger>
                 <TabsTrigger value="media">{t('courseEdit.text11')}</TabsTrigger>
@@ -304,12 +393,18 @@ export default function CourseEdit() {
                   <Input
                     id="title"
                     value={formData.title}
-                    onChange={(e) =>
-                      setFormData({ ...formData, title: e.target.value })
-                    }
+                    onChange={(e) => updateFormField("title", e.target.value)}
                     placeholder={"e.g., Advanced Leadership Skills"}
+                    maxLength={TITLE_MAX}
                     required
+                    className={formErrors.title ? "border-red-500 focus-visible:ring-red-500" : ""}
                   />
+                  <div className="flex items-center justify-between">
+                    {formErrors.title ? (
+                      <p className="text-xs text-red-500">{formErrors.title}</p>
+                    ) : <span />}
+                    <p className="text-xs text-muted-foreground">{formData.title.length}/{TITLE_MAX}</p>
+                  </div>
                 </div>
 
                 <div className="space-y-2">
@@ -317,9 +412,10 @@ export default function CourseEdit() {
                     <Label htmlFor="description">{t('courseEdit.text12')}</Label>
                     <Button
                       type="button"
-                      variant="ghost"
+                      variant={aiConfirmPending ? "destructive" : "ghost"}
                       size="sm"
                       onClick={enhanceDescription}
+                      onBlur={() => setAiConfirmPending(false)}
                       disabled={aiLoading || !formData.description}
                     >
                       {aiLoading ? (
@@ -327,18 +423,24 @@ export default function CourseEdit() {
                       ) : (
                         <Wand2 className="mr-2 h-3 w-3" />
                       )}
-                      Enhance with AI
+                      {aiConfirmPending ? "Replace description with AI version?" : "Enhance with AI"}
                     </Button>
                   </div>
                   <Textarea
                     id="description"
                     value={formData.description}
-                    onChange={(e) =>
-                      setFormData({ ...formData, description: e.target.value })
-                    }
+                    onChange={(e) => updateFormField("description", e.target.value)}
                     placeholder={t('courseEdit.text13')}
+                    maxLength={DESC_MAX}
                     rows={6}
+                    className={formErrors.description ? "border-red-500 focus-visible:ring-red-500" : ""}
                   />
+                  <div className="flex items-center justify-between">
+                    {formErrors.description ? (
+                      <p className="text-xs text-red-500">{formErrors.description}</p>
+                    ) : <span />}
+                    <p className="text-xs text-muted-foreground">{formData.description.length}/{DESC_MAX}</p>
+                  </div>
                 </div>
 
                 <div className="space-y-2">
@@ -372,6 +474,31 @@ export default function CourseEdit() {
                       <SelectItem value="advanced">{t('courseEdit.text18')}</SelectItem>
                     </SelectContent>
                   </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>{t('common:visibility', 'Visibility')}</Label>
+                  <Select
+                    value={formData.visibility}
+                    onValueChange={(value) => {
+                      if (value === "public" && formData.visibility !== "public") {
+                        if (!window.confirm("Are you sure you want to make this course public? Anyone will be able to view it.")) return;
+                      }
+                      setFormData({ ...formData, visibility: value });
+                    }}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="private">Private — Members only</SelectItem>
+                      <SelectItem value="unlisted">Unlisted — Anyone with share link</SelectItem>
+                      <SelectItem value="public">Public — Anyone can view</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-muted-foreground">
+                    Controls who can access this course outside the platform
+                  </p>
                 </div>
 
                 <div className="space-y-2">

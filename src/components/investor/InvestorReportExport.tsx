@@ -206,7 +206,7 @@ us from traditional recruiting platforms.
 ═══════════════════════════════════════════════════════
 
 CONFIDENTIAL - For authorized investors only.
-For questions, contact: investors@thequantumclub.com
+For questions, contact: info@thequantumclub.com
       `.trim();
 
       const blob = new Blob([summary], { type: 'text/plain' });

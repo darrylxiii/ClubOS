@@ -107,18 +107,18 @@ export const AssessmentDetailModal = memo(({
               <DialogDescription className="flex items-center gap-2 mt-2">
                 <Badge variant="outline">{result.assessment_type}</Badge>
                 <Badge variant="secondary">Attempt #{result.attempt_number}</Badge>
-                {result.is_latest && <Badge>Latest</Badge>}
+                {result.is_latest && <Badge>{t('candidates:assessmentDetail.latest', 'Latest')}</Badge>}
               </DialogDescription>
             </div>
             <div className="flex gap-2">
               <Button variant="outline" size="sm" onClick={handleDownload}>
                 <Download className="w-4 h-4 mr-2" />
-                Export
+                {t('assessment.export', 'Export')}
               </Button>
               {allowRetake && (
                 <Button size="sm" onClick={handleRetake}>
                   <RefreshCw className="w-4 h-4 mr-2" />
-                  Retake
+                  {t('assessment.retake', 'Retake')}
                 </Button>
               )}
             </div>
@@ -133,7 +133,7 @@ export const AssessmentDetailModal = memo(({
                 <CardContent className="pt-6">
                   <div className="flex flex-col items-center text-center">
                     <Calendar className="w-6 h-6 text-muted-foreground mb-2" />
-                    <p className="text-xs text-muted-foreground">Completed</p>
+                    <p className="text-xs text-muted-foreground">{t('assessment.completed', 'Completed')}</p>
                     <p className="text-sm font-semibold mt-1">
                       {format(new Date(result.completed_at), 'MMM d, yyyy')}
                     </p>
@@ -149,7 +149,7 @@ export const AssessmentDetailModal = memo(({
                   <CardContent className="pt-6">
                     <div className="flex flex-col items-center text-center">
                       <Clock className="w-6 h-6 text-muted-foreground mb-2" />
-                      <p className="text-xs text-muted-foreground">Time Spent</p>
+                      <p className="text-xs text-muted-foreground">{t('assessment.timeSpent', 'Time Spent')}</p>
                       <p className="text-sm font-semibold mt-1">
                         {formatTime(result.time_spent_seconds)}
                       </p>
@@ -163,7 +163,7 @@ export const AssessmentDetailModal = memo(({
                   <CardContent className="pt-6">
                     <div className="flex flex-col items-center text-center">
                       <Award className="w-6 h-6 text-muted-foreground mb-2" />
-                      <p className="text-xs text-muted-foreground">Score</p>
+                      <p className="text-xs text-muted-foreground">{t('assessment.score', 'Score')}</p>
                       <p className="text-2xl font-bold mt-1">{result.score}%</p>
                     </div>
                   </CardContent>
@@ -176,16 +176,16 @@ export const AssessmentDetailModal = memo(({
               <Card>
                 <CardContent className="pt-6 space-y-2">
                   <div className="flex items-center justify-between text-sm">
-                    <span className="font-medium">Overall Performance</span>
+                    <span className="font-medium">{t('assessment.overallPerformance', 'Overall Performance')}</span>
                     <span className="text-muted-foreground">{result.score}%</span>
                   </div>
                   <Progress value={result.score} className="h-3" />
                   <p className="text-xs text-muted-foreground">
                     {result.score >= 80
-                      ? 'Excellent performance! You demonstrated strong capabilities.'
+                      ? t('assessment.excellentPerformance', 'Excellent performance! You demonstrated strong capabilities.')
                       : result.score >= 60
-                        ? 'Good performance. There are opportunities for growth.'
-                        : 'Consider retaking this assessment to improve your results.'}
+                        ? t('assessment.goodPerformance', 'Good performance. There are opportunities for growth.')
+                        : t('assessment.considerRetaking', 'Consider retaking this assessment to improve your results.')}
                   </p>
                 </CardContent>
               </Card>
@@ -194,13 +194,13 @@ export const AssessmentDetailModal = memo(({
             {/* Results Data Visualization */}
             <Card>
               <CardContent className="pt-6">
-                <h3 className="font-semibold mb-4">Detailed Results</h3>
+                <h3 className="font-semibold mb-4">{t('assessment.detailedResults', 'Detailed Results')}</h3>
 
                 {/* Render specific result types based on assessment */}
                 {result.assessment_id === 'swipe-game' && result.results_data?.archetype && (
                   <div className="space-y-4">
                     <div className="p-4 bg-muted/50 rounded-lg">
-                      <p className="text-sm text-muted-foreground">Your Archetype</p>
+                      <p className="text-sm text-muted-foreground">{t('assessment.yourArchetype', 'Your Archetype')}</p>
                       <p className="text-lg font-bold mt-1">{result.results_data.archetype}</p>
                     </div>
                     {result.results_data.topStrengths && (
@@ -223,19 +223,19 @@ export const AssessmentDetailModal = memo(({
                   <div className="space-y-4">
                     <div className="grid grid-cols-2 gap-3">
                       <div className="p-3 bg-muted/50 rounded-lg">
-                        <p className="text-xs text-muted-foreground">Risk Tolerance</p>
+                        <p className="text-xs text-muted-foreground">{t('assessment.riskTolerance', 'Risk Tolerance')}</p>
                         <p className="text-lg font-bold">{Math.round(result.results_data.profile.riskTolerance * 10)}/10</p>
                       </div>
                       <div className="p-3 bg-muted/50 rounded-lg">
-                        <p className="text-xs text-muted-foreground">Decision Quality</p>
+                        <p className="text-xs text-muted-foreground">{t('assessment.decisionQuality', 'Decision Quality')}</p>
                         <p className="text-lg font-bold">{Math.round(result.results_data.profile.decisionQuality * 10)}/10</p>
                       </div>
                       <div className="p-3 bg-muted/50 rounded-lg">
-                        <p className="text-xs text-muted-foreground">Emotional Regulation</p>
+                        <p className="text-xs text-muted-foreground">{t('assessment.emotionalRegulation', 'Emotional Regulation')}</p>
                         <p className="text-lg font-bold">{Math.round(result.results_data.profile.emotionalRegulation * 10)}/10</p>
                       </div>
                       <div className="p-3 bg-muted/50 rounded-lg">
-                        <p className="text-xs text-muted-foreground">Pressure Performance</p>
+                        <p className="text-xs text-muted-foreground">{t('assessment.pressurePerformance', 'Pressure Performance')}</p>
                         <p className="text-lg font-bold">{Math.round(result.results_data.profile.pressurePerformance * 10)}/10</p>
                       </div>
                     </div>

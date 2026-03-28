@@ -218,13 +218,13 @@ export const CandidateInteractionLog = ({
           <div>
             <CardTitle className="flex items-center gap-2">
               <Sparkles className="w-5 h-5 text-accent" />
-              Interaction Timeline
+              {t('candidateInteractionLog.interactionTimeline', 'Interaction Timeline')}
             </CardTitle>
             <CardDescription>{t('candidateInteractionLog.description')}</CardDescription>
           </div>
           <Badge variant="outline" className="gap-1">
             <Clock className="w-3 h-3" />
-            {interactions.length} interactions
+            {t('candidateInteractionLog.interactionsCount', '{{count}} interactions', { count: interactions.length })}
           </Badge>
         </div>
       </CardHeader>
@@ -266,7 +266,7 @@ export const CandidateInteractionLog = ({
             className="w-full gap-2"
           >
             <Plus className="w-4 h-4" />
-            {addingNote ? "Adding..." : "Add Interaction"}
+            {addingNote ? t('candidateInteractionLog.adding', 'Adding...') : t('candidateInteractionLog.addInteraction', 'Add Interaction')}
           </Button>
         </div>
 
@@ -325,7 +325,7 @@ export const CandidateInteractionLog = ({
                           <div className="mt-2 p-2 bg-muted/30 rounded-md border border-border">
                             {interaction.metadata.action === 'reject' && (
                               <div className="space-y-1 text-xs">
-                                <div className="font-semibold text-destructive">Rejection Details:</div>
+                                <div className="font-semibold text-destructive">{t('candidateInteractionLog.rejectionDetails', 'Rejection Details')}:</div>
                                 {interaction.metadata.rejection_label && (
                                   <div>Reason: {interaction.metadata.rejection_label}</div>
                                 )}
@@ -339,7 +339,7 @@ export const CandidateInteractionLog = ({
                             )}
                             {interaction.metadata.action === 'advance' && (
                               <div className="space-y-1 text-xs">
-                                <div className="font-semibold text-primary">Advancement Details:</div>
+                                <div className="font-semibold text-primary">{t('candidateInteractionLog.advancementDetails', 'Advancement Details')}:</div>
                                 <div>From: {interaction.metadata.previous_stage} → To: {interaction.metadata.new_stage}</div>
                                 {interaction.metadata.skills_match && (
                                   <div className="flex gap-2 mt-1">
@@ -364,7 +364,7 @@ export const CandidateInteractionLog = ({
 
                         {interaction.ai_sentiment && (
                           <Badge variant="secondary" className="mt-2">
-                            Sentiment: {interaction.ai_sentiment}
+                            {t('candidateInteractionLog.sentiment', 'Sentiment')}: {interaction.ai_sentiment}
                           </Badge>
                         )}
 

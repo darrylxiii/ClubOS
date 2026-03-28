@@ -26,7 +26,7 @@ import {
   Sparkles
 } from "lucide-react";
 import { CreateCourseDialog } from "@/components/academy/CreateCourseDialog";
-import { GenerateCourseDialog } from "@/components/academy/GenerateCourseDialog";
+import { CreatorAnalytics } from "@/components/academy/CreatorAnalytics";
 
 export default function AcademyCreatorHub() {
   const { t } = useTranslation('common');
@@ -38,7 +38,7 @@ export default function AcademyCreatorHub() {
   const [loading, setLoading] = useState(true);
   const [fetchError, setFetchError] = useState(false);
   const [showCreateCourse, setShowCreateCourse] = useState(false);
-  const [showGenerateDialog, setShowGenerateDialog] = useState(false);
+  // GenerateCourseDialog consolidated into CreateCourseDialog (AI tab)
   const [stats, setStats] = useState({
     totalCourses: 0,
     publishedCourses: 0,
@@ -141,7 +141,7 @@ export default function AcademyCreatorHub() {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <div className="p-3 squircle bg-primary/10">
+            <div className="p-3 rounded-2xl bg-primary/10">
               <GraduationCap className="h-6 w-6 text-primary" />
             </div>
             <div>
@@ -150,15 +150,7 @@ export default function AcademyCreatorHub() {
             </div>
           </div>
           <div className="flex gap-3">
-            <Button
-              variant="outline"
-              onClick={() => setShowGenerateDialog(true)}
-              className="squircle border-primary/20 hover:bg-primary/5"
-            >
-              <Sparkles className="mr-2 h-4 w-4 text-primary" />
-              Generate with AI
-            </Button>
-            <Button onClick={() => setShowCreateCourse(true)} className="squircle">
+            <Button onClick={() => setShowCreateCourse(true)} className="rounded-2xl">
               <Plus className="mr-2 h-4 w-4" />
               Create New Course
             </Button>
@@ -167,49 +159,49 @@ export default function AcademyCreatorHub() {
 
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-          <Card className="p-6 squircle">
+          <Card className="p-6 rounded-2xl">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">{t('academyCreatorHub.text6')}</p>
                 <p className="text-3xl font-bold mt-2">{stats.totalCourses}</p>
               </div>
-              <div className="p-3 squircle-sm bg-primary/10">
+              <div className="p-3 rounded-xl bg-primary/10">
                 <BookOpen className="h-6 w-6 text-primary" />
               </div>
             </div>
           </Card>
 
-          <Card className="p-6 squircle">
+          <Card className="p-6 rounded-2xl">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">{t('academyCreatorHub.text7')}</p>
                 <p className="text-3xl font-bold mt-2">{stats.publishedCourses}</p>
               </div>
-              <div className="p-3 squircle-sm bg-green-500/10">
+              <div className="p-3 rounded-xl bg-green-500/10">
                 <Eye className="h-6 w-6 text-green-500" />
               </div>
             </div>
           </Card>
 
-          <Card className="p-6 squircle">
+          <Card className="p-6 rounded-2xl">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">{t('academyCreatorHub.text8')}</p>
                 <p className="text-3xl font-bold mt-2">{stats.totalModules}</p>
               </div>
-              <div className="p-3 squircle-sm bg-blue-500/10">
+              <div className="p-3 rounded-xl bg-blue-500/10">
                 <Award className="h-6 w-6 text-blue-500" />
               </div>
             </div>
           </Card>
 
-          <Card className="p-6 squircle">
+          <Card className="p-6 rounded-2xl">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">{t('academyCreatorHub.text9')}</p>
                 <p className="text-3xl font-bold mt-2">{stats.totalStudents}</p>
               </div>
-              <div className="p-3 squircle-sm bg-purple-500/10">
+              <div className="p-3 rounded-xl bg-purple-500/10">
                 <Users className="h-6 w-6 text-purple-500" />
               </div>
             </div>
@@ -218,14 +210,14 @@ export default function AcademyCreatorHub() {
 
         {/* Tabs */}
         <Tabs defaultValue="courses" className="space-y-6">
-          <TabsList className="squircle">
+          <TabsList className="rounded-2xl">
             <TabsTrigger value="courses">{t('academyCreatorHub.text10')}</TabsTrigger>
             <TabsTrigger value="analytics">{t('academyCreatorHub.text11')}</TabsTrigger>
           </TabsList>
 
           <TabsContent value="courses" className="space-y-4">
             {courses.length === 0 ? (
-              <Card className="p-12 text-center squircle">
+              <Card className="p-12 text-center rounded-2xl">
                 <BookOpen className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
                 <h3 className="text-xl font-semibold mb-2">{t('academyCreatorHub.text12')}</h3>
                 <p className="text-muted-foreground mb-6">{t('academyCreatorHub.desc')}</p>
@@ -237,18 +229,18 @@ export default function AcademyCreatorHub() {
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {courses.map((course) => (
-                  <Card key={course.id} className="squircle overflow-hidden hover-lift transition-all">
+                  <Card key={course.id} className="rounded-2xl overflow-hidden hover-lift transition-all">
                     {/* Course Header */}
                     <div className="h-32 bg-gradient-to-br from-purple-300 via-pink-300 to-purple-400 p-4 flex items-center justify-center relative">
                       <BookOpen className="h-16 w-16 text-white/60" />
                       <div className="absolute top-3 right-3 flex gap-2">
                         {course.is_published ? (
-                          <Badge className="squircle-sm bg-green-500">
+                          <Badge className="rounded-xl bg-green-500">
                             <Eye className="mr-1 h-3 w-3" />
                             Published
                           </Badge>
                         ) : (
-                          <Badge className="squircle-sm bg-yellow-500">
+                          <Badge className="rounded-xl bg-yellow-500">
                             <EyeOff className="mr-1 h-3 w-3" />
                             Draft
                           </Badge>
@@ -285,7 +277,7 @@ export default function AcademyCreatorHub() {
                         <Button
                           variant="outline"
                           size="sm"
-                          className="flex-1 squircle-sm"
+                          className="flex-1 rounded-xl"
                           onClick={() => navigate(`/courses/${course.slug}`)}
                         >
                           <Edit className="mr-1 h-3 w-3" />
@@ -294,7 +286,7 @@ export default function AcademyCreatorHub() {
                         <Button
                           variant={course.is_published ? "outline" : "default"}
                           size="sm"
-                          className="flex-1 squircle-sm"
+                          className="flex-1 rounded-xl"
                           onClick={() => handlePublishToggle(course.id, course.is_published)}
                         >
                           {course.is_published ? (
@@ -318,11 +310,15 @@ export default function AcademyCreatorHub() {
           </TabsContent>
 
           <TabsContent value="analytics" className="space-y-4">
-            <Card className="p-12 text-center squircle">
-              <BarChart3 className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-              <h3 className="text-xl font-semibold mb-2">{t('academyCreatorHub.text13')}</h3>
-              <p className="text-muted-foreground">{t('academyCreatorHub.desc2')}</p>
-            </Card>
+            {user?.id ? (
+              <CreatorAnalytics creatorId={user.id} />
+            ) : (
+              <Card className="p-12 text-center rounded-2xl">
+                <BarChart3 className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+                <h3 className="text-xl font-semibold mb-2">{t('academyCreatorHub.text13')}</h3>
+                <p className="text-muted-foreground">{t('academyCreatorHub.desc2')}</p>
+              </Card>
+            )}
           </TabsContent>
         </Tabs>
 
@@ -333,12 +329,6 @@ export default function AcademyCreatorHub() {
           onSuccess={loadCreatorData}
         />
 
-        <GenerateCourseDialog
-          open={showGenerateDialog}
-          onOpenChange={setShowGenerateDialog}
-          academyId={academy?.id}
-          onSuccess={loadCreatorData}
-        />
       </div>
   );
 }

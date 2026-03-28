@@ -16,6 +16,7 @@ export const SendAssessmentsTab = memo(() => {
   const { createAssignment, loading } = useAssessmentAssignments();
   const { toast } = useToast();
   const [searchQuery, setSearchQuery] = useState('');
+  const { t } = useTranslation('admin');
   const [candidates, setCandidates] = useState<any[]>([]);
   const [selectedCandidates, setSelectedCandidates] = useState<string[]>([]);
   const [selectedAssessments, setSelectedAssessments] = useState<string[]>([]);
@@ -47,7 +48,6 @@ export const SendAssessmentsTab = memo(() => {
   };
 
   const toggleCandidate = (userId: string) => {
-  const { t } = useTranslation('admin');
     setSelectedCandidates(prev =>
       prev.includes(userId) ? prev.filter(id => id !== userId) : [...prev, userId]
     );
@@ -62,8 +62,8 @@ export const SendAssessmentsTab = memo(() => {
   const handleSend = async () => {
     if (selectedCandidates.length === 0) {
       toast({
-        title: 'No candidates selected',
-        description: 'Please select at least one candidate',
+        title: t('sendAssessments.noCandidates', 'No candidates selected'),
+        description: t('sendAssessments.selectAtLeastOneCandidate', 'Please select at least one candidate'),
         variant: 'destructive',
       });
       return;
@@ -71,8 +71,8 @@ export const SendAssessmentsTab = memo(() => {
 
     if (selectedAssessments.length === 0) {
       toast({
-        title: 'No assessments selected',
-        description: 'Please select at least one assessment',
+        title: t('sendAssessments.noAssessments', 'No assessments selected'),
+        description: t('sendAssessments.selectAtLeastOneAssessment', 'Please select at least one assessment'),
         variant: 'destructive',
       });
       return;
@@ -101,14 +101,14 @@ export const SendAssessmentsTab = memo(() => {
     <div className="grid gap-6 lg:grid-cols-2">
       <Card>
         <CardHeader>
-          <CardTitle>Select Candidates</CardTitle>
-          <CardDescription>Choose who should receive the assessments</CardDescription>
+          <CardTitle>{t('sendAssessments.selectCandidates', 'Select Candidates')}</CardTitle>
+          <CardDescription>{t('sendAssessments.chooseRecipients', 'Choose who should receive the assessments')}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="relative">
             <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Search by name or skills..."
+              placeholder={t('sendAssessments.searchPlaceholder', 'Search by name or skills...')}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-10"
@@ -135,7 +135,7 @@ export const SendAssessmentsTab = memo(() => {
           </div>
 
           <p className="text-sm text-muted-foreground">
-            {selectedCandidates.length} candidate(s) selected
+            {t('sendAssessments.candidatesSelected', '{{count}} candidate(s) selected', { count: selectedCandidates.length })}
           </p>
         </CardContent>
       </Card>
@@ -143,8 +143,8 @@ export const SendAssessmentsTab = memo(() => {
       <div className="space-y-6">
         <Card>
           <CardHeader>
-            <CardTitle>Select Assessments</CardTitle>
-            <CardDescription>Choose which assessments to assign</CardDescription>
+            <CardTitle>{t('sendAssessments.selectAssessments', 'Select Assessments')}</CardTitle>
+            <CardDescription>{t('sendAssessments.chooseAssessments', 'Choose which assessments to assign')}</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-2">
@@ -167,18 +167,18 @@ export const SendAssessmentsTab = memo(() => {
               ))}
             </div>
             <p className="text-sm text-muted-foreground mt-4">
-              {selectedAssessments.length} assessment(s) selected
+              {t('sendAssessments.assessmentsSelected', '{{count}} assessment(s) selected', { count: selectedAssessments.length })}
             </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader>
-            <CardTitle>Configuration</CardTitle>
+            <CardTitle>{t('sendAssessments.configuration', 'Configuration')}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="due-date">Due Date (Optional)</Label>
+              <Label htmlFor="due-date">{t('sendAssessments.dueDate', 'Due Date (Optional)')}</Label>
               <div className="relative">
                 <Calendar className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                 <Input
@@ -192,7 +192,7 @@ export const SendAssessmentsTab = memo(() => {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="notes">Notes for Candidates (Optional)</Label>
+              <Label htmlFor="notes">{t('sendAssessments.notesLabel', 'Notes for Candidates (Optional)')}</Label>
               <Textarea
                 id="notes"
                 placeholder="E.g., 'Complete this for the Product Manager role'"
@@ -208,7 +208,7 @@ export const SendAssessmentsTab = memo(() => {
               className="w-full"
             >
               <Send className="mr-2 h-4 w-4" />
-              Send {selectedAssessments.length} Assessment(s) to {selectedCandidates.length} Candidate(s)
+              {t('sendAssessments.sendButton', 'Send {{assessmentCount}} Assessment(s) to {{candidateCount}} Candidate(s)', { assessmentCount: selectedAssessments.length, candidateCount: selectedCandidates.length })}
             </Button>
           </CardContent>
         </Card>

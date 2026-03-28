@@ -23,7 +23,77 @@ import { Card } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { notify } from "@/lib/notify";
-import { Loader2, Sparkles, Wand2, Brain, ChevronRight, CheckCircle2 } from "lucide-react";
+import { Loader2, Sparkles, Wand2, Brain, ChevronRight, CheckCircle2, BookOpen, Clock, Zap, GraduationCap } from "lucide-react";
+
+const COURSE_TEMPLATES = [
+  {
+    key: "quick-tutorial",
+    label: "Quick Tutorial",
+    icon: Zap,
+    modules: 3,
+    hours: "1",
+    difficulty: "beginner",
+    description: "3 modules, 1 hour, beginner",
+    moduleTitles: [
+      { title: "Introduction & Setup", description: "Getting started with the basics" },
+      { title: "Core Concepts", description: "Understanding the key fundamentals" },
+      { title: "Hands-On Practice", description: "Applying what you learned" },
+    ],
+  },
+  {
+    key: "workshop",
+    label: "Workshop",
+    icon: BookOpen,
+    modules: 6,
+    hours: "4",
+    difficulty: "intermediate",
+    description: "6 modules, 4 hours, intermediate",
+    moduleTitles: [
+      { title: "Workshop Overview", description: "Goals and expectations" },
+      { title: "Foundation Skills", description: "Building the baseline knowledge" },
+      { title: "Deep Dive: Theory", description: "Understanding the principles" },
+      { title: "Deep Dive: Practice", description: "Guided exercises and examples" },
+      { title: "Advanced Techniques", description: "Taking skills to the next level" },
+      { title: "Final Project & Review", description: "Putting it all together" },
+    ],
+  },
+  {
+    key: "masterclass",
+    label: "Masterclass",
+    icon: GraduationCap,
+    modules: 12,
+    hours: "10",
+    difficulty: "advanced",
+    description: "12 modules, 10 hours, advanced",
+    moduleTitles: [
+      { title: "Welcome & Course Roadmap", description: "Overview of the learning journey" },
+      { title: "Foundational Concepts", description: "Essential building blocks" },
+      { title: "Core Principles", description: "Key theories and frameworks" },
+      { title: "Intermediate Techniques", description: "Building on the basics" },
+      { title: "Case Study Analysis", description: "Real-world application review" },
+      { title: "Advanced Strategies", description: "Expert-level approaches" },
+      { title: "Hands-On Lab I", description: "Practical exercises" },
+      { title: "Hands-On Lab II", description: "Complex project work" },
+      { title: "Industry Best Practices", description: "Professional standards" },
+      { title: "Troubleshooting & Debugging", description: "Solving common challenges" },
+      { title: "Capstone Project", description: "Comprehensive final project" },
+      { title: "Wrap-Up & Next Steps", description: "Review and future learning paths" },
+    ],
+  },
+  {
+    key: "mini-course",
+    label: "Mini-Course",
+    icon: Clock,
+    modules: 2,
+    hours: "0.5",
+    difficulty: "beginner",
+    description: "2 modules, 30 min, beginner",
+    moduleTitles: [
+      { title: "Key Concepts", description: "The essentials you need to know" },
+      { title: "Quick Practice", description: "Apply it right away" },
+    ],
+  },
+] as const;
 
 interface CreateCourseDialogProps {
   open: boolean;
@@ -44,6 +114,7 @@ export function CreateCourseDialog({
   const [aiLoading, setAiLoading] = useState(false);
   const [aiPrompt, setAiPrompt] = useState("");
   const [suggestedModules, setSuggestedModules] = useState<any[]>([]);
+  const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     title: "",
     description: "",
@@ -238,6 +309,7 @@ export function CreateCourseDialog({
       });
       setSuggestedModules([]);
       setAiPrompt("");
+      setSelectedTemplate(null);
     } catch (error: unknown) {
       notify.error("Error creating course", {
         description: error instanceof Error ? error.message : 'An unexpected error occurred',
@@ -249,7 +321,7 @@ export function CreateCourseDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="squircle max-w-4xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="rounded-2xl max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Sparkles className="w-5 h-5 text-primary" />
@@ -285,7 +357,7 @@ export function CreateCourseDialog({
                     value={aiPrompt}
                     onChange={(e) => setAiPrompt(e.target.value)}
                     rows={4}
-                    className="squircle-sm"
+                    className="rounded-xl"
                   />
                 </div>
                 <Button
@@ -319,7 +391,7 @@ export function CreateCourseDialog({
                       value={formData.title}
                       onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                       required
-                      className="squircle-sm"
+                      className="rounded-xl"
                     />
                   </div>
 
@@ -347,7 +419,7 @@ export function CreateCourseDialog({
                       onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                       required
                       rows={5}
-                      className="squircle-sm"
+                      className="rounded-xl"
                     />
                   </div>
 
@@ -357,10 +429,10 @@ export function CreateCourseDialog({
                       value={formData.category}
                       onValueChange={(value) => setFormData({ ...formData, category: value })}
                     >
-                      <SelectTrigger id="category" className="squircle-sm">
+                      <SelectTrigger id="category" className="rounded-xl">
                         <SelectValue placeholder={t("select_a_category", "Select a category")} />
                       </SelectTrigger>
-                      <SelectContent className="squircle">
+                      <SelectContent className="rounded-2xl">
                         <SelectItem value="Design">{t("design", "Design")}</SelectItem>
                         <SelectItem value="Business">{t("business", "Business")}</SelectItem>
                         <SelectItem value="Code">{t("code", "Code")}</SelectItem>
@@ -381,7 +453,7 @@ export function CreateCourseDialog({
                       placeholder="https://example.com/image.jpg"
                       value={formData.course_image_url}
                       onChange={(e) => setFormData({ ...formData, course_image_url: e.target.value })}
-                      className="squircle-sm"
+                      className="rounded-xl"
                     />
                     <p className="text-xs text-muted-foreground">{t("image_will_be_displayed", "Image will be displayed on course cards")}</p>
                   </div>
@@ -394,7 +466,7 @@ export function CreateCourseDialog({
                       placeholder="https://youtube.com/..."
                       value={formData.course_video_url}
                       onChange={(e) => setFormData({ ...formData, course_video_url: e.target.value })}
-                      className="squircle-sm"
+                      className="rounded-xl"
                     />
                     <p className="text-xs text-muted-foreground">{t("preview_video_for_the", "Preview video for the course")}</p>
                   </div>
@@ -406,10 +478,10 @@ export function CreateCourseDialog({
                         value={formData.difficulty_level}
                         onValueChange={(value) => setFormData({ ...formData, difficulty_level: value })}
                       >
-                        <SelectTrigger id="difficulty" className="squircle-sm">
+                        <SelectTrigger id="difficulty" className="rounded-xl">
                           <SelectValue />
                         </SelectTrigger>
-                        <SelectContent className="squircle">
+                        <SelectContent className="rounded-2xl">
                           <SelectItem value="beginner">{t("beginner", "Beginner")}</SelectItem>
                           <SelectItem value="intermediate">{t("intermediate", "Intermediate")}</SelectItem>
                           <SelectItem value="advanced">{t("advanced", "Advanced")}</SelectItem>
@@ -425,7 +497,7 @@ export function CreateCourseDialog({
                         type="number"
                         value={formData.estimated_hours}
                         onChange={(e) => setFormData({ ...formData, estimated_hours: e.target.value })}
-                        className="squircle-sm"
+                        className="rounded-xl"
                       />
                     </div>
                   </div>
@@ -474,6 +546,45 @@ export function CreateCourseDialog({
 
           <TabsContent value="manual">
             <form onSubmit={handleSubmit} className="space-y-6">
+              {/* Template Picker */}
+              <div className="space-y-2">
+                <Label className="text-sm font-medium">Templates</Label>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                  {COURSE_TEMPLATES.map((tpl) => {
+                    const Icon = tpl.icon;
+                    const isSelected = selectedTemplate === tpl.key;
+                    return (
+                      <button
+                        key={tpl.key}
+                        type="button"
+                        className={`p-3 rounded-lg border text-left transition-all hover:border-primary/50 ${
+                          isSelected
+                            ? "border-primary bg-primary/5 ring-1 ring-primary/30"
+                            : "border-border"
+                        }`}
+                        onClick={() => {
+                          setSelectedTemplate(isSelected ? null : tpl.key);
+                          if (!isSelected) {
+                            setFormData((prev) => ({
+                              ...prev,
+                              estimated_hours: tpl.hours,
+                              difficulty_level: tpl.difficulty,
+                            }));
+                            setSuggestedModules([...tpl.moduleTitles]);
+                          } else {
+                            setSuggestedModules([]);
+                          }
+                        }}
+                      >
+                        <Icon className={`h-4 w-4 mb-1.5 ${isSelected ? "text-primary" : "text-muted-foreground"}`} />
+                        <p className="text-xs font-semibold leading-tight">{tpl.label}</p>
+                        <p className="text-[10px] text-muted-foreground mt-0.5">{tpl.description}</p>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
               <div className="space-y-2">
                 <Label htmlFor="manual-title">{t("course_title", "Course Title *")}</Label>
                 <Input
@@ -482,7 +593,7 @@ export function CreateCourseDialog({
                   value={formData.title}
                   onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                   required
-                  className="squircle-sm"
+                  className="rounded-xl"
                 />
               </div>
 
@@ -511,7 +622,7 @@ export function CreateCourseDialog({
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                   required
                   rows={5}
-                  className="squircle-sm"
+                  className="rounded-xl"
                 />
               </div>
 
@@ -521,10 +632,10 @@ export function CreateCourseDialog({
                   value={formData.category}
                   onValueChange={(value) => setFormData({ ...formData, category: value })}
                 >
-                  <SelectTrigger id="manual-category" className="squircle-sm">
+                  <SelectTrigger id="manual-category" className="rounded-xl">
                     <SelectValue placeholder={t("select_a_category", "Select a category")} />
                   </SelectTrigger>
-                  <SelectContent className="squircle">
+                  <SelectContent className="rounded-2xl">
                     <SelectItem value="Design">{t("design", "Design")}</SelectItem>
                     <SelectItem value="Business">{t("business", "Business")}</SelectItem>
                     <SelectItem value="Code">{t("code", "Code")}</SelectItem>
@@ -545,7 +656,7 @@ export function CreateCourseDialog({
                   placeholder="https://example.com/image.jpg"
                   value={formData.course_image_url}
                   onChange={(e) => setFormData({ ...formData, course_image_url: e.target.value })}
-                  className="squircle-sm"
+                  className="rounded-xl"
                 />
                 <p className="text-xs text-muted-foreground">{t("image_will_be_displayed", "Image will be displayed on course cards")}</p>
               </div>
@@ -558,7 +669,7 @@ export function CreateCourseDialog({
                   placeholder="https://youtube.com/..."
                   value={formData.course_video_url}
                   onChange={(e) => setFormData({ ...formData, course_video_url: e.target.value })}
-                  className="squircle-sm"
+                  className="rounded-xl"
                 />
                 <p className="text-xs text-muted-foreground">{t("preview_video_for_the", "Preview video for the course")}</p>
               </div>
@@ -570,10 +681,10 @@ export function CreateCourseDialog({
                     value={formData.difficulty_level}
                     onValueChange={(value) => setFormData({ ...formData, difficulty_level: value })}
                   >
-                    <SelectTrigger id="manual-difficulty" className="squircle-sm">
+                    <SelectTrigger id="manual-difficulty" className="rounded-xl">
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent className="squircle">
+                    <SelectContent className="rounded-2xl">
                       <SelectItem value="beginner">{t("beginner", "Beginner")}</SelectItem>
                       <SelectItem value="intermediate">{t("intermediate", "Intermediate")}</SelectItem>
                       <SelectItem value="advanced">{t("advanced", "Advanced")}</SelectItem>
@@ -590,7 +701,7 @@ export function CreateCourseDialog({
                     placeholder={t("eg_8", "e.g., 8")}
                     value={formData.estimated_hours}
                     onChange={(e) => setFormData({ ...formData, estimated_hours: e.target.value })}
-                    className="squircle-sm"
+                    className="rounded-xl"
                   />
                 </div>
               </div>

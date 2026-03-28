@@ -28,6 +28,55 @@ export const AvatarUpload = ({ avatarUrl, onAvatarChange, userId, required = fal
     setPreviewUrl(avatarUrl);
   }, [avatarUrl]);
 
+  const handleGifUpload = async (file: File) => {
+    try {
+      setUploading(true);
+
+      if (avatarUrl) {
+        const oldPath = avatarUrl.split('/').pop()?.split('?')[0];
+        if (oldPath) {
+          await supabase.storage.from('avatars').remove([`${userId}/${oldPath}`]);
+        }
+      }
+
+      const fileName = `${Date.now()}.gif`;
+      const filePath = `${userId}/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage.from('avatars').upload(filePath, file, {
+        cacheControl: '3600',
+        upsert: false,
+        contentType: 'image/gif',
+      });
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage.from('avatars').getPublicUrl(filePath);
+      const cacheBustedUrl = `${publicUrl}?t=${Date.now()}`;
+
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .update({
+          avatar_url: cacheBustedUrl,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', userId);
+
+      if (updateError) throw updateError;
+
+      setPreviewUrl(publicUrl);
+      onAvatarChange(publicUrl);
+      toast.success(t('avatarUpload.profilePictureUpdated', 'Profile picture updated'));
+      import('@/lib/sounds/QuantumSoundEngine').then(({ quantumSoundEngine }) => {
+        quantumSoundEngine.play('ambient.upload_complete');
+      });
+    } catch (error: unknown) {
+      console.error('Error uploading GIF avatar:', error);
+      toast.error(error instanceof Error ? error.message : 'Failed to upload profile picture');
+    } finally {
+      setUploading(false);
+    }
+  };
+
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
@@ -44,7 +93,13 @@ export const AvatarUpload = ({ avatarUrl, onAvatarChange, userId, required = fal
       return;
     }
 
-    // Create preview and open editor
+    if (file.type === 'image/gif') {
+      void handleGifUpload(file);
+      event.target.value = '';
+      return;
+    }
+
+    // Create preview and open editor (static images → cropped JPEG)
     const objectUrl = URL.createObjectURL(file);
     setSelectedImage(objectUrl);
     setEditorOpen(true);
@@ -101,6 +156,9 @@ export const AvatarUpload = ({ avatarUrl, onAvatarChange, userId, required = fal
       setPreviewUrl(publicUrl);
       onAvatarChange(publicUrl);
       toast.success(t('avatarUpload.profilePictureUpdated', 'Profile picture updated'));
+      import('@/lib/sounds/QuantumSoundEngine').then(({ quantumSoundEngine }) => {
+        quantumSoundEngine.play('ambient.upload_complete');
+      });
     } catch (error: unknown) {
       console.error('Error uploading avatar:', error);
       toast.error(error instanceof Error ? error.message : 'Failed to upload profile picture');
@@ -226,7 +284,7 @@ export const AvatarUpload = ({ avatarUrl, onAvatarChange, userId, required = fal
             )}
 
             <p className="text-xs text-muted-foreground">
-              JPG, PNG or WEBP. Max 5MB.
+              {t('jpg_png_or_webp', 'JPG, PNG, WebP, or GIF. Max 5MB.')}
             </p>
           </div>
         </div>

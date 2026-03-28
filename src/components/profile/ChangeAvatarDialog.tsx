@@ -30,6 +30,46 @@ export function ChangeAvatarDialog({
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  const handleGifUpload = async (file: File) => {
+    setUploading(true);
+    try {
+      if (avatarUrl) {
+        const oldPath = avatarUrl.split('/').pop()?.split('?')[0];
+        if (oldPath) {
+          await supabase.storage.from('avatars').remove([`${userId}/${oldPath}`]);
+        }
+      }
+
+      const fileName = `${Date.now()}.gif`;
+      const filePath = `${userId}/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('avatars')
+        .upload(filePath, file, { cacheControl: '3600', upsert: false, contentType: 'image/gif' });
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage.from('avatars').getPublicUrl(filePath);
+      const cacheBustedUrl = `${publicUrl}?t=${Date.now()}`;
+
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .update({ avatar_url: cacheBustedUrl, updated_at: new Date().toISOString() })
+        .eq('id', userId);
+
+      if (updateError) throw updateError;
+
+      setAvatarUrl(cacheBustedUrl);
+      toast.success(t("profile_picture_updated", "Profile picture updated"));
+      onSuccess();
+    } catch (error: unknown) {
+      console.error('Error updating GIF avatar:', error);
+      toast.error(t("failed_to_update_profile", "Failed to update profile picture"));
+    } finally {
+      setUploading(false);
+    }
+  };
+
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
@@ -41,6 +81,12 @@ export function ChangeAvatarDialog({
 
     if (file.size > 5 * 1024 * 1024) {
       toast.error(t("image_must_be_less", "Image must be less than 5MB"));
+      return;
+    }
+
+    if (file.type === 'image/gif') {
+      void handleGifUpload(file);
+      if (fileInputRef.current) fileInputRef.current.value = '';
       return;
     }
 
@@ -147,7 +193,7 @@ export function ChangeAvatarDialog({
                   <Upload className="w-4 h-4 mr-2" />
                   {avatarUrl ? 'Change' : 'Upload'} Picture
                 </Button>
-                <p className="text-xs text-muted-foreground">{t("jpg_png_or_webp", "JPG, PNG or WEBP. Max 5MB.")}</p>
+                <p className="text-xs text-muted-foreground">{t("jpg_png_or_webp", "JPG, PNG, WebP, or GIF. Max 5MB.")}</p>
               </div>
             </div>
           </div>

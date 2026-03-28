@@ -21,6 +21,8 @@ export type TimeString = string;
  */
 export function getUserTimezone(): string {
   try {
+    const geoTz = localStorage.getItem('tqc_geo_timezone');
+    if (geoTz) return geoTz;
     return Intl.DateTimeFormat().resolvedOptions().timeZone || 'Europe/Amsterdam';
   } catch (error) {
     logger.warn('Failed to detect timezone, using default', { componentName: 'TimezoneUtils', error });

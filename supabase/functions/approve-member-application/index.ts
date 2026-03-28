@@ -1,4 +1,10 @@
 import { createAuthenticatedHandler } from '../_shared/handler.ts';
+import { z, parseBody, uuidSchema } from '../_shared/validation.ts';
+
+const requestSchema = z.object({
+  applicationId: uuidSchema,
+  sendEmail: z.boolean().optional(),
+});
 
 Deno.serve(createAuthenticatedHandler(async (req, ctx) => {
     const corsHeaders = ctx.corsHeaders;
@@ -20,14 +26,9 @@ Deno.serve(createAuthenticatedHandler(async (req, ctx) => {
       });
     }
 
-    const { applicationId, sendEmail } = await req.json();
-
-    if (!applicationId || typeof applicationId !== 'string') {
-      return new Response(JSON.stringify({ error: 'Invalid application ID' }), {
-        status: 400,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    }
+    const parsed = await parseBody(req, requestSchema, corsHeaders);
+    if ('error' in parsed) return parsed.error;
+    const { applicationId, sendEmail } = parsed.data;
 
     // Fetch application
     const { data: application, error: fetchError } = await supabaseAdmin
@@ -107,6 +108,38 @@ Deno.serve(createAuthenticatedHandler(async (req, ctx) => {
       actor_id: caller.id,
       details: { send_email: sendEmail ?? false },
     });
+
+    // Send welcome email to the approved member
+    if (sendEmail !== false) {
+      try {
+        const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+        const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+
+        const welcomeResponse = await fetch(
+          `${supabaseUrl}/functions/v1/send-approval-notification`,
+          {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${supabaseServiceKey}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              userId: newUserId,
+              email: application.email,
+              fullName: application.full_name,
+              requestType: 'candidate',
+              status: 'approved',
+            }),
+          }
+        );
+
+        if (!welcomeResponse.ok) {
+          console.error('Welcome email failed:', await welcomeResponse.text());
+        }
+      } catch (emailError) {
+        console.error('Failed to send welcome email:', emailError);
+      }
+    }
 
     return new Response(
       JSON.stringify({

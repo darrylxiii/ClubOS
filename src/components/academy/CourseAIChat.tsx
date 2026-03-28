@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Loader2, Send, Bot, X, Sparkles, Lock } from "lucide-react";
+import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { notify } from "@/lib/notify";
 import { useAuth } from "@/contexts/AuthContext";
@@ -127,6 +128,14 @@ export function CourseAIChat({ courseId }: CourseAIChatProps) {
 
   return (
     <div className="space-y-3 relative">
+      <p className="flex items-center gap-1 text-xs text-muted-foreground">
+        <Sparkles className="w-3 h-3" />
+        {t('ai.powered', 'AI-powered')}
+        {' · '}
+        <Link to="/legal/ai-transparency" className="text-primary hover:underline">
+          {t('ai.learnMore', 'Learn more')}
+        </Link>
+      </p>
       <div className="flex gap-2 items-center">
         <Input
           placeholder={!user && guestMessageCount >= 1 ? "Sign in to continue..." : "Ask anything about this course..."}

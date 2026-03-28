@@ -1,8 +1,10 @@
+import { Helmet } from 'react-helmet-async';
 import { useTranslation } from 'react-i18next';
 import { LegalPageLayout } from "@/components/legal/LegalPageLayout";
 import { LegalSection } from "@/components/legal/LegalSection";
 import { Card } from "@/components/ui/card";
-import { Cookie, Settings } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Cookie, Settings, Info } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { Link } from "react-router-dom";
@@ -11,7 +13,7 @@ import quantumLogoDark from "@/assets/quantum-club-logo.png";
 
 export default function CookiePolicy() {
   const { t } = useTranslation('common');
-  const lastUpdated = "January 15, 2025";
+  const lastUpdated = "March 28, 2026";
 
   const sections = [
     { id: "introduction", title: "Introduction" },
@@ -48,6 +50,10 @@ export default function CookiePolicy() {
         </div>
       </div>
 
+      <Helmet>
+        <title>{t('legalPages.cookiePolicy', 'Cookie Policy')} | The Quantum Club</title>
+        <meta name="description" content={t('legalPages.cookiePolicyDesc', 'Legal documentation for The Quantum Club recruitment platform.')} />
+      </Helmet>
       <LegalPageLayout
         title={t('legalPages.cookiePolicy', 'Cookie Policy')}
         lastUpdated={lastUpdated}
@@ -247,54 +253,122 @@ export default function CookiePolicy() {
             </div>
           </LegalSection>
 
-          <LegalSection id="cookie-list" title={"Cookie List"}>
+          <LegalSection id="cookie-list" title={t('legalPages.cookieList', 'Cookie List')}>
             <p className="mb-4">
-              The following table lists the specific cookies we use:
+              {t('legalPages.cookieListDescription', 'The following table lists the specific cookies and similar technologies used on our platform, organized by category:')}
             </p>
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm border border-border rounded-lg">
-                <thead className="bg-muted/50">
-                  <tr>
-                    <th className="px-4 py-3 text-left font-semibold">{"Cookie Name"}</th>
-                    <th className="px-4 py-3 text-left font-semibold">{"Type"}</th>
-                    <th className="px-4 py-3 text-left font-semibold">{"Duration"}</th>
-                    <th className="px-4 py-3 text-left font-semibold">{"Purpose"}</th>
+            <div className="overflow-x-auto rounded-lg border border-border">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="bg-muted/70 border-b border-border">
+                    <th className="px-4 py-3 text-left font-semibold">{t('legalPages.cookieName', 'Cookie Name')}</th>
+                    <th className="px-4 py-3 text-left font-semibold">{t('legalPages.category', 'Category')}</th>
+                    <th className="px-4 py-3 text-left font-semibold">{t('legalPages.provider', 'Provider')}</th>
+                    <th className="px-4 py-3 text-left font-semibold">{t('legalPages.purpose', 'Purpose')}</th>
+                    <th className="px-4 py-3 text-left font-semibold">{t('legalPages.duration', 'Duration')}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border">
-                  <tr>
+                  <tr className="bg-background">
                     <td className="px-4 py-3 font-mono text-xs">{"sb-*-auth-token"}</td>
-                    <td className="px-4 py-3">{"Essential"}</td>
-                    <td className="px-4 py-3">{"Session"}</td>
-                    <td className="px-4 py-3 text-muted-foreground">{"Supabase authentication"}</td>
+                    <td className="px-4 py-3">
+                      <Badge className="bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400 hover:bg-green-100 dark:hover:bg-green-900/30">
+                        {t('legalPages.necessary', 'Necessary')}
+                      </Badge>
+                    </td>
+                    <td className="px-4 py-3 text-muted-foreground">{"Supabase"}</td>
+                    <td className="px-4 py-3 text-muted-foreground">{t('legalPages.authSessionPurpose', 'Authentication session')}</td>
+                    <td className="px-4 py-3 text-muted-foreground">{t('legalPages.session', 'Session')}</td>
                   </tr>
-                  <tr>
-                    <td className="px-4 py-3 font-mono text-xs">cookie_consent</td>
-                    <td className="px-4 py-3">{"Essential"}</td>
-                    <td className="px-4 py-3">{"1 year"}</td>
-                    <td className="px-4 py-3 text-muted-foreground">{"Cookie preferences"}</td>
+                  <tr className="bg-muted/30">
+                    <td className="px-4 py-3 font-mono text-xs">{"i18nextLng"}</td>
+                    <td className="px-4 py-3">
+                      <Badge className="bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400 hover:bg-green-100 dark:hover:bg-green-900/30">
+                        {t('legalPages.necessary', 'Necessary')}
+                      </Badge>
+                    </td>
+                    <td className="px-4 py-3 text-muted-foreground">{"i18next"}</td>
+                    <td className="px-4 py-3 text-muted-foreground">{t('legalPages.langPrefPurpose', 'Language preference')}</td>
+                    <td className="px-4 py-3 text-muted-foreground">{t('legalPages.oneYear', '1 year')}</td>
                   </tr>
-                  <tr>
-                    <td className="px-4 py-3 font-mono text-xs">theme</td>
-                    <td className="px-4 py-3">{"Functional"}</td>
-                    <td className="px-4 py-3">{"1 year"}</td>
-                    <td className="px-4 py-3 text-muted-foreground">{"Dark/light mode preference"}</td>
+                  <tr className="bg-background">
+                    <td className="px-4 py-3 font-mono text-xs">{"theme"}</td>
+                    <td className="px-4 py-3">
+                      <Badge className="bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/30">
+                        {t('legalPages.functional', 'Functional')}
+                      </Badge>
+                    </td>
+                    <td className="px-4 py-3 text-muted-foreground">{"ClubOS"}</td>
+                    <td className="px-4 py-3 text-muted-foreground">{t('legalPages.themePurpose', 'Dark/light mode preference')}</td>
+                    <td className="px-4 py-3 text-muted-foreground">{t('legalPages.oneYear', '1 year')}</td>
                   </tr>
-                  <tr>
-                    <td className="px-4 py-3 font-mono text-xs">i18nextLng</td>
-                    <td className="px-4 py-3">{"Functional"}</td>
-                    <td className="px-4 py-3">{"1 year"}</td>
-                    <td className="px-4 py-3 text-muted-foreground">{"Language preference"}</td>
+                  <tr className="bg-muted/30">
+                    <td className="px-4 py-3 font-mono text-xs">{"cookie_consent"}</td>
+                    <td className="px-4 py-3">
+                      <Badge className="bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400 hover:bg-green-100 dark:hover:bg-green-900/30">
+                        {t('legalPages.necessary', 'Necessary')}
+                      </Badge>
+                    </td>
+                    <td className="px-4 py-3 text-muted-foreground">{"ClubOS"}</td>
+                    <td className="px-4 py-3 text-muted-foreground">{t('legalPages.consentPurpose', 'Cookie consent preferences')}</td>
+                    <td className="px-4 py-3 text-muted-foreground">{t('legalPages.twelveMonths', '12 months')}</td>
                   </tr>
-                  <tr>
+                  <tr className="bg-background">
                     <td className="px-4 py-3 font-mono text-xs">{"ph_*"}</td>
-                    <td className="px-4 py-3">{"Analytics"}</td>
-                    <td className="px-4 py-3">{"1 year"}</td>
-                    <td className="px-4 py-3 text-muted-foreground">{"PostHog analytics"}</td>
+                    <td className="px-4 py-3">
+                      <Badge className="bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400 hover:bg-amber-100 dark:hover:bg-amber-900/30">
+                        {t('legalPages.analyticsLabel', 'Analytics')}
+                      </Badge>
+                    </td>
+                    <td className="px-4 py-3 text-muted-foreground">{"PostHog"}</td>
+                    <td className="px-4 py-3 text-muted-foreground">{t('legalPages.posthogPurpose', 'Product analytics and usage')}</td>
+                    <td className="px-4 py-3 text-muted-foreground">{t('legalPages.oneYear', '1 year')}</td>
+                  </tr>
+                  <tr className="bg-muted/30">
+                    <td className="px-4 py-3 font-mono text-xs">{"_ga, _gid"}</td>
+                    <td className="px-4 py-3">
+                      <Badge className="bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400 hover:bg-amber-100 dark:hover:bg-amber-900/30">
+                        {t('legalPages.analyticsLabel', 'Analytics')}
+                      </Badge>
+                    </td>
+                    <td className="px-4 py-3 text-muted-foreground">{"Google"}</td>
+                    <td className="px-4 py-3 text-muted-foreground">{t('legalPages.gaPurpose', 'Google Analytics tracking')}</td>
+                    <td className="px-4 py-3 text-muted-foreground">{t('legalPages.gaDuration', '2 years / 24h')}</td>
+                  </tr>
+                  <tr className="bg-background">
+                    <td className="px-4 py-3 font-mono text-xs">{"__stripe_mid"}</td>
+                    <td className="px-4 py-3">
+                      <Badge className="bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/30">
+                        {t('legalPages.functional', 'Functional')}
+                      </Badge>
+                    </td>
+                    <td className="px-4 py-3 text-muted-foreground">{"Stripe"}</td>
+                    <td className="px-4 py-3 text-muted-foreground">{t('legalPages.stripePurpose', 'Payment fraud prevention')}</td>
+                    <td className="px-4 py-3 text-muted-foreground">{t('legalPages.oneYear', '1 year')}</td>
+                  </tr>
+                  <tr className="bg-muted/30">
+                    <td className="px-4 py-3 font-mono text-xs">{"li_*"}</td>
+                    <td className="px-4 py-3">
+                      <Badge className="bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400 hover:bg-purple-100 dark:hover:bg-purple-900/30">
+                        {t('legalPages.marketingLabel', 'Marketing')}
+                      </Badge>
+                    </td>
+                    <td className="px-4 py-3 text-muted-foreground">{"LinkedIn"}</td>
+                    <td className="px-4 py-3 text-muted-foreground">{t('legalPages.linkedinPurpose', 'LinkedIn tracking pixel')}</td>
+                    <td className="px-4 py-3 text-muted-foreground">{t('legalPages.thirtyDays', '30 days')}</td>
                   </tr>
                 </tbody>
               </table>
             </div>
+
+            <Card className="mt-6 p-4 bg-blue-50/50 dark:bg-blue-950/20 border-blue-200/50 dark:border-blue-800/30">
+              <div className="flex items-start gap-3">
+                <Info className="w-5 h-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
+                <p className="text-sm text-muted-foreground">
+                  {t('legalPages.cookieManageNote', 'To manage your cookie preferences at any time, visit Settings > Privacy > Manage Cookies or click the cookie icon in the footer.')}
+                </p>
+              </div>
+            </Card>
           </LegalSection>
 
           <LegalSection id="updates" title={"Updates to This Policy"}>
@@ -313,8 +387,8 @@ export default function CookiePolicy() {
               If you have questions about our use of cookies, please contact us:
             </p>
             <div className="mt-4 space-y-2">
-              <p><strong>{"Email:"}</strong> <a href="mailto:privacy@thequantumclub.com" className="text-primary hover:underline">{"privacy@thequantumclub.com"}</a></p>
-              <p><strong>{"Address:"}</strong>{"The Quantum Club B.V., Amsterdam, Netherlands"}</p>
+              <p><strong>{"Email:"}</strong> <a href="mailto:info@thequantumclub.com" className="text-primary hover:underline">{"info@thequantumclub.com"}</a></p>
+              <p><strong>{"Address:"}</strong>{"The Quantum Club B.V., Pieter Cornelisz. Hooftstraat 41-2, 1071BM, Amsterdam, The Netherlands"}</p>
             </div>
           </LegalSection>
         </div>

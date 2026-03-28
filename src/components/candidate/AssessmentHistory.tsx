@@ -150,7 +150,7 @@ export const AssessmentHistory = memo(({ userId, viewMode }: AssessmentHistoryPr
         <CardContent className="flex flex-col items-center justify-center py-12 space-y-4">
           <Brain className="w-16 h-16 text-muted-foreground/50" />
           <div className="text-center">
-            <p className="text-lg font-semibold">No assessments completed yet</p>
+            <p className="text-lg font-semibold">{t('assessmentHistory.noAssessments', 'No assessments completed yet')}</p>
             <p className="text-sm text-muted-foreground mt-1">
               {viewMode === 'candidate' 
                 ? 'Start your journey by taking your first assessment'
@@ -184,7 +184,7 @@ export const AssessmentHistory = memo(({ userId, viewMode }: AssessmentHistoryPr
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">Assessments Taken</p>
+                <p className="text-sm text-muted-foreground">{t('assessmentHistory.assessmentsTaken', 'Assessments Taken')}</p>
                 <p className="text-2xl font-bold mt-1">{stats.uniqueAssessments}</p>
               </div>
               <Award className="w-8 h-8 text-primary/50" />
@@ -196,7 +196,7 @@ export const AssessmentHistory = memo(({ userId, viewMode }: AssessmentHistoryPr
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">Total Attempts</p>
+                <p className="text-sm text-muted-foreground">{t('assessmentHistory.totalAttempts', 'Total Attempts')}</p>
                 <p className="text-2xl font-bold mt-1">{stats.totalAttempts}</p>
               </div>
               <RefreshCw className="w-8 h-8 text-primary/50" />
@@ -208,7 +208,7 @@ export const AssessmentHistory = memo(({ userId, viewMode }: AssessmentHistoryPr
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">Avg Score</p>
+                <p className="text-sm text-muted-foreground">{t('assessmentHistory.avgScore', 'Avg Score')}</p>
                 <p className="text-2xl font-bold mt-1">{Math.round(stats.avgScore)}%</p>
               </div>
               <TrendingUp className="w-8 h-8 text-primary/50" />
@@ -220,7 +220,7 @@ export const AssessmentHistory = memo(({ userId, viewMode }: AssessmentHistoryPr
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">Last Assessment</p>
+                <p className="text-sm text-muted-foreground">{t('assessmentHistory.lastAssessment', 'Last Assessment')}</p>
                 <p className="text-sm font-semibold mt-1">
                   {stats.latestDate ? format(new Date(stats.latestDate), 'MMM d, yyyy') : 'N/A'}
                 </p>
@@ -234,7 +234,7 @@ export const AssessmentHistory = memo(({ userId, viewMode }: AssessmentHistoryPr
       {/* Assessment Timeline */}
       <Card>
         <CardHeader>
-          <CardTitle>Assessment History</CardTitle>
+          <CardTitle>{t('assessmentHistory.title', 'Assessment History')}</CardTitle>
           <CardDescription>
             Your assessment journey and progress over time
           </CardDescription>

@@ -344,29 +344,29 @@
   "text": {
     "admincandidates": {
       "next": "التالي",
-      "failedToLoadCandidates": "Failed to load candidates",
-      "exportFailed": "Export failed",
-      "exportedSuccessfully": "Exported successfully",
-      "failedToAssignStrategist": "Failed to assign strategist"
+      "failedToLoadCandidates": "فشل تحميل المرشحين",
+      "exportFailed": "فشل التصدير",
+      "exportedSuccessfully": "تم التصدير بنجاح",
+      "failedToAssignStrategist": "فشل تعيين الاستراتيجي"
     },
     "talentpoollists": {
-      "areYouSureYouWantTo": "Are you sure you want to delete this list? This action cannot be undone.",
+      "areYouSureYouWantTo": "هل أنت متأكد أنك تريد حذف هذه القائمة؟ لا يمكن التراجع عن هذا الإجراء.",
       "cancel": "إلغاء",
       "delete": "حذف",
-      "listIsNowPrivate": "List is now private",
-      "listIsNowSharedWithYour": "List is now shared with your team",
-      "unshare": "Unshare",
-      "share": "Share",
-      "thisListIsCurrentlySharedWith": "This list is currently shared with your team. Would you like to make it private?",
-      "shareThisListWithYourTeam": "Share this list with your team so they can view the candidates.",
-      "makePrivate": "Make Private",
-      "shareWithTeam": "Share with Team"
+      "listIsNowPrivate": "القائمة الآن خاصة",
+      "listIsNowSharedWithYour": "تمت مشاركة القائمة الآن مع فريقك",
+      "unshare": "إلغاء المشاركة",
+      "share": "مشاركة",
+      "thisListIsCurrentlySharedWith": "هذه القائمة مشتركة حاليًا مع فريقك. هل ترغب في جعلها خاصة؟",
+      "shareThisListWithYourTeam": "شارك هذه القائمة مع فريقك حتى يتمكنوا من عرض المرشحين.",
+      "makePrivate": "اجعلها خاصة",
+      "shareWithTeam": "شارك مع الفريق"
     },
     "unifiedcandidateprofile": {
-      "collaborationNotes": "Collaboration Notes",
-      "teamNotes": "Team Notes",
-      "shareNotesWithTqcAndYour": "Share notes with TQC and your team about this candidate",
-      "internalNotesAndObservationsAboutThis": "Internal notes and observations about this candidate"
+      "collaborationNotes": "ملاحظات التعاون",
+      "teamNotes": "ملاحظات الفريق",
+      "shareNotesWithTqcAndYour": "شارك الملاحظات مع TQC وفريقك حول هذا المرشح",
+      "internalNotesAndObservationsAboutThis": "ملاحظات وملاحظات داخلية حول هذا المرشح"
     }
   }
 }

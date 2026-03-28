@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { notify } from "@/lib/notify";
-import { MessageSquare, Send, Users } from "lucide-react";
+import { MessageSquare, Send, Users, Loader2 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 
 interface ChatMessage {
@@ -171,7 +171,7 @@ export function SharedModuleChat({ moduleId, moduleName }: SharedModuleChatProps
   };
 
   return (
-    <Card className="squircle flex flex-col h-[600px]">
+    <Card className="rounded-2xl flex flex-col h-[600px]">
       {/* Header */}
       <div className="p-4 border-b">
         <div className="flex items-center justify-between">
@@ -188,7 +188,7 @@ export function SharedModuleChat({ moduleId, moduleName }: SharedModuleChatProps
           </div>
           <div className="flex items-center gap-2">
             <Users className="h-4 w-4 text-muted-foreground" />
-            <Badge variant="outline" className="squircle-sm">
+            <Badge variant="outline" className="rounded-xl">
               {onlineUsers} online
             </Badge>
           </div>
@@ -232,7 +232,7 @@ export function SharedModuleChat({ moduleId, moduleName }: SharedModuleChatProps
                     {msg.is_instructor && (
                       <Badge
                         variant="outline"
-                        className="squircle-sm text-xs h-5"
+                        className="rounded-xl text-xs h-5"
                       >
                         Instructor
                       </Badge>
@@ -275,7 +275,7 @@ export function SharedModuleChat({ moduleId, moduleName }: SharedModuleChatProps
             disabled={!newMessage.trim() || loading}
             size="icon"
           >
-            <Send className="h-4 w-4" />
+            {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
           </Button>
         </div>
       </div>

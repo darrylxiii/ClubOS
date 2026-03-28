@@ -70,9 +70,9 @@ export const PendingFeedbackTasks = () => {
       case "hired":
         return <Badge className="bg-success text-success-foreground">🎉 Hired</Badge>;
       case "not_hired":
-        return <Badge variant="secondary">Not Selected</Badge>;
+        return <Badge variant="secondary">{t('feedback.notSelected', 'Not Selected')}</Badge>;
       case "withdrew":
-        return <Badge variant="outline">Withdrew</Badge>;
+        return <Badge variant="outline">{t('common:withdrew', 'Withdrew')}</Badge>;
       default:
         return null;
     }
@@ -84,7 +84,7 @@ export const PendingFeedbackTasks = () => {
     return (
       <Card className="border-2 border-muted">
         <CardContent className="p-6">
-          <p className="text-muted-foreground text-center">Loading feedback tasks...</p>
+          <p className="text-muted-foreground text-center">{t('feedback.loading', 'Loading feedback tasks...')}</p>
         </CardContent>
       </Card>
     );
@@ -96,9 +96,9 @@ export const PendingFeedbackTasks = () => {
         <CardHeader>
           <div className="flex items-center gap-2">
             <CheckCircle2 className="w-5 h-5 text-success" />
-            <CardTitle className="text-lg font-black">Feedback Tasks</CardTitle>
+            <CardTitle className="text-lg font-black">{t('feedback.feedbackTasks', 'Feedback Tasks')}</CardTitle>
           </div>
-          <CardDescription>All feedback completed! Thank you for your input.</CardDescription>
+          <CardDescription>{t('feedback.allCompleted', 'All feedback completed! Thank you for your input.')}</CardDescription>
         </CardHeader>
       </Card>
     );
@@ -110,7 +110,7 @@ export const PendingFeedbackTasks = () => {
         <CardHeader>
           <div className="flex items-center gap-2">
             <AlertCircle className="w-5 h-5 text-accent animate-pulse" />
-            <CardTitle className="text-lg font-black">Pending Feedback</CardTitle>
+            <CardTitle className="text-lg font-black">{t('feedback.pendingFeedback', 'Pending Feedback')}</CardTitle>
           </div>
           <CardDescription>
             {pendingFeedback.length} pipeline{pendingFeedback.length !== 1 ? "s" : ""} awaiting
@@ -153,7 +153,7 @@ export const PendingFeedbackTasks = () => {
       <Dialog open={showFeedbackDialog} onOpenChange={setShowFeedbackDialog}>
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Share Your Experience</DialogTitle>
+            <DialogTitle>{t('feedback.shareExperience', 'Share Your Experience')}</DialogTitle>
             <DialogDescription>
               Your feedback is invaluable in helping us improve our service
             </DialogDescription>

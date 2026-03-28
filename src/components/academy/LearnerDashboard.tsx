@@ -122,8 +122,8 @@ export function LearnerDashboard() {
       {/* Stats Grid */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {stats.map((stat) => (
-          <Card key={stat.label} className="p-4 squircle hover-lift">
-            <div className={`inline-flex p-2 squircle-sm ${stat.color} mb-3`}>
+          <Card key={stat.label} className="p-4 rounded-2xl hover-lift">
+            <div className={`inline-flex p-2 rounded-xl ${stat.color} mb-3`}>
               <stat.icon className="h-4 w-4" />
             </div>
             <div className="text-2xl font-bold mb-1">{stat.value}</div>
@@ -133,7 +133,7 @@ export function LearnerDashboard() {
       </div>
 
       {/* Weekly Goal Progress */}
-      <Card className="p-6 squircle">
+      <Card className="p-6 rounded-2xl">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-3">
             <div className="p-2 rounded-lg bg-primary/10">
@@ -146,7 +146,7 @@ export function LearnerDashboard() {
               </p>
             </div>
           </div>
-          <Badge variant="outline" className="squircle-sm">
+          <Badge variant="outline" className="rounded-xl">
             {Math.round(weeklyProgress)}%
           </Badge>
         </div>
@@ -154,7 +154,7 @@ export function LearnerDashboard() {
       </Card>
 
       {/* Learning Path Progress */}
-      <Card className="p-6 squircle">
+      <Card className="p-6 rounded-2xl">
         <div className="flex items-center gap-3 mb-4">
           <div className="p-2 rounded-lg bg-primary/10">
             <BookOpen className="h-5 w-5 text-primary" />
@@ -187,7 +187,7 @@ export function LearnerDashboard() {
 
       {/* Recent Certificates */}
       {certificates.length > 0 && (
-        <Card className="p-6 squircle">
+        <Card className="p-6 rounded-2xl">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-3">
               <div className="p-2 rounded-lg bg-primary/10">
@@ -233,7 +233,7 @@ export function LearnerDashboard() {
       <JobMatchesCard />
 
       {/* Quick Actions */}
-      <Card className="p-6 squircle">
+      <Card className="p-6 rounded-2xl">
         <h3 className="font-semibold mb-4">{t("quick_actions", "Quick Actions")}</h3>
         <div className="grid grid-cols-2 gap-3">
           <Link to="/academy/my-skills">

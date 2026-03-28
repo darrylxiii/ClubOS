@@ -75,7 +75,7 @@ export const GlobalRoleSwitcher = () => {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-56">
-        <DropdownMenuLabel>Switch Role</DropdownMenuLabel>
+        <DropdownMenuLabel>{t('common:switchRole', 'Switch Role')}</DropdownMenuLabel>
         <DropdownMenuSeparator />
         {availableRoles.map((role) => {
           const safeIterRole = role || '';

@@ -109,7 +109,7 @@ export const QuickAccessHub = () => {
           <Button
             size="icon"
             className="fixed bottom-6 right-6 h-14 w-14 rounded-full shadow-lg z-50"
-            title="Quick Access"
+            title={t('quickAccess.title', 'Quick Access')}
           >
             <Settings className="h-6 w-6" />
           </Button>
@@ -131,8 +131,8 @@ export const QuickAccessHub = () => {
             >
               <BookOpen className="h-5 w-5 shrink-0" />
               <div className="text-left">
-                <p className="font-medium">Knowledge Base</p>
-                <p className="text-xs text-muted-foreground">Articles & guides</p>
+                <p className="font-medium">{t('quickAccess.knowledgeBase', 'Knowledge Base')}</p>
+                <p className="text-xs text-muted-foreground">{t('quickAccess.articlesGuides', 'Articles & guides')}</p>
               </div>
             </Button>
 
@@ -149,8 +149,8 @@ export const QuickAccessHub = () => {
             >
               <Headphones className="h-5 w-5 shrink-0" />
               <div className="text-left">
-                <p className="font-medium">Create Support Ticket</p>
-                <p className="text-xs text-muted-foreground">Get direct help</p>
+                <p className="font-medium">{t('quickAccess.createTicket', 'Create Support Ticket')}</p>
+                <p className="text-xs text-muted-foreground">{t('quickAccess.getHelp', 'Get direct help')}</p>
               </div>
             </Button>
 
@@ -175,7 +175,7 @@ export const QuickAccessHub = () => {
             >
               <MessageCircleHeart className="h-5 w-5 shrink-0" />
               <div className="text-left">
-                <p className="font-medium">Quick Feedback</p>
+                <p className="font-medium">{t('quickAccess.quickFeedback', 'Quick Feedback')}</p>
                 <p className="text-xs text-muted-foreground">
                   Share your thoughts
                 </p>
@@ -193,8 +193,8 @@ export const QuickAccessHub = () => {
                 >
                   <Languages className="h-5 w-5 shrink-0" />
                   <div className="text-left">
-                    <p className="font-medium">Translation Debug</p>
-                    <p className="text-xs text-muted-foreground">Open debugger</p>
+                    <p className="font-medium">{t('quickAccess.translationDebug', 'Translation Debug')}</p>
+                    <p className="text-xs text-muted-foreground">{t('quickAccess.openDebugger', 'Open debugger')}</p>
                   </div>
                 </Button>
               </>
@@ -207,7 +207,7 @@ export const QuickAccessHub = () => {
       <Dialog open={feedbackOpen} onOpenChange={setFeedbackOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Quick Feedback</DialogTitle>
+            <DialogTitle>{t('quickAccess.quickFeedback', 'Quick Feedback')}</DialogTitle>
             <DialogDescription>
               How would you rate this page? Your feedback helps us improve.
             </DialogDescription>
@@ -250,7 +250,7 @@ export const QuickAccessHub = () => {
                 Additional Comments (Optional)
               </label>
               <Textarea
-                placeholder="Tell us more about your experience..."
+                placeholder={t('quickAccess.feedbackPlaceholder', 'Tell us more about your experience...')}
                 value={comment}
                 onChange={(e) => setComment(e.target.value)}
                 rows={4}
@@ -263,13 +263,13 @@ export const QuickAccessHub = () => {
               variant="outline"
               onClick={() => setFeedbackOpen(false)}
             >
-              Cancel
+              {t('common.cancel', 'Cancel')}
             </Button>
             <Button
               onClick={handleFeedbackSubmit}
               disabled={!rating || isSubmitting}
             >
-              {isSubmitting ? 'Submitting...' : 'Submit Feedback'}
+              {isSubmitting ? t('quickAccess.submitting', 'Submitting...') : t('quickAccess.submitFeedback', 'Submit Feedback')}
             </Button>
           </DialogFooter>
         </DialogContent>

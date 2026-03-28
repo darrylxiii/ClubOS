@@ -6,6 +6,7 @@ import {
   notifyApplicationUpdate,
   notifyMeetingReminder,
 } from '@/services/pushNotificationService';
+import { quantumSoundEngine } from '@/lib/sounds/QuantumSoundEngine';
 
 /**
  * Hook that sets up real-time listeners for notification triggers.
@@ -56,6 +57,9 @@ export function useNotificationTriggers() {
 
           const senderName = sender?.full_name || 'Someone';
 
+          // Sonic DNA: play sender's unique two-note chime
+          quantumSoundEngine.playUserSignature(message.sender_id, 0.08);
+
           await notifyNewMessage(
             user.id,
             senderName,
@@ -87,6 +91,8 @@ export function useNotificationTriggers() {
 
           // Only notify if status changed
           if (oldApp.status === newApp.status) return;
+
+          quantumSoundEngine.play('pipeline.stage_advanced');
 
           await notifyApplicationUpdate(
             user.id,
@@ -161,6 +167,8 @@ export function useNotificationTriggers() {
           channel: 'push',
           status: 'sent',
         });
+
+        quantumSoundEngine.play('notification.meeting_reminder');
 
         await notifyMeetingReminder(
           [user.id],

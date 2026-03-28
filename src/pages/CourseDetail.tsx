@@ -105,8 +105,19 @@ export default function CourseDetail() {
 
       let progress = 0;
       let certificate: CertificateData | null = null;
+      let isEnrolled = false;
 
       if (user && courseData.id) {
+        // Check enrollment
+        const { data: enrollmentData } = await supabase
+          .from('course_progress')
+          .select('id, progress_percentage')
+          .eq('user_id', user.id)
+          .eq('course_id', courseData.id)
+          .maybeSingle();
+
+        isEnrolled = !!enrollmentData;
+
         const { data: progressData } = await supabase
           .from('learner_progress')
           .select('progress_percentage')
@@ -115,21 +126,42 @@ export default function CourseDetail() {
 
         if (progressData && progressData.length > 0) {
           progress = progressData.reduce((sum, p) => sum + p.progress_percentage, 0) / progressData.length;
-          
+
           if (progress >= 100) {
+            // Auto-create certificate if it doesn't exist
             const { data: certData } = await supabase
-              .from('certificates' as any) // TODO: add certificates table to schema migration
+              .from('certificates')
               .select('*')
               .eq('user_id', user.id)
               .eq('course_id', courseData.id)
               .maybeSingle();
-            
+
             if (certData) {
-              certificate = certData as unknown as CertificateData;
+              certificate = certData as CertificateData;
+            } else {
+              // Create certificate on first 100% completion
+              const { data: newCert } = await supabase
+                .from('certificates')
+                .insert({
+                  user_id: user.id,
+                  course_id: courseData.id,
+                  metadata: { courseName: courseData.title },
+                })
+                .select('*')
+                .single();
+              if (newCert) certificate = newCert as CertificateData;
             }
           }
         }
       }
+
+      // Fetch reviews for this course
+      const { data: reviewsData } = await supabase
+        .from('course_reviews')
+        .select('id, rating, review_text, would_recommend, created_at, profiles:user_id(full_name)')
+        .eq('course_id', courseData.id)
+        .order('created_at', { ascending: false })
+        .limit(10);
 
       return {
         course: courseData as unknown as CourseData,
@@ -137,6 +169,8 @@ export default function CourseDetail() {
         isOwner: user?.id === courseData.created_by,
         progress,
         certificate,
+        isEnrolled,
+        reviews: reviewsData || [],
       };
     },
     enabled: !!slug,
@@ -167,9 +201,93 @@ export default function CourseDetail() {
   const isOwner = courseQueryData?.isOwner ?? false;
   const progress = courseQueryData?.progress ?? 0;
   const certificate = courseQueryData?.certificate ?? null;
+  const isEnrolled = courseQueryData?.isEnrolled ?? false;
+  const reviews = courseQueryData?.reviews ?? [];
+
+  // Trigger completion modal when progress reaches 100% for the first time
+  const [hasShownCompletion, setHasShownCompletion] = useState(false);
+  if (progress >= 100 && certificate && !hasShownCompletion && !showCompletionModal) {
+    setShowCompletionModal(true);
+    setHasShownCompletion(true);
+  }
 
   const loadCourseData = () => {
     queryClient.invalidateQueries({ queryKey: ['course-detail', slug, user?.id] });
+  };
+
+  const handleEnroll = async () => {
+    if (!user) {
+      navigate(`/auth?redirect_to=${encodeURIComponent(window.location.pathname)}`);
+      return;
+    }
+    if (!course) return;
+
+    try {
+      const { error } = await supabase
+        .from('course_progress')
+        .upsert({
+          user_id: user.id,
+          course_id: course.id,
+          progress_percentage: 0,
+          modules_completed: 0,
+          total_modules: modules.length,
+          started_at: new Date().toISOString(),
+        }, { onConflict: 'user_id,course_id' });
+
+      if (error) throw error;
+
+      notify.success("Enrolled!", { description: `You're now enrolled in ${course.title}` });
+      loadCourseData();
+
+      // Navigate to first module if available
+      if (modules.length > 0) {
+        navigate(`/modules/${modules[0].slug || modules[0].id}`);
+      }
+    } catch (error: unknown) {
+      notify.error("Enrollment failed", { description: error instanceof Error ? error.message : 'Unknown error' });
+    }
+  };
+
+  const handleShare = async () => {
+    if (!course || !user) return;
+
+    try {
+      // Check if share link already exists for this course by this user
+      const { data: existing } = await supabase
+        .from('course_share_links')
+        .select('token')
+        .eq('course_id', course.id)
+        .eq('created_by', user.id)
+        .eq('is_active', true)
+        .maybeSingle();
+
+      let token = existing?.token;
+
+      if (!token) {
+        const { data: newLink, error } = await supabase
+          .from('course_share_links')
+          .insert({
+            course_id: course.id,
+            created_by: user.id,
+          })
+          .select('token')
+          .single();
+
+        if (error) throw error;
+        token = newLink.token;
+      }
+
+      // Use public URL for public courses, share token for others
+      const visibility = (course as any).visibility;
+      const shareUrl = visibility === 'public'
+        ? `${window.location.origin}/learn/${course.slug}`
+        : `${window.location.origin}/learn/share/${token}`;
+
+      await navigator.clipboard.writeText(shareUrl);
+      notify.success("Link copied!", { description: "Share link copied to clipboard" });
+    } catch (error: unknown) {
+      notify.error("Failed to create share link", { description: error instanceof Error ? error.message : 'Unknown error' });
+    }
   };
 
   const handlePublishToggle = async () => {
@@ -259,7 +377,7 @@ export default function CourseDetail() {
                 <Button 
                   variant="outline" 
                   size="sm"
-                  onClick={() => navigate(`/academy/courses/${course.id}/edit`)}
+                  onClick={() => navigate(`/courses/${course.id}/edit`)}
                 >
                   Edit Course
                 </Button>
@@ -268,7 +386,7 @@ export default function CourseDetail() {
 
             <div>
               <h1 className="text-3xl font-bold mb-2">{course.title}</h1>
-              <Badge variant="outline" className="squircle-sm">
+              <Badge variant="outline" className="rounded-xl">
                 {course.difficulty_level}
               </Badge>
             </div>
@@ -286,32 +404,33 @@ export default function CourseDetail() {
                 rating={course.rating_average as number}
                 count={course.rating_count as number}
               />
-              <div className="flex items-center gap-2">
-                <div className="flex -space-x-2">
-                  <Avatar className="h-6 w-6 border-2 border-background">
-                    <AvatarFallback className="bg-primary/10 text-primary text-xs">A</AvatarFallback>
-                  </Avatar>
-                  <Avatar className="h-6 w-6 border-2 border-background">
-                    <AvatarFallback className="bg-secondary/10 text-secondary text-xs">B</AvatarFallback>
-                  </Avatar>
-                  <Avatar className="h-6 w-6 border-2 border-background">
-                    <AvatarFallback className="bg-accent/10 text-accent text-xs">C</AvatarFallback>
-                  </Avatar>
+              {(course.enrolled_count as number) > 0 && (
+                <div className="flex items-center gap-2">
+                  <span>{course.enrolled_count} enrolled</span>
                 </div>
-                <span>{"26 enrolled"}</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Star className="h-4 w-4 fill-primary text-primary" />
-                <span>{"4.5 (126 reviews)"}</span>
-              </div>
+              )}
             </div>
 
             <div className="flex gap-3">
-              <Button className="flex-1">
-                <PlayCircle className="mr-2 h-4 w-4" />
-                Enroll Now
-              </Button>
-              <Button variant="outline">
+              {isEnrolled ? (
+                <Button className="flex-1" onClick={() => {
+                  if (modules.length > 0) navigate(`/modules/${modules[0].slug || modules[0].id}`);
+                }}>
+                  <PlayCircle className="mr-2 h-4 w-4" />
+                  Continue Learning
+                </Button>
+              ) : modules.length === 0 ? (
+                <Button className="flex-1" disabled variant="secondary">
+                  <PlayCircle className="mr-2 h-4 w-4" />
+                  Coming Soon — No Modules Yet
+                </Button>
+              ) : (
+                <Button className="flex-1" onClick={handleEnroll}>
+                  <PlayCircle className="mr-2 h-4 w-4" />
+                  Enroll Now
+                </Button>
+              )}
+              <Button variant="outline" onClick={handleShare}>
                 <Share2 className="h-4 w-4" />
               </Button>
             </div>
@@ -332,7 +451,7 @@ export default function CourseDetail() {
 
           {/* Tabs */}
           <Tabs defaultValue="overview" className="w-full">
-            <TabsList className="squircle">
+            <TabsList className="rounded-2xl">
               <TabsTrigger value="overview">{t('courseDetail.text9')}</TabsTrigger>
               <TabsTrigger value="instructor">{t('courseDetail.text10')}</TabsTrigger>
               <TabsTrigger value="reviews">{t('courseDetail.text11')}</TabsTrigger>
@@ -347,24 +466,19 @@ export default function CourseDetail() {
                 </p>
               </Card>
 
-              <Card className="p-6">
-                <h3 className="text-xl font-bold mb-4">{t('courseDetail.text14')}</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  {[
-                    "Master the fundamentals",
-                    "Build real-world projects",
-                    "Industry best practices",
-                    "Advanced techniques",
-                    "Professional workflow",
-                    "Portfolio-ready skills",
-                  ].map((item, index) => (
-                    <div key={index} className="flex items-start gap-2">
-                      <CheckCircle2 className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
-                      <span className="text-sm">{item}</span>
-                    </div>
-                  ))}
-                </div>
-              </Card>
+              {course.learning_objectives && Array.isArray(course.learning_objectives) && (course.learning_objectives as string[]).length > 0 && (
+                <Card className="p-6">
+                  <h3 className="text-xl font-bold mb-4">{t('courseDetail.text14')}</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    {(course.learning_objectives as string[]).map((item: string, index: number) => (
+                      <div key={index} className="flex items-start gap-2">
+                        <CheckCircle2 className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
+                        <span className="text-sm">{item}</span>
+                      </div>
+                    ))}
+                  </div>
+                </Card>
+              )}
             </TabsContent>
 
             <TabsContent value="instructor" className="mt-6">
@@ -381,7 +495,7 @@ export default function CourseDetail() {
                       <h3 className="font-bold text-lg">
                         {course.profiles?.full_name || "Expert Instructor"}
                       </h3>
-                      <Badge variant="secondary" className="squircle-sm">
+                      <Badge variant="secondary" className="rounded-xl">
                         <CheckCircle2 className="h-3 w-3 mr-1" />
                         Verified
                       </Badge>
@@ -405,20 +519,69 @@ export default function CourseDetail() {
                     </Button>
                   </Card>
                 )}
-                <Card className="p-6">
-                  <h3 className="text-xl font-bold mb-4">{t('courseDetail.text15')}</h3>
-                  <p className="text-muted-foreground text-sm">{t('courseDetail.desc2')}</p>
-                </Card>
+                {reviews.length > 0 ? (
+                  <Card className="p-6">
+                    <h3 className="text-xl font-bold mb-4">{t('courseDetail.text15', 'Student Reviews')}</h3>
+                    <div className="space-y-4">
+                      {reviews.map((review: any) => (
+                        <div key={review.id} className="space-y-2 pb-4 border-b last:border-0 last:pb-0">
+                          <div className="flex items-center gap-2">
+                            <div className="flex">
+                              {[1, 2, 3, 4, 5].map(s => (
+                                <Star
+                                  key={s}
+                                  className={`h-4 w-4 ${s <= review.rating ? "fill-yellow-500 text-yellow-500" : "text-muted"}`}
+                                />
+                              ))}
+                            </div>
+                            <span className="text-sm font-medium">
+                              {(review.profiles as any)?.full_name || 'Student'}
+                            </span>
+                            <span className="text-xs text-muted-foreground">
+                              {new Date(review.created_at).toLocaleDateString()}
+                            </span>
+                          </div>
+                          {review.review_text && (
+                            <p className="text-sm text-muted-foreground">{review.review_text}</p>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </Card>
+                ) : (
+                  <Card className="p-6">
+                    <h3 className="text-xl font-bold mb-4">{t('courseDetail.text15', 'Student Reviews')}</h3>
+                    <p className="text-muted-foreground text-sm">No reviews yet. Be the first to review this course!</p>
+                  </Card>
+                )}
               </div>
             </TabsContent>
 
             <TabsContent value="notes" className="mt-6">
               <Card className="p-6">
-                <h3 className="text-xl font-bold mb-4">{t('courseDetail.text16')}</h3>
-                {selectedModule ? (
-                  <NoteEditor moduleId={selectedModule.id} />
+                <h3 className="text-xl font-bold mb-4">{t('courseDetail.text16', 'My Notes')}</h3>
+                {modules.length === 0 ? (
+                  <p className="text-muted-foreground text-sm">No modules available for notes yet.</p>
                 ) : (
-                  <p className="text-muted-foreground text-sm">{t('courseDetail.desc3')}</p>
+                  <div className="space-y-4">
+                    <div className="flex flex-wrap gap-2">
+                      {modules.map((mod, idx) => (
+                        <Button
+                          key={mod.id}
+                          variant={selectedModule?.id === mod.id ? "default" : "outline"}
+                          size="sm"
+                          onClick={() => setSelectedModule(mod)}
+                        >
+                          {idx + 1}. {mod.title.length > 25 ? mod.title.slice(0, 25) + '...' : mod.title}
+                        </Button>
+                      ))}
+                    </div>
+                    {selectedModule ? (
+                      <NoteEditor moduleId={selectedModule.id} />
+                    ) : (
+                      <p className="text-muted-foreground text-sm">Select a module above to view or add notes.</p>
+                    )}
+                  </div>
                 )}
               </Card>
             </TabsContent>
@@ -427,33 +590,6 @@ export default function CourseDetail() {
 
         {/* Sidebar - Right Side */}
         <div className="lg:col-span-1 space-y-6">
-          {/* Instructor Card */}
-          <Card className="p-6">
-            <h3 className="font-bold mb-4">{t('courseDetail.text17')}</h3>
-            <div className="flex items-center gap-3">
-              <Avatar>
-                <AvatarImage src={course.profiles?.avatar_url} />
-                <AvatarFallback>
-                  {course.profiles?.full_name?.[0] || "I"}
-                </AvatarFallback>
-              </Avatar>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2">
-                  <p className="font-semibold text-sm truncate">
-                    {course.profiles?.full_name || "Expert Instructor"}
-                  </p>
-                  <CheckCircle2 className="h-4 w-4 text-primary flex-shrink-0" />
-                </div>
-                <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                  <Star className="h-3 w-3 fill-primary text-primary" />
-                  <span>4.8</span>
-                </div>
-              </div>
-            </div>
-            <Separator className="my-4" />
-            <p className="text-sm text-muted-foreground">{t('courseDetail.desc4')}</p>
-          </Card>
-
           <Card className="p-6">
             <div className="flex justify-between items-center mb-4">
               <h3 className="font-bold">{t('courseDetail.text18')}</h3>

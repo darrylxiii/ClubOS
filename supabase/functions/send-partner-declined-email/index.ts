@@ -8,35 +8,31 @@ import { baseEmailTemplate } from "../_shared/email-templates/base-template.ts";
 import {
   Heading, Paragraph, Spacer, Card, Button,
 } from "../_shared/email-templates/components.ts";
-import { EMAIL_SENDERS, EMAIL_COLORS, getEmailAppUrl } from "../_shared/email-config.ts";
+import { EMAIL_SENDERS, EMAIL_COLORS, getEmailAppUrl, getEmailHeaders } from "../_shared/email-config.ts";
 import { sendEmail } from '../_shared/resend-client.ts';
+import { z, parseBody, emailSchema, nameSchema, optionalNameSchema } from '../_shared/validation.ts';
+import { sanitizeForEmail } from '../_shared/sanitize.ts';
 
-interface PartnerDeclinedRequest {
-  email: string;
-  contactName: string;
-  companyName?: string;
-  declineReason?: string;
-}
+const bodySchema = z.object({
+  email: emailSchema,
+  contactName: nameSchema,
+  companyName: optionalNameSchema,
+  declineReason: z.string().max(2000).optional(),
+});
 
 Deno.serve(createHandler(async (req, ctx) => {
-  const body: PartnerDeclinedRequest = await req.json();
-  const { email, contactName, companyName, declineReason } = body;
-
-  if (!email || !contactName) {
-    return new Response(
-      JSON.stringify({ error: 'email and contactName are required' }),
-      { status: 400, headers: { ...ctx.corsHeaders, 'Content-Type': 'application/json' } }
-    );
-  }
+  const parsed = await parseBody(req, bodySchema, ctx.corsHeaders);
+  if ('error' in parsed) return parsed.error;
+  const { email, contactName, companyName, declineReason } = parsed.data;
 
   console.log(`[send-partner-declined-email] Sending to ${email}`);
 
   const emailContent = `
     ${Heading({ text: 'Partner Request Update', level: 1 })}
     ${Spacer(24)}
-    ${Paragraph(`Dear ${contactName},`, 'primary')}
+    ${Paragraph(`Dear ${sanitizeForEmail(contactName)},`, 'primary')}
     ${Spacer(8)}
-    ${Paragraph(`Thank you for your interest in partnering with The Quantum Club${companyName ? ` on behalf of <strong>${companyName}</strong>` : ''}.`, 'secondary')}
+    ${Paragraph(`Thank you for your interest in partnering with The Quantum Club${companyName ? ` on behalf of <strong>${sanitizeForEmail(companyName)}</strong>` : ''}.`, 'secondary')}
     ${Spacer(8)}
     ${Paragraph('After careful review, we have determined that our services may not be the best fit for your current hiring needs at this time.', 'secondary')}
     ${declineReason ? `
@@ -46,7 +42,7 @@ Deno.serve(createHandler(async (req, ctx) => {
         content: `
           ${Heading({ text: 'Our Assessment', level: 3 })}
           ${Spacer(8)}
-          ${Paragraph(declineReason, 'secondary')}
+          ${Paragraph(sanitizeForEmail(declineReason), 'secondary')}
         `,
       })}
     ` : ''}
@@ -74,6 +70,7 @@ Deno.serve(createHandler(async (req, ctx) => {
     to: [email],
     subject: 'Update on Your Partner Request — The Quantum Club',
     html: htmlContent,
+    headers: getEmailHeaders(),
   });
 
   console.log('[send-partner-declined-email] Sent successfully:', result.id);

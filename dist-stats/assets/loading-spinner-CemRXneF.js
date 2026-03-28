@@ -1,0 +1,1 @@
+import{j as a}from"./vendor-query-BZyYGKCt.js";import{L as e,c as i}from"./App-DsBphtVX.js";const m={xs:"h-3 w-3",sm:"h-4 w-4",md:"h-6 w-6",lg:"h-8 w-8",xl:"h-12 w-12"};function o({size:s="md",className:r}){return a.jsx(e,{className:i("animate-spin text-primary",m[s],r)})}export{o as L};

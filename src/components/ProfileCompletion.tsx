@@ -107,7 +107,7 @@ export const ProfileCompletion = () => {
           <div className="flex items-center justify-between">
             <div>
               <h2 className="text-xl font-bold text-foreground">
-                Profile Strength
+                {t('profileCompletion.profileStrength', 'Profile Strength')}
               </h2>
               <p className="text-sm text-muted-foreground mt-1">
                 {completedCount} of {totalCount} completed
@@ -132,7 +132,7 @@ export const ProfileCompletion = () => {
             onClick={() => setShowDialog(true)}
             className="w-full h-11 px-6 rounded-xl font-semibold bg-gradient-accent text-white shadow-glass-md hover:shadow-glass-lg transition-all hover:scale-105 active:scale-95"
           >
-            Complete Profile
+            {t('profileCompletion.completeProfile', 'Complete Profile')}
             <ArrowRight className="inline-block w-4 h-4 ml-2" />
           </button>
         </CardContent>

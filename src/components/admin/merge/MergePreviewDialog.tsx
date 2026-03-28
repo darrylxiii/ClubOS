@@ -76,7 +76,7 @@ export function MergePreviewDialog({ candidateId, userId, open, onClose, onSucce
       const result = await mergeService.executeMerge(candidateId, userId, 'manual');
       
       if (result.success) {
-        toast.success(t('merge.mergePreviewDialog.profilesMergedSuccessfully'));
+        toast.success('Profiles Merged Successfully');
         onSuccess();
       } else {
         throw new Error(result.error || 'Merge failed');

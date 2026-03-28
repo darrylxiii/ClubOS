@@ -311,7 +311,7 @@ export const TaskTemplates = () => {
       
       <DialogContent className="max-w-4xl max-h-[90vh]">
         <DialogHeader>
-          <DialogTitle>Task Templates</DialogTitle>
+          <DialogTitle>{t('common:taskTemplates', 'Task Templates')}</DialogTitle>
           <DialogDescription>
             Pre-built workflows based on Motion.ai best practices. Apply a template to instantly create a complete task sequence.
           </DialogDescription>

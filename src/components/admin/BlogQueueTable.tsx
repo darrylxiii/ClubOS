@@ -119,13 +119,13 @@ const BlogQueueTable: React.FC = () => {
       {/* Add to Queue */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg">Queue New Article</CardTitle>
+          <CardTitle className="text-lg">{t('blogQueue.queueNewArticle', 'Queue New Article')}</CardTitle>
           <CardDescription>Add a topic with category, keywords, and format for AI generation.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label>Topic</Label>
+              <Label>{t('admin:blogQueue.topic', 'Topic')}</Label>
               <Input
                 placeholder="e.g., How to negotiate a senior role offer"
                 value={topicInput}
@@ -144,7 +144,7 @@ const BlogQueueTable: React.FC = () => {
           </div>
           <div className="flex flex-wrap gap-4 items-end">
             <div className="space-y-2">
-              <Label>Category</Label>
+              <Label>{t('admin:blogQueue.category', 'Category')}</Label>
               <Select value={selectedCategory} onValueChange={setSelectedCategory}>
                 <SelectTrigger className="w-48">
                   <SelectValue />
@@ -157,7 +157,7 @@ const BlogQueueTable: React.FC = () => {
               </Select>
             </div>
             <div className="space-y-2">
-              <Label>Format</Label>
+              <Label>{t('admin:blogQueue.format', 'Format')}</Label>
               <Select value={selectedFormat} onValueChange={(v) => setSelectedFormat(v as ContentFormat)}>
                 <SelectTrigger className="w-48">
                   <SelectValue />
@@ -180,7 +180,7 @@ const BlogQueueTable: React.FC = () => {
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <div>
-            <CardTitle className="text-lg">AI Topic Suggestions</CardTitle>
+            <CardTitle className="text-lg">{t('blogQueue.aiTopicSuggestions', 'AI Topic Suggestions')}</CardTitle>
             <CardDescription>Powered by QUIN — gap analysis against existing content.</CardDescription>
           </div>
           <Button variant="outline" onClick={() => getSuggestions()} disabled={isSuggesting}>
@@ -216,7 +216,7 @@ const BlogQueueTable: React.FC = () => {
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <div>
-            <CardTitle className="text-lg">Generation Queue</CardTitle>
+            <CardTitle className="text-lg">{t('blogQueue.generationQueue', 'Generation Queue')}</CardTitle>
             <CardDescription>{queueItems.length} items in queue</CardDescription>
           </div>
           <Button variant="ghost" size="sm" onClick={refreshQueue}>
@@ -229,7 +229,7 @@ const BlogQueueTable: React.FC = () => {
               <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
             </div>
           ) : !queueItems.length ? (
-            <p className="text-muted-foreground text-center py-8">Queue is empty. Add a topic above or generate AI suggestions.</p>
+            <p className="text-muted-foreground text-center py-8">{t('blogQueue.queueEmpty', 'Queue is empty. Add a topic above or generate AI suggestions.')}</p>
           ) : (
             <div className="space-y-2">
               {queueItems.map((item) => (

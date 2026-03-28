@@ -9,29 +9,36 @@ interface GlobalFooterProps {
   className?: string;
 }
 
-const legalLinks = [
-  { label: "Terms of Service", href: "/legal/terms" },
-  { label: "Privacy Policy", href: "/legal/privacy" },
-  { label: "Cookie Policy", href: "/legal/cookies" },
-  { label: "Acceptable Use", href: "/legal/acceptable-use" },
-  { label: "Security", href: "/legal/security" },
-];
-
-const companyLinks = [
-  { label: "About Us", href: "/about" },
-  { label: "Careers", href: "/careers" },
-  { label: "Press", href: "/press" },
-];
-
-const supportLinks = [
-  { label: "Help Center", href: "/help" },
-  { label: "Contact", href: "mailto:support@thequantumclub.com" },
-  { label: "Status", href: "https://status.thequantumclub.com", external: true },
-];
-
 export function GlobalFooter({ variant = "full", className }: GlobalFooterProps) {
   const { t } = useTranslation('common');
   const currentYear = new Date().getFullYear();
+
+  const legalLinks = [
+    { label: t("footer.terms_of_service", "Terms of Service"), href: "/legal/terms" },
+    { label: t("footer.privacy_policy", "Privacy Policy"), href: "/legal/privacy" },
+    { label: t("footer.cookie_policy", "Cookie Policy"), href: "/legal/cookies" },
+    { label: t("footer.data_processing", "Data Processing"), href: "/legal/dpa" },
+    { label: t("footer.ai_transparency", "AI Transparency"), href: "/legal/ai-transparency" },
+    { label: t("footer.acceptable_use", "Acceptable Use"), href: "/legal/acceptable-use" },
+  ];
+
+  const secondaryLegalLinks = [
+    { label: t("footer.ccpa_notice", "CCPA Notice"), href: "/legal/ccpa" },
+    { label: t("footer.modern_slavery", "Modern Slavery"), href: "/legal/modern-slavery" },
+    { label: t("footer.security", "Security"), href: "/legal/security" },
+  ];
+
+  const companyLinks = [
+    { label: t("footer.about_us", "About Us"), href: "/about" },
+    { label: t("footer.careers", "Careers"), href: "/careers" },
+    { label: t("footer.press", "Press"), href: "/press" },
+  ];
+
+  const supportLinks = [
+    { label: t("footer.help_center", "Help Center"), href: "/help" },
+    { label: t("footer.contact", "Contact"), href: "mailto:info@thequantumclub.com" },
+    { label: t("footer.status", "Status"), href: "https://status.thequantumclub.com", external: true },
+  ];
 
   if (variant === "minimal") {
     return (
@@ -56,14 +63,14 @@ export function GlobalFooter({ variant = "full", className }: GlobalFooterProps)
         <div className="container mx-auto px-4 py-6">
           <div className="flex flex-col md:flex-row justify-between items-center gap-6">
             <div className="flex items-center gap-4">
-              <img 
-                src={quantumLogoDark} 
-                alt={t("quantum_club", "Quantum Club")} 
+              <img
+                src={quantumLogoDark}
+                alt={t("quantum_club", "Quantum Club")}
                 className="h-8 w-auto dark:hidden"
               />
-              <img 
-                src={quantumLogoLight} 
-                alt={t("quantum_club", "Quantum Club")} 
+              <img
+                src={quantumLogoLight}
+                alt={t("quantum_club", "Quantum Club")}
                 className="h-8 w-auto hidden dark:block"
               />
               <span className="text-sm text-muted-foreground">
@@ -72,7 +79,7 @@ export function GlobalFooter({ variant = "full", className }: GlobalFooterProps)
             </div>
             <div className="flex flex-wrap justify-center gap-6 text-sm">
               {legalLinks.slice(0, 3).map((link) => (
-                <Link 
+                <Link
                   key={link.href}
                   to={link.href}
                   className="text-muted-foreground hover:text-foreground transition-colors"
@@ -80,11 +87,11 @@ export function GlobalFooter({ variant = "full", className }: GlobalFooterProps)
                   {link.label}
                 </Link>
               ))}
-              <Link 
+              <Link
                 to="/legal"
                 className="text-primary hover:text-primary/80 transition-colors"
               >
-                All Legal
+                {t("footer.all_legal", "All Legal")}
               </Link>
             </div>
           </div>
@@ -101,35 +108,37 @@ export function GlobalFooter({ variant = "full", className }: GlobalFooterProps)
           {/* Brand */}
           <div className="lg:col-span-1">
             <Link to="/" className="flex items-center mb-4">
-              <img 
-                src={quantumLogoDark} 
-                alt={t("quantum_club", "Quantum Club")} 
+              <img
+                src={quantumLogoDark}
+                alt={t("quantum_club", "Quantum Club")}
                 className="h-10 w-auto dark:hidden"
               />
-              <img 
-                src={quantumLogoLight} 
-                alt={t("quantum_club", "Quantum Club")} 
+              <img
+                src={quantumLogoLight}
+                alt={t("quantum_club", "Quantum Club")}
                 className="h-10 w-auto hidden dark:block"
               />
             </Link>
             <p className="text-sm text-muted-foreground mb-4">
-              The invite-only talent platform connecting exceptional professionals 
-              with leading companies.
+              {t("footer.company_description", "The invite-only talent platform connecting exceptional professionals with leading companies.")}
             </p>
             <p className="text-xs text-muted-foreground">
-              Amsterdam, Netherlands
+              {t("footer.location", "Amsterdam, Netherlands")}
+            </p>
+            <p className="text-xs text-muted-foreground/70 mt-1">
+              {t("footer.compliance_badge", "GDPR Compliant \u2022 EU AI Act Ready")}
             </p>
           </div>
 
           {/* Legal */}
           <div>
             <h3 className="font-semibold text-sm uppercase tracking-wider text-muted-foreground mb-4">
-              Legal
+              {t("footer.legal", "Legal")}
             </h3>
             <ul className="space-y-3">
               {legalLinks.map((link) => (
                 <li key={link.href}>
-                  <Link 
+                  <Link
                     to={link.href}
                     className="text-sm text-muted-foreground hover:text-foreground transition-colors"
                   >
@@ -138,11 +147,11 @@ export function GlobalFooter({ variant = "full", className }: GlobalFooterProps)
                 </li>
               ))}
               <li>
-                <Link 
+                <Link
                   to="/legal"
                   className="text-sm text-primary hover:text-primary/80 transition-colors font-medium"
                 >
-                  View All →
+                  {t("footer.view_all", "View All \u2192")}
                 </Link>
               </li>
             </ul>
@@ -151,12 +160,12 @@ export function GlobalFooter({ variant = "full", className }: GlobalFooterProps)
           {/* Company */}
           <div>
             <h3 className="font-semibold text-sm uppercase tracking-wider text-muted-foreground mb-4">
-              Company
+              {t("footer.company", "Company")}
             </h3>
             <ul className="space-y-3">
               {companyLinks.map((link) => (
                 <li key={link.href}>
-                  <Link 
+                  <Link
                     to={link.href}
                     className="text-sm text-muted-foreground hover:text-foreground transition-colors"
                   >
@@ -170,13 +179,13 @@ export function GlobalFooter({ variant = "full", className }: GlobalFooterProps)
           {/* Support */}
           <div>
             <h3 className="font-semibold text-sm uppercase tracking-wider text-muted-foreground mb-4">
-              Support
+              {t("footer.support", "Support")}
             </h3>
             <ul className="space-y-3">
               {supportLinks.map((link) => (
                 <li key={link.href}>
                   {link.external ? (
-                    <a 
+                    <a
                       href={link.href}
                       target="_blank"
                       rel="noopener noreferrer"
@@ -185,14 +194,14 @@ export function GlobalFooter({ variant = "full", className }: GlobalFooterProps)
                       {link.label}
                     </a>
                   ) : link.href.startsWith("mailto:") ? (
-                    <a 
+                    <a
                       href={link.href}
                       className="text-sm text-muted-foreground hover:text-foreground transition-colors"
                     >
                       {link.label}
                     </a>
                   ) : (
-                    <Link 
+                    <Link
                       to={link.href}
                       className="text-sm text-muted-foreground hover:text-foreground transition-colors"
                     >
@@ -209,17 +218,29 @@ export function GlobalFooter({ variant = "full", className }: GlobalFooterProps)
         <div className="mt-12 pt-8 border-t border-border/50">
           <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
             <p className="text-sm text-muted-foreground">
-              © {currentYear} The Quantum Club B.V. All rights reserved.
+              © {currentYear} The Quantum Club B.V. {t("footer.all_rights_reserved", "All rights reserved.")}
             </p>
             <div className="flex items-center gap-4 text-sm text-muted-foreground">
               <Link to="/legal/accessibility" className="hover:text-foreground transition-colors">
-                Accessibility
+                {t("footer.accessibility", "Accessibility")}
               </Link>
               <span>•</span>
               <Link to="/compliance/subprocessors" className="hover:text-foreground transition-colors">
-                Subprocessors
+                {t("footer.subprocessors", "Subprocessors")}
               </Link>
             </div>
+          </div>
+          {/* Secondary legal links row */}
+          <div className="flex flex-wrap justify-center gap-4 mt-4 text-xs text-muted-foreground">
+            {secondaryLegalLinks.map((link) => (
+              <Link
+                key={link.href}
+                to={link.href}
+                className="hover:text-foreground transition-colors"
+              >
+                {link.label}
+              </Link>
+            ))}
           </div>
         </div>
       </div>

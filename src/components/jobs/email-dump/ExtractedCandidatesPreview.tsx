@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Users, Upload, ArrowLeft, Loader2, AlertTriangle, ExternalLink, CheckCircle2, UserCheck, Copy, HelpCircle, Sparkles } from "lucide-react";
+import { Link } from "react-router-dom";
 import { AIConfidenceScore } from "@/components/ai/AIConfidenceScore";
 import { ConfirmDialog } from "@/components/dialogs/ConfirmDialog";
 import { LinkedInEnrichmentProgress, type EnrichmentResult } from "./LinkedInEnrichmentProgress";
@@ -475,6 +476,10 @@ export function ExtractedCandidatesPreview({
             </Badge>
           )}
         </div>
+        <p className="text-xs text-muted-foreground mt-2">
+          {t('import.emailDumpPrivacyNotice', 'Imported candidate data will be stored securely and may be processed by AI.')}{' '}
+          <Link to="/legal/privacy" className="text-primary hover:underline">{t('privacy_policy', 'Privacy Policy')}</Link>
+        </p>
       </CardHeader>
       <CardContent>
         <div className="space-y-1">

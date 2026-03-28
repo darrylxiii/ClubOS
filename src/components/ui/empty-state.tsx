@@ -53,14 +53,14 @@ export interface EmptyStateProps {
  * // Simple
  * <EmptyState
  *   icon={Users}
- *   title={t('title.noTeamMembersYet', 'No team members yet')}
- *   description={t('description.inviteYourFirstTeamMember', 'Invite your first team member to get started')}
+ *   title={'No team members yet'}
+ *   description={'Invite your first team member to get started'}
  * />
  *
  * // With actions
  * <EmptyState
  *   icon={FileText}
- *   title={t('title.noDocumentsFound', 'No documents found')}
+ *   title={'No documents found'}
  *   primaryAction={{
  *     label: "Upload Document",
  *     onClick: () => openUploadDialog(),
@@ -71,7 +71,7 @@ export interface EmptyStateProps {
  * // With tips
  * <EmptyState
  *   icon={Search}
- *   title={t('title.noResultsFound', 'No results found')}
+ *   title={'No results found'}
  *   tips={[
  *     "Try using different keywords",
  *     "Check your spelling",

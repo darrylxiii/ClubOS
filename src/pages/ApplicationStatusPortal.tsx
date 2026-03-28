@@ -180,7 +180,7 @@ export default function ApplicationStatusPortal() {
                   {t('applicationPortal.declined.description', "Thank you for your interest. Unfortunately, we're unable to proceed with your application at this time.")}
                 </p>
                 <p className="text-sm text-muted-foreground">
-                  Questions? Contact us at <strong>{"hello@thequantumclub.com"}</strong>
+                  Questions? Contact us at <strong>{"info@thequantumclub.com"}</strong>
                 </p>
               </CardContent>
             </Card>

@@ -1,20 +1,25 @@
 import { createHandler } from '../_shared/handler.ts';
 import { baseEmailTemplate } from "../_shared/email-templates/base-template.ts";
 import { Heading, Paragraph, Spacer, Card, Button, InfoRow } from "../_shared/email-templates/components.ts";
-import { EMAIL_SENDERS, EMAIL_COLORS, getEmailAppUrl } from "../_shared/email-config.ts";
+import { EMAIL_SENDERS, EMAIL_COLORS, getEmailAppUrl, getEmailHeaders } from "../_shared/email-config.ts";
 import { sendEmail } from '../_shared/resend-client.ts';
+import { z, parseBody, emailSchema } from '../_shared/validation.ts';
+
+const requestSchema = z.object({
+  email: emailSchema,
+  sessionId: z.string().min(1, 'sessionId is required'),
+  step: z.number().optional(),
+});
 
 Deno.serve(createHandler(async (req, ctx) => {
-  const { email, sessionId, step } = await req.json();
-
-  if (!email || !sessionId) {
-    throw new Error('Email and sessionId are required');
-  }
+  const parsed = await parseBody(req, requestSchema, ctx.corsHeaders);
+  if ('error' in parsed) return parsed.error;
+  const { email, sessionId, step } = parsed.data;
 
   const appUrl = getEmailAppUrl();
   const recoveryLink = `${appUrl}/partner?recover=${sessionId}`;
 
-  console.log(`[Recovery] Sending link to ${email} for session ${sessionId} at step ${step}`);
+  console.log(`[send-recovery-email] Sending link to ${email} for session ${sessionId} at step ${step}`);
 
   // Store recovery request for audit
   await ctx.supabase.from('funnel_analytics').insert({
@@ -43,13 +48,7 @@ Deno.serve(createHandler(async (req, ctx) => {
       `,
     })}
     ${Spacer(24)}
-    <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
-      <tr>
-        <td align="center">
-          ${Button({ url: recoveryLink, text: 'Resume Application', variant: 'primary' })}
-        </td>
-      </tr>
-    </table>
+    ${Button({ url: recoveryLink, text: 'Resume Application', variant: 'primary' })}
     ${Spacer(16)}
     ${Paragraph('This link will restore your progress. If you did not start this application, you can safely ignore this email.', 'muted')}
   `;
@@ -66,9 +65,10 @@ Deno.serve(createHandler(async (req, ctx) => {
     to: [email],
     subject: 'Resume Your Application — The Quantum Club',
     html: emailHtml,
+    headers: getEmailHeaders(),
   });
 
-  console.log('[Recovery] Email sent:', result.id);
+  console.log('[send-recovery-email] Email sent:', result.id);
 
   return new Response(
     JSON.stringify({ success: true, message: 'Recovery email sent', emailId: result.id }),

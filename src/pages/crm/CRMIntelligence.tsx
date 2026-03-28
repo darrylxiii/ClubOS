@@ -65,7 +65,6 @@ const RISK_COLORS: Record<string, string> = {
 };
 
 function getRiskBadge(level: string) {
-  const { t } = useTranslation('common');
   const colors: Record<string, string> = {
     critical: 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400',
     high: 'bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-400',

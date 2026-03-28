@@ -84,7 +84,16 @@
     "salary": "Salary Range",
     "posted": "Posted Date",
     "remote": "Remote Only",
-    "clearAll": "Clear All Filters"
+    "clearAll": "Clear All Filters",
+    "selectLocations": "Select Locations",
+    "salaryRange": "Salary Range (EUR)",
+    "employmentType": "Employment Type",
+    "companies": "Companies",
+    "selectCompanies": "Select Companies",
+    "departments": "Departments",
+    "selectDepartments": "Select Departments",
+    "remoteOptions": "Remote Options",
+    "remoteOnly": "Remote only"
   },
   "search": {
     "placeholder": "Search jobs by title, company, or skills...",
@@ -135,7 +144,9 @@
     "title": "Recommended for You",
     "basedOn": "Based on your profile",
     "similar": "Similar Jobs",
-    "trending": "Trending Jobs"
+    "trending": "Trending Jobs",
+    "match": "match",
+    "bestMatch": "Best Match"
   },
   "alerts": {
     "title": "Job Alerts",
@@ -166,7 +177,8 @@
     "noJobs": "No jobs available",
     "noSavedJobs": "No saved jobs",
     "noApplications": "No applications yet",
-    "createFirst": "Post your first job"
+    "createFirst": "Post your first job",
+    "browseSaveDescription": "Browse opportunities and save roles that interest you"
   },
   "notifications": {
     "published": "Job published successfully",
@@ -280,7 +292,12 @@
       "salary": "Salary",
       "yourApplicationHasBeenSubmittedSuccessfully": "Your application has been submitted successfully.",
       "autoapplyInitiatedYouWillBeNotified": "Auto-apply initiated. You will be notified of next steps.",
-      "youCanViewAllSavedJobs": "You can view all saved jobs in the Saved tab."
+      "youCanViewAllSavedJobs": "You can view all saved jobs in the Saved tab.",
+      "browse": "Browse",
+      "applied": "Applied",
+      "saved": "Saved",
+      "map": "Map",
+      "interviewPrep": "Interview Prep"
     },
     "jobdetail": {
       "jobNotFound": "Job not found",
@@ -314,5 +331,152 @@
       "submitting": "Submitting...",
       "submitRequest": "Submit Request"
     }
+  },
+  "appleTier": {
+    "theMission": "The Mission",
+    "theStack": "The Stack",
+    "yourImpact": "Your Impact",
+    "theRewards": "The Rewards",
+    "theEnvironment": "The Environment",
+    "securePosition": "Secure This Position",
+    "applicationUnderReview": "Application Under Review"
+  },
+  "closedInsights": {
+    "successRate": "Success Rate",
+    "avgDays": "Avg Days",
+    "placements": "Placements",
+    "keyLearnings": "Key Learnings",
+    "recentRecommendations": "Recent Recommendations",
+    "avgRatings": "Avg Ratings"
+  },
+  "continuousPipeline": {
+    "continuous": "Continuous",
+    "projection": "Pipeline Projection",
+    "feePerHire": "Fee per hire:",
+    "realized": "Realized:",
+    "remaining": "Remaining:",
+    "totalProjected": "Total projected:"
+  },
+  "featured": {
+    "title": "Featured Opportunities"
+  },
+  "common:viewAll": "View all",
+  "hiringProgress": {
+    "continuousPipeline": "Continuous pipeline",
+    "targetReached": "Target Reached",
+    "title": "Hiring Progress",
+    "allFilled": "All positions filled"
+  },
+  "common:clearAll": "Clear All",
+  "common:saved": "Saved",
+  "common:save": "Save",
+  "jobFormProgress": {
+    "creating": "Creating job",
+    "uploading": "Uploading files",
+    "finalizing": "Finalizing",
+    "uploadingFiles": "Uploading files..."
+  },
+  "location": {
+    "fullyRemote": "Fully remote",
+    "remoteAvailable": "Remote available",
+    "remote": "Remote"
+  },
+  "quickStats": {
+    "today": "Today"
+  },
+  "statusManager": {
+    "publishJob": "Publish Job",
+    "closeJob": "Close Job",
+    "unpublishToDraft": "Unpublish to Draft",
+    "reopenJob": "Reopen Job",
+    "archiveJob": "Archive Job",
+    "restoreJob": "Restore Job",
+    "restoreFromArchive": "Restore from Archive",
+    "draft": "Draft",
+    "active": "Active",
+    "closed": "Closed",
+    "archived": "Archived",
+    "title": "Job Status",
+    "description": "Manage the lifecycle of this job posting",
+    "currentStatus": "Current Status:",
+    "jobLifecycle": "Job Lifecycle",
+    "availableActions": "Available Actions"
+  },
+  "common:cancel": "Cancel",
+  "common:confirm": "Confirm",
+  "multiLocation": {
+    "remotePosition": "Remote Position",
+    "allowRemote": "Allow candidates to work from anywhere",
+    "officeLocations": "Office Locations",
+    "primary": "Primary",
+    "setAsPrimary": "Set as primary",
+    "searchCity": "Search for a city...",
+    "addLocation": "Add Location",
+    "noOfficeRequired": "No office locations required for remote positions",
+    "addAtLeastOne": "Add at least one office location",
+    "preview": "Preview"
+  },
+  "nextAction": {
+    "urgentTooltip": "This role needs attention. Take action to keep the pipeline moving.",
+    "goodTooltip": "This role is performing well. Keep up the good work!"
+  },
+  "sla": {
+    "onTrack": "Response time is on track",
+    "warning": "Approaching SLA deadline",
+    "breached": "SLA has been breached - action needed"
+  },
+  "stealthAudit": {
+    "noChanges": "No access changes recorded yet",
+    "enabledStealthMode": "enabled stealth mode",
+    "disabledStealthMode": "disabled stealth mode",
+    "added": "added",
+    "aUser": "a user",
+    "removed": "removed"
+  },
+  "toolSelector": {
+    "searchPlaceholder": "Search tools...",
+    "noResults": "No tools found. Try a different search term."
+  },
+  "urgency": {
+    "tooltipCritical": "This role needs immediate attention - low applicants and no recent activity",
+    "tooltipHigh": "Pipeline activity is low - consider promoting this role",
+    "tooltipMedium": "Check the pipeline - some candidates may need follow-up",
+    "tooltipLow": "New role - pipeline is building"
+  },
+  "urgencyMeter": {
+    "updateFailed": "Failed to update urgency",
+    "revertedSuccess": "Reverted to data-driven score",
+    "clearFailed": "Failed to clear override",
+    "urgencyScore": "Urgency Score",
+    "manualOverride": "Manual Override",
+    "setOverride": "Set Override",
+    "manuallySet": "Manually set"
+  },
+  "common:saving": "Saving...",
+  "common:clear": "Clear",
+  "enrichment": {
+    "enriched": "Enriched",
+    "failed": "Failed",
+    "skipped": "Skipped",
+    "pending": "Pending",
+    "enriching": "Enriching...",
+    "title": "LinkedIn Enrichment",
+    "dismiss": "Dismiss"
+  },
+  "jobTasksPanel": {
+    "requestTask": "Request Task",
+    "addTask": "Add Task",
+    "noTasksYet": "No tasks linked to this job yet.",
+    "taskUpdated": "Task updated",
+    "partnerRequest": "Partner Request",
+    "due": "Due",
+    "start": "Start",
+    "tasks": "Tasks",
+    "pending": "Pending",
+    "inProgress": "In Progress",
+    "done": "Done",
+    "noPendingTasks": "No pending tasks.",
+    "noTasksInProgress": "No tasks in progress.",
+    "noCompletedTasks": "No completed tasks."
   }
 }

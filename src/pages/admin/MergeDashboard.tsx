@@ -70,7 +70,7 @@ const MergeDashboard = () => {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Settings className="w-5 h-5" />
-              <CardTitle>Merge Settings</CardTitle>
+              <CardTitle>{t('admin:mergeSettings', 'Merge Settings')}</CardTitle>
             </div>
             <div className="flex items-center gap-3">
               <Label htmlFor="auto-merge-toggle" className="cursor-pointer">

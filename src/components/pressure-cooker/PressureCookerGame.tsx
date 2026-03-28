@@ -138,7 +138,7 @@ export const PressureCookerGame = memo(({ session, elapsedTime, onComplete }: Pr
             </div>
             <div className="flex items-center gap-4">
               <div className="text-sm text-muted-foreground">
-                Completed: <span className="font-semibold text-foreground">{session.completedTaskIds.size}</span> / {session.currentTasks.length}
+                {t('pressureCooker.completed', 'Completed')}: <span className="font-semibold text-foreground">{session.completedTaskIds.size}</span> / {session.currentTasks.length}
               </div>
               <Button onClick={onComplete} variant="outline" size="sm">{t('pressureCooker.finishEarly')}</Button>
             </div>
@@ -201,7 +201,7 @@ export const PressureCookerGame = memo(({ session, elapsedTime, onComplete }: Pr
                     <p className="text-sm">{selectedTask.description}</p>
                     {selectedTask.hiddenContext && (
                       <Button variant="outline" size="sm" onClick={() => setContextRevealed(!contextRevealed)} className="mt-2">
-                        {contextRevealed ? <><EyeOff className="h-4 w-4 mr-2" />Hide</> : <><Eye className="h-4 w-4 mr-2" />Read More</>}
+                        {contextRevealed ? <><EyeOff className="h-4 w-4 mr-2" />{t('pressureCooker.hide', 'Hide')}</> : <><Eye className="h-4 w-4 mr-2" />{t('pressureCooker.readMore', 'Read More')}</>}
                       </Button>
                     )}
                     {contextRevealed && selectedTask.hiddenContext && (
@@ -214,7 +214,7 @@ export const PressureCookerGame = memo(({ session, elapsedTime, onComplete }: Pr
                     <Textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={3} />
                   </div>
                   <div>
-                    <Label>Quality Level: {quality[0]}%</Label>
+                    <Label>{t('pressureCooker.qualityLevel', 'Quality Level')}: {quality[0]}%</Label>
                     <Slider value={quality} onValueChange={setQuality} min={50} max={100} step={5} />
                   </div>
                   <div>
@@ -236,8 +236,8 @@ export const PressureCookerGame = memo(({ session, elapsedTime, onComplete }: Pr
                 <div className="border-t p-4">
                   <div className="grid grid-cols-3 gap-2">
                     <Button onClick={() => handleAction('complete')} disabled={isTaskBlocked(selectedTask)} className="bg-green-600">Complete</Button>
-                    <Button onClick={() => handleAction('delegate')} variant="outline">Delegate</Button>
-                    <Button onClick={() => handleAction('defer')} variant="outline">Defer</Button>
+                    <Button onClick={() => handleAction('delegate')} variant="outline">{t('common:delegate', 'Delegate')}</Button>
+                    <Button onClick={() => handleAction('defer')} variant="outline">{t('common:defer', 'Defer')}</Button>
                   </div>
                 </div>
               </>

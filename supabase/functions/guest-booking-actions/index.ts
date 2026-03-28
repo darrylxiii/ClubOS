@@ -1,17 +1,17 @@
-import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { createHandler } from '../_shared/handler.ts';
 import { baseEmailTemplate } from "../_shared/email-templates/base-template.ts";
 import { EMAIL_SENDERS, EMAIL_COLORS, getEmailHeaders, htmlToPlainText } from "../_shared/email-config.ts";
 import { Heading, Paragraph, Spacer, Card, StatusBadge, InfoRow, Button } from "../_shared/email-templates/components.ts";
 import { sendEmail } from '../_shared/resend-client.ts';
-import { getCorsHeaders } from '../_shared/cors.ts';
+import { z, parseBody, uuidSchema, emailSchema, optionalNameSchema, isoDateSchema } from '../_shared/validation.ts';
+import { sanitizeForEmail } from '../_shared/sanitize.ts';
 
 interface GuestActionRequest {
   action: 'get_details' | 'cancel' | 'propose_time' | 'add_guest';
   accessToken?: string;       // For additional guests (from booking_guests table)
   bookingId?: string;         // For booker (with email verification)
   guestEmail?: string;        // For booker verification
-  
+
   // Action-specific data
   cancelReason?: string;
   proposedStart?: string;
@@ -40,151 +40,147 @@ interface GuestContext {
   };
 }
 
-serve(async (req) => {
-  const corsHeaders = getCorsHeaders(req);
-  if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
-  }
+const guestActionSchema = z.object({
+  action: z.enum(['get_details', 'cancel', 'propose_time', 'add_guest']),
+  accessToken: z.string().optional(),
+  bookingId: uuidSchema.optional(),
+  guestEmail: emailSchema.optional(),
+  cancelReason: z.string().max(1000).trim().optional(),
+  proposedStart: isoDateSchema.optional(),
+  proposedEnd: isoDateSchema.optional(),
+  proposalMessage: z.string().max(2000).trim().optional(),
+  newGuestEmail: emailSchema.optional(),
+  newGuestName: optionalNameSchema,
+  newGuestPermissions: z.object({
+    can_cancel: z.boolean().optional(),
+    can_reschedule: z.boolean().optional(),
+    can_propose_times: z.boolean().optional(),
+    can_add_attendees: z.boolean().optional(),
+  }).optional(),
+});
 
-  try {
-    const body: GuestActionRequest = await req.json();
-    const { action, accessToken, bookingId, guestEmail } = body;
+Deno.serve(createHandler(async (req, ctx) => {
+  const corsHeaders = ctx.corsHeaders;
+  const parsed = await parseBody(req, guestActionSchema, corsHeaders);
+  if ('error' in parsed) return parsed.error;
+  const body = parsed.data as GuestActionRequest;
+  const { action, accessToken, bookingId, guestEmail } = body;
 
-    if (!action) {
+  // Authenticate the request - determine if booker or guest
+  let context: GuestContext | null = null;
+
+  if (accessToken) {
+    // Guest authentication via access token
+    const { data: guestRecord, error: guestError } = await ctx.supabase
+      .from("booking_guests")
+      .select(`
+        id, email, name, booking_id,
+        can_cancel, can_reschedule, can_propose_times, can_add_attendees
+      `)
+      .eq("access_token", accessToken)
+      .single();
+
+    if (guestError || !guestRecord) {
+      console.error("[guest-booking-actions] Invalid access token");
       return new Response(
-        JSON.stringify({ error: "Action is required" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
-
-    const supabaseClient = createClient(
-      Deno.env.get("SUPABASE_URL") ?? "",
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
-    );
-
-    // Authenticate the request - determine if booker or guest
-    let context: GuestContext | null = null;
-
-    if (accessToken) {
-      // Guest authentication via access token
-      const { data: guestRecord, error: guestError } = await supabaseClient
-        .from("booking_guests")
-        .select(`
-          id, email, name, booking_id,
-          can_cancel, can_reschedule, can_propose_times, can_add_attendees
-        `)
-        .eq("access_token", accessToken)
-        .single();
-
-      if (guestError || !guestRecord) {
-        console.error("[GuestActions] Invalid access token");
-        return new Response(
-          JSON.stringify({ error: "Invalid or expired access token" }),
-          { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
-
-      // Update last accessed
-      await supabaseClient
-        .from("booking_guests")
-        .update({ last_accessed_at: new Date().toISOString() })
-        .eq("id", guestRecord.id);
-
-      context = {
-        type: 'guest',
-        email: guestRecord.email,
-        name: guestRecord.name,
-        bookingId: guestRecord.booking_id,
-        permissions: {
-          can_cancel: guestRecord.can_cancel || false,
-          can_reschedule: guestRecord.can_reschedule || false,
-          can_propose_times: guestRecord.can_propose_times || false,
-          can_add_attendees: guestRecord.can_add_attendees || false,
-        },
-      };
-    } else if (bookingId && guestEmail) {
-      // Booker authentication via booking ID + email
-      const { data: booking, error: bookingError } = await supabaseClient
-        .from("bookings")
-        .select(`
-          id, guest_email, guest_name, delegated_permissions,
-          booking_links!inner(
-            guest_permissions
-          )
-        `)
-        .eq("id", bookingId)
-        .single();
-
-      if (bookingError || !booking) {
-        console.error("[GuestActions] Booking not found");
-        return new Response(
-          JSON.stringify({ error: "Booking not found" }),
-          { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
-
-      if (booking.guest_email.toLowerCase() !== guestEmail.toLowerCase()) {
-        console.error("[GuestActions] Email mismatch");
-        return new Response(
-          JSON.stringify({ error: "Email does not match booking" }),
-          { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
-
-      // Booker gets permissions from host's booking_link settings
-      const bookingLink = booking.booking_links as unknown as { guest_permissions?: Record<string, boolean> };
-      const hostPerms = bookingLink?.guest_permissions || {};
-      
-      context = {
-        type: 'booker',
-        email: booking.guest_email,
-        name: booking.guest_name,
-        bookingId: booking.id,
-        permissions: {
-          can_cancel: hostPerms.allow_guest_cancel || true, // Bookers can always cancel by default
-          can_reschedule: hostPerms.allow_guest_reschedule || true,
-          can_propose_times: hostPerms.allow_guest_propose_times || true,
-          can_add_attendees: hostPerms.allow_guest_add_attendees || false,
-        },
-      };
-    } else {
-      return new Response(
-        JSON.stringify({ error: "Authentication required. Provide accessToken or bookingId + guestEmail" }),
+        JSON.stringify({ error: "Invalid or expired access token" }),
         { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    console.log(`[GuestActions] Authenticated ${context.type}: ${context.email} for action: ${action}`);
+    // Update last accessed
+    await ctx.supabase
+      .from("booking_guests")
+      .update({ last_accessed_at: new Date().toISOString() })
+      .eq("id", guestRecord.id);
 
-    // Execute the requested action
-    switch (action) {
-      case 'get_details':
-        return await handleGetDetails(supabaseClient, context);
-      case 'cancel':
-        return await handleCancel(supabaseClient, context, body);
-      case 'propose_time':
-        return await handleProposeTime(supabaseClient, context, body);
-      case 'add_guest':
-        return await handleAddGuest(supabaseClient, context, body);
-      default:
-        return new Response(
-          JSON.stringify({ error: `Unknown action: ${action}` }),
-          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
+    context = {
+      type: 'guest',
+      email: guestRecord.email,
+      name: guestRecord.name,
+      bookingId: guestRecord.booking_id,
+      permissions: {
+        can_cancel: guestRecord.can_cancel || false,
+        can_reschedule: guestRecord.can_reschedule || false,
+        can_propose_times: guestRecord.can_propose_times || false,
+        can_add_attendees: guestRecord.can_add_attendees || false,
+      },
+    };
+  } else if (bookingId && guestEmail) {
+    // Booker authentication via booking ID + email
+    const { data: booking, error: bookingError } = await ctx.supabase
+      .from("bookings")
+      .select(`
+        id, guest_email, guest_name, delegated_permissions,
+        booking_links!inner(
+          guest_permissions
+        )
+      `)
+      .eq("id", bookingId)
+      .single();
+
+    if (bookingError || !booking) {
+      console.error("[guest-booking-actions] Booking not found");
+      return new Response(
+        JSON.stringify({ error: "Booking not found" }),
+        { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
     }
 
-  } catch (error: any) {
-    console.error("[GuestActions] Error:", error);
+    if (booking.guest_email.toLowerCase() !== guestEmail.toLowerCase()) {
+      console.error("[guest-booking-actions] Email mismatch");
+      return new Response(
+        JSON.stringify({ error: "Email does not match booking" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Booker gets permissions from host's booking_link settings
+    const bookingLink = booking.booking_links as unknown as { guest_permissions?: Record<string, boolean> };
+    const hostPerms = bookingLink?.guest_permissions || {};
+
+    context = {
+      type: 'booker',
+      email: booking.guest_email,
+      name: booking.guest_name,
+      bookingId: booking.id,
+      permissions: {
+        can_cancel: hostPerms.allow_guest_cancel || true, // Bookers can always cancel by default
+        can_reschedule: hostPerms.allow_guest_reschedule || true,
+        can_propose_times: hostPerms.allow_guest_propose_times || true,
+        can_add_attendees: hostPerms.allow_guest_add_attendees || false,
+      },
+    };
+  } else {
     return new Response(
-      JSON.stringify({ error: error.message || "Internal server error" }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      JSON.stringify({ error: "Authentication required. Provide accessToken or bookingId + guestEmail" }),
+      { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }
-});
+
+  console.log(`[guest-booking-actions] Authenticated ${context.type}: ${context.email} for action: ${action}`);
+
+  // Execute the requested action
+  switch (action) {
+    case 'get_details':
+      return await handleGetDetails(ctx.supabase, context, corsHeaders);
+    case 'cancel':
+      return await handleCancel(ctx.supabase, context, body, corsHeaders);
+    case 'propose_time':
+      return await handleProposeTime(ctx.supabase, context, body, corsHeaders);
+    case 'add_guest':
+      return await handleAddGuest(ctx.supabase, context, body, corsHeaders);
+    default:
+      return new Response(
+        JSON.stringify({ error: `Unknown action: ${action}` }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+  }
+}));
 
 // ===== Action Handlers =====
 
-async function handleGetDetails(supabase: any, context: GuestContext) {
+async function handleGetDetails(supabase: any, context: GuestContext, corsHeaders: Record<string, string>) {
   const { data: booking, error } = await supabase
     .from("bookings")
     .select(`
@@ -246,7 +242,7 @@ async function handleGetDetails(supabase: any, context: GuestContext) {
   );
 }
 
-async function handleCancel(supabase: any, context: GuestContext, body: GuestActionRequest) {
+async function handleCancel(supabase: any, context: GuestContext, body: GuestActionRequest, corsHeaders: Record<string, string>) {
   if (!context.permissions.can_cancel) {
     return new Response(
       JSON.stringify({ error: "You do not have permission to cancel this booking" }),
@@ -319,13 +315,13 @@ async function handleCancel(supabase: any, context: GuestContext, body: GuestAct
       ${StatusBadge({ status: 'cancelled', text: `CANCELLED BY ${context.type.toUpperCase()}` })}
       ${Heading({ text: `${booking.booking_links.title} — Cancelled`, level: 1 })}
       ${Spacer(16)}
-      ${Paragraph(`<strong>${context.name || context.email}</strong> (${context.type}) has cancelled the booking.`, 'secondary')}
+      ${Paragraph(`<strong>${sanitizeForEmail(context.name) || context.email}</strong> (${context.type}) has cancelled the booking.`, 'secondary')}
       ${Spacer(16)}
       ${Card({
         variant: 'default',
         content: `
           ${InfoRow({ icon: '📅', label: 'Date', value: formattedDate })}
-          ${InfoRow({ icon: '📝', label: 'Reason', value: cancelReason })}
+          ${InfoRow({ icon: '📝', label: 'Reason', value: sanitizeForEmail(cancelReason) })}
         `,
       })}
     `;
@@ -340,7 +336,7 @@ async function handleCancel(supabase: any, context: GuestContext, body: GuestAct
         html: cancelHtml,
       });
     } catch (e) {
-      console.error("[GuestActions] Failed to send host cancel email:", e);
+      console.error("[guest-booking-actions] Failed to send host cancel email:", e);
     }
 
     if (context.type === 'guest') {
@@ -353,12 +349,12 @@ async function handleCancel(supabase: any, context: GuestContext, body: GuestAct
           html: cancelGuestHtml,
         });
       } catch (e) {
-        console.error("[GuestActions] Failed to send guest cancel email:", e);
+        console.error("[guest-booking-actions] Failed to send guest cancel email:", e);
       }
     }
   }
 
-  console.log(`[GuestActions] Booking ${context.bookingId} cancelled by ${context.type}: ${context.email}`);
+  console.log(`[guest-booking-actions] Booking ${context.bookingId} cancelled by ${context.type}: ${context.email}`);
 
   return new Response(
     JSON.stringify({ success: true, message: "Booking cancelled successfully" }),
@@ -366,7 +362,7 @@ async function handleCancel(supabase: any, context: GuestContext, body: GuestAct
   );
 }
 
-async function handleProposeTime(supabase: any, context: GuestContext, body: GuestActionRequest) {
+async function handleProposeTime(supabase: any, context: GuestContext, body: GuestActionRequest, corsHeaders: Record<string, string>) {
   if (!context.permissions.can_propose_times) {
     return new Response(
       JSON.stringify({ error: "You do not have permission to propose alternative times" }),
@@ -375,7 +371,7 @@ async function handleProposeTime(supabase: any, context: GuestContext, body: Gue
   }
 
   const { proposedStart, proposedEnd, proposalMessage } = body;
-  
+
   if (!proposedStart || !proposedEnd) {
     return new Response(
       JSON.stringify({ error: "Proposed start and end times are required" }),
@@ -386,7 +382,7 @@ async function handleProposeTime(supabase: any, context: GuestContext, body: Gue
   // Validate times
   const startDate = new Date(proposedStart);
   const endDate = new Date(proposedEnd);
-  
+
   if (startDate <= new Date()) {
     return new Response(
       JSON.stringify({ error: "Proposed time must be in the future" }),
@@ -450,14 +446,14 @@ async function handleProposeTime(supabase: any, context: GuestContext, body: Gue
         ${StatusBadge({ status: 'pending', text: 'NEW TIME PROPOSAL' })}
         ${Heading({ text: 'Alternative Time Requested', level: 1 })}
         ${Spacer(16)}
-        ${Paragraph(`<strong>${context.name || context.email}</strong> has proposed a new time for "<strong>${booking.booking_links.title}</strong>".`, 'secondary')}
+        ${Paragraph(`<strong>${sanitizeForEmail(context.name) || context.email}</strong> has proposed a new time for "<strong>${booking.booking_links.title}</strong>".`, 'secondary')}
         ${Spacer(16)}
         ${Card({
           variant: 'highlight',
           content: `
             ${InfoRow({ icon: '📅', label: 'Proposed Date', value: formattedDate })}
             ${InfoRow({ icon: '🕐', label: 'Proposed Time', value: formattedTime })}
-            ${proposalMessage ? InfoRow({ icon: '💬', label: 'Message', value: proposalMessage }) : ''}
+            ${proposalMessage ? InfoRow({ icon: '💬', label: 'Message', value: sanitizeForEmail(proposalMessage) }) : ''}
           `,
         })}
         ${Spacer(16)}
@@ -465,7 +461,7 @@ async function handleProposeTime(supabase: any, context: GuestContext, body: Gue
       `;
 
       const proposalHtml = baseEmailTemplate({
-            preheader: `${context.name || context.email} proposed a new time for ${booking.booking_links.title}`,
+            preheader: `${sanitizeForEmail(context.name) || context.email} proposed a new time for ${booking.booking_links.title}`,
             content: emailContent,
             showHeader: true,
             showFooter: true,
@@ -479,12 +475,12 @@ async function handleProposeTime(supabase: any, context: GuestContext, body: Gue
           html: proposalHtml,
         });
       } catch (e) {
-        console.error("[GuestActions] Failed to send proposal email:", e);
+        console.error("[guest-booking-actions] Failed to send proposal email:", e);
       }
     }
   }
 
-  console.log(`[GuestActions] Time proposal created by ${context.type}: ${context.email}`);
+  console.log(`[guest-booking-actions] Time proposal created by ${context.type}: ${context.email}`);
 
   return new Response(
     JSON.stringify({ success: true, proposal }),
@@ -492,7 +488,7 @@ async function handleProposeTime(supabase: any, context: GuestContext, body: Gue
   );
 }
 
-async function handleAddGuest(supabase: any, context: GuestContext, body: GuestActionRequest) {
+async function handleAddGuest(supabase: any, context: GuestContext, body: GuestActionRequest, corsHeaders: Record<string, string>) {
   if (!context.permissions.can_add_attendees) {
     return new Response(
       JSON.stringify({ error: "You do not have permission to add attendees" }),
@@ -501,7 +497,7 @@ async function handleAddGuest(supabase: any, context: GuestContext, body: GuestA
   }
 
   const { newGuestEmail, newGuestName, newGuestPermissions } = body;
-  
+
   if (!newGuestEmail?.trim()) {
     return new Response(
       JSON.stringify({ error: "Guest email is required" }),
@@ -599,15 +595,15 @@ async function handleAddGuest(supabase: any, context: GuestContext, body: GuestA
         ${StatusBadge({ status: 'new', text: "YOU'RE INVITED" })}
         ${Heading({ text: booking.booking_links.title, level: 1 })}
         ${Spacer(16)}
-        ${Paragraph(`<strong>${bookingDetails.guest_name}</strong> has invited you to join a meeting.`, 'secondary')}
+        ${Paragraph(`<strong>${sanitizeForEmail(bookingDetails.guest_name)}</strong> has invited you to join a meeting.`, 'secondary')}
         ${Spacer(16)}
         ${Card({
           variant: 'highlight',
           content: `
             ${InfoRow({ icon: '📅', label: 'Date', value: formattedDate })}
             ${InfoRow({ icon: '🕐', label: 'Time', value: formattedTime })}
-            ${InfoRow({ icon: '👤', label: 'Host', value: hostProfile?.full_name || 'Your Host' })}
-            ${InfoRow({ icon: '📧', label: 'Booked by', value: bookingDetails.guest_name })}
+            ${InfoRow({ icon: '👤', label: 'Host', value: sanitizeForEmail(hostProfile?.full_name) || 'Your Host' })}
+            ${InfoRow({ icon: '📧', label: 'Booked by', value: sanitizeForEmail(bookingDetails.guest_name) })}
           `,
         })}
         ${Spacer(24)}
@@ -631,7 +627,7 @@ async function handleAddGuest(supabase: any, context: GuestContext, body: GuestA
           html: addGuestHtml,
         });
       } catch (emailErr) {
-        console.error('[GuestActions] Failed to send add-guest email:', emailErr);
+        console.error('[guest-booking-actions] Failed to send add-guest email:', emailErr);
       }
 
       // Update email_sent_at
@@ -642,7 +638,7 @@ async function handleAddGuest(supabase: any, context: GuestContext, body: GuestA
     }
   }
 
-  console.log(`[GuestActions] New guest added by ${context.type}: ${newGuestEmail}`);
+  console.log(`[guest-booking-actions] New guest added by ${context.type}: ${newGuestEmail}`);
 
   return new Response(
     JSON.stringify({ success: true, guest: newGuest }),

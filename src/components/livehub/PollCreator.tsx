@@ -190,7 +190,7 @@ export const PollCreator = ({ onCreate }: PollCreatorProps) => {
                         {/* Allow Adding Options */}
                         <div className="flex items-center justify-between">
                             <div>
-                                <Label>Allow Users to Add Options</Label>
+                                <Label>{t('common:allowUsersToAddOptions', 'Allow Users to Add Options')}</Label>
                                 <p className="text-xs text-muted-foreground">
                                     Users can suggest new options
                                 </p>
@@ -204,7 +204,7 @@ export const PollCreator = ({ onCreate }: PollCreatorProps) => {
                         {/* Enable Poll Closing */}
                         <div className="flex items-center justify-between">
                             <div>
-                                <Label>Schedule Poll Closing</Label>
+                                <Label>{t('common:schedulePollClosing', 'Schedule Poll Closing')}</Label>
                                 <p className="text-xs text-muted-foreground">
                                     Automatically close poll at a specific time
                                 </p>

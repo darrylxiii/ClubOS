@@ -16,7 +16,8 @@ import {
   DialogHeader, 
   DialogTitle 
 } from '@/components/ui/dialog';
-import { Video, Mic, Shield, FileText, AlertCircle } from 'lucide-react';
+import { Video, Mic, Shield, FileText, AlertCircle, Sparkles } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 interface RecordingConsentModalProps {
   open: boolean;
@@ -163,6 +164,14 @@ export function RecordingConsentModal({
                 </label>
                 <p className="text-xs text-muted-foreground mt-0.5">
                   Generate summaries, action items, and meeting intelligence
+                </p>
+                <p className="flex items-center gap-1 text-xs text-muted-foreground mt-1">
+                  <Sparkles className="w-3 h-3" />
+                  {t('ai.powered', 'AI-powered')}
+                  {' · '}
+                  <Link to="/legal/ai-transparency" className="text-primary hover:underline">
+                    {t('ai.learnMore', 'Learn more')}
+                  </Link>
                 </p>
               </div>
             </div>

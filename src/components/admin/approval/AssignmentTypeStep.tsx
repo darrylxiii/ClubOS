@@ -33,12 +33,12 @@ interface AssignmentTypeStepProps {
 }
 
 const AVAILABLE_ROLES: { value: AppRole; label: string; description: string }[] = [
-  { value: 'admin', label: t('approval.assignmenttypestep.admin', 'Admin'), description: t('approval.assignmenttypestep.fullPlatformAccessAndManagement', 'Full platform access and management') },
-  { value: 'strategist', label: t('approval.assignmenttypestep.strategist', 'Strategist'), description: t('approval.assignmenttypestep.manageCandidatesAndClientRelationships', 'Manage candidates and client relationships') },
-  { value: 'partner', label: t('approval.assignmenttypestep.partner', 'Partner'), description: t('approval.assignmenttypestep.companyRepresentativeWithHiringAccess', 'Company representative with hiring access') },
-  { value: 'recruiter', label: t('approval.assignmenttypestep.recruiter', 'Recruiter'), description: t('approval.assignmenttypestep.sourceAndManageCandidates', 'Source and manage candidates') },
-  { value: 'hiring_manager', label: t('approval.assignmenttypestep.hiringManager', 'Hiring Manager'), description: t('approval.assignmenttypestep.reviewAndHireForSpecificRoles', 'Review and hire for specific roles') },
-  { value: 'user', label: t('approval.assignmenttypestep.user', 'User'), description: t('approval.assignmenttypestep.basicPlatformAccess', 'Basic platform access') },
+  { value: 'admin', label: 'Admin', description: 'Full platform access and management' },
+  { value: 'strategist', label: 'Strategist', description: 'Manage candidates and client relationships' },
+  { value: 'partner', label: 'Partner', description: 'Company representative with hiring access' },
+  { value: 'recruiter', label: 'Recruiter', description: 'Source and manage candidates' },
+  { value: 'hiring_manager', label: 'Hiring Manager', description: 'Review and hire for specific roles' },
+  { value: 'user', label: 'User', description: 'Basic platform access' },
 ];
 
 const DEFAULT_STAGES = [

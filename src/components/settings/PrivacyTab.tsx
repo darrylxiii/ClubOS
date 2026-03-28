@@ -32,18 +32,18 @@ export function PrivacyTab({
   onPrivacyChange,
   onSave,
 }: PrivacyTabProps) {
-  const { t } = useTranslation('common');
+  const { t } = useTranslation('settings');
   const privacyItems = [
-    { key: 'share_full_name', label: 'Full Name', description: 'Share your full name with partners' },
-    { key: 'share_email', label: 'Email Address', description: 'Share your email with partners' },
-    { key: 'share_phone', label: 'Phone Number', description: 'Share your phone number with partners' },
-    { key: 'share_location', label: 'Location', description: 'Share your location with partners' },
-    { key: 'share_current_title', label: 'Current Title', description: 'Share your job title' },
-    { key: 'share_linkedin_url', label: 'LinkedIn Profile', description: 'Share your LinkedIn URL' },
-    { key: 'share_career_preferences', label: 'Career Preferences', description: 'Share your career goals' },
-    { key: 'share_resume', label: 'Resume/CV', description: 'Share your resume document' },
-    { key: 'share_salary_expectations', label: 'Salary Expectations', description: 'Share your salary range' },
-    { key: 'share_notice_period', label: 'Notice Period', description: 'Share your availability timeline' },
+    { key: 'share_full_name', label: t('privacy.shareFullName', 'Full Name'), description: t('privacy.shareFullNameDesc', 'Share your full name with partners') },
+    { key: 'share_email', label: t('privacy.shareEmail', 'Email Address'), description: t('privacy.shareEmailDesc', 'Share your email with partners') },
+    { key: 'share_phone', label: t('privacy.sharePhone', 'Phone Number'), description: t('privacy.sharePhoneDesc', 'Share your phone number with partners') },
+    { key: 'share_location', label: t('privacy.shareLocation', 'Location'), description: t('privacy.shareLocationDesc', 'Share your location with partners') },
+    { key: 'share_current_title', label: t('privacy.shareCurrentTitle', 'Current Title'), description: t('privacy.shareCurrentTitleDesc', 'Share your job title') },
+    { key: 'share_linkedin_url', label: t('privacy.shareLinkedIn', 'LinkedIn Profile'), description: t('privacy.shareLinkedInDesc', 'Share your LinkedIn URL') },
+    { key: 'share_career_preferences', label: t('privacy.shareCareerPreferences', 'Career Preferences'), description: t('privacy.shareCareerPreferencesDesc', 'Share your career goals') },
+    { key: 'share_resume', label: t('privacy.shareResume', 'Resume/CV'), description: t('privacy.shareResumeDesc', 'Share your resume document') },
+    { key: 'share_salary_expectations', label: t('privacy.shareSalary', 'Salary Expectations'), description: t('privacy.shareSalaryDesc', 'Share your salary range') },
+    { key: 'share_notice_period', label: t('privacy.shareNoticePeriod', 'Notice Period'), description: t('privacy.shareNoticePeriodDesc', 'Share your availability timeline') },
   ];
 
   return (
@@ -55,18 +55,18 @@ export function PrivacyTab({
             <CardTitle>{t("employer_shield", "Employer Shield")}</CardTitle>
           </div>
           <CardDescription>
-            Prevent your current employer from seeing your profile
+            {t('privacy.employerShieldDesc', 'Prevent your current employer from seeing your profile')}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-3">
           <Alert>
             <Shield className="h-4 w-4" />
             <AlertDescription>
-              When enabled, blocked companies cannot find you in search results, view your dossier, or receive your profile in shortlists. Add companies below to activate.
+              {t('privacy.employerShieldAlert', 'When enabled, blocked companies cannot find you in search results, view your dossier, or receive your profile in shortlists. Add companies below to activate.')}
             </AlertDescription>
           </Alert>
           <p className="text-xs text-muted-foreground">
-            Manage blocked companies in the "Blocked Companies" section below. Your profile will be completely hidden from recruiters at those organisations.
+            {t('privacy.employerShieldNote', 'Manage blocked companies in the "Blocked Companies" section below. Your profile will be completely hidden from recruiters at those organisations.')}
           </p>
         </CardContent>
       </Card>
@@ -75,7 +75,7 @@ export function PrivacyTab({
         <CardHeader>
           <CardTitle>{t("data_sharing_preferences", "Data Sharing Preferences")}</CardTitle>
           <CardDescription>
-            Control what information partners can see about you
+            {t('privacy.profileInfoSharingDesc', 'Control what information partners can see about you')}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -97,7 +97,7 @@ export function PrivacyTab({
 
       <Button onClick={onSave} disabled={isSaving}>
         {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-        Save Changes
+        {t('actions.save', 'Save Changes')}
       </Button>
     </div>
   );

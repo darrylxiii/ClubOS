@@ -35,8 +35,8 @@ export const MeetingAnalysisCard = ({
   analyzedAt,
   tasksCreated 
 }: MeetingAnalysisCardProps) => {
+  const { t } = useTranslation('meetings');
   const getSentimentColor = (sentiment: string) => {
-  const { t } = useTranslation('common');
     switch (sentiment) {
       case 'positive': return 'bg-green-500/10 text-green-500 border-green-500/20';
       case 'negative': return 'bg-red-500/10 text-red-500 border-red-500/20';
@@ -225,7 +225,7 @@ export const MeetingAnalysisCard = ({
       {transcript && (
         <Card>
           <CardHeader>
-            <CardTitle>Full Transcript</CardTitle>
+            <CardTitle>{t('meetings:fullTranscript', 'Full Transcript')}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="bg-muted/50 p-4 rounded-lg max-h-96 overflow-y-auto">

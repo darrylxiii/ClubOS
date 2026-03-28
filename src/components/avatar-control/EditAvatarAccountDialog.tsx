@@ -178,7 +178,14 @@ export function EditAvatarAccountDialog({ account, open, onOpenChange }: EditAva
 
     setAvatarUploading(true);
     try {
-      const ext = file.type.includes('png') ? 'png' : file.type.includes('webp') ? 'webp' : 'jpg';
+      const ext =
+        file.type === 'image/gif'
+          ? 'gif'
+          : file.type.includes('png')
+            ? 'png'
+            : file.type.includes('webp')
+              ? 'webp'
+              : 'jpg';
       const filePath = `linkedin-avatars/${account.id}.${ext}`;
       const { error: upErr } = await supabase.storage.from('avatars').upload(filePath, file, { contentType: file.type, upsert: true });
       if (upErr) throw upErr;
@@ -220,7 +227,7 @@ export function EditAvatarAccountDialog({ account, open, onOpenChange }: EditAva
                 <Upload className="h-3.5 w-3.5 mr-1.5" />
                 {account?.avatar_url ? 'Change' : 'Upload'} Photo
               </Button>
-              <p className="text-[11px] text-muted-foreground">{t("jpg_png_or_webp", "JPG, PNG or WEBP. Max 5MB.")}</p>
+              <p className="text-[11px] text-muted-foreground">{t("jpg_png_or_webp", "JPG, PNG, WebP, or GIF. Max 5MB.")}</p>
             </div>
           </div>
           <div className="grid grid-cols-2 gap-3">

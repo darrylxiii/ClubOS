@@ -255,7 +255,7 @@ export function CompanyDomainsManager({
         <div className="border-t pt-4 mt-4">
           <h4 className="font-medium text-sm mb-2">{t("email_forwarding_address", "Email Forwarding Address")}</h4>
           <div className="bg-muted/50 p-3 rounded-lg">
-            <code className="text-sm">{t("learnthequantumclubcom", "learn@thequantumclub.com")}</code>
+            <code className="text-sm">{t("learnthequantumclubcom", "info@thequantumclub.com")}</code>
             <p className="text-xs text-muted-foreground mt-2">
               Forward any company emails to this address to add them to the ML learning system.
               They'll be automatically matched to companies based on the configured domains above.

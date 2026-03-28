@@ -1,0 +1,1 @@
+import{_ as o}from"./vendor-supabase-6U_Eb7vz.js";const i=async t=>{const{default:e}=await o(async()=>{const{default:a}=await import("./confetti.module-CTWzd35d.js");return{default:a}},[]);return e(t)};export{i as f};

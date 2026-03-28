@@ -1,12 +1,14 @@
 import { createHandler } from '../_shared/handler.ts';
 import { baseEmailTemplate } from "../_shared/email-templates/base-template.ts";
 import {
-  Button, Card, Heading, Paragraph, Spacer, InfoRow,
+  Button, Card, Heading, Paragraph, Spacer, InfoRow, Divider,
   VideoCallCard, StatusBadge, CalendarButtons, AlertBox, SchemaEvent
 } from "../_shared/email-templates/components.ts";
 import { EMAIL_SENDERS, EMAIL_COLORS, SUPPORT_EMAIL, getEmailAppUrl } from "../_shared/email-config.ts";
 import { sendEmail } from '../_shared/resend-client.ts';
 import { checkUserRateLimit, createRateLimitResponse } from "../_shared/rate-limiter.ts";
+import { z, parseBody, emailSchema, nameSchema, optionalNameSchema, uuidSchema, isoDateSchema } from '../_shared/validation.ts';
+import { sanitizeForEmail } from '../_shared/sanitize.ts';
 
 interface GuestWithPermissions {
   email: string;
@@ -29,7 +31,45 @@ Deno.serve(createHandler(async (req, ctx) => {
       return createRateLimitResponse(rateLimitResult.retryAfter || 60, ctx.ctx.corsHeaders);
     }
 
-    const { booking, bookingLink } = await req.json();
+    const bodySchema = z.object({
+      booking: z.object({
+        id: uuidSchema,
+        guest_name: nameSchema,
+        guest_email: emailSchema,
+        guest_phone: z.string().optional(),
+        scheduled_start: isoDateSchema,
+        scheduled_end: isoDateSchema,
+        timezone: z.string(),
+        notes: z.string().optional(),
+        notetaker_enabled: z.boolean().optional(),
+        active_video_platform: z.string().optional(),
+        google_meet_hangout_link: z.string().optional(),
+        quantum_meeting_link: z.string().optional(),
+        video_meeting_link: z.string().optional(),
+        meeting_id: z.string().optional(),
+        guests: z.array(z.object({
+          email: emailSchema,
+          name: optionalNameSchema,
+          can_cancel: z.boolean().optional(),
+          can_reschedule: z.boolean().optional(),
+          can_propose_times: z.boolean().optional(),
+          can_add_attendees: z.boolean().optional(),
+        })).optional(),
+        delegated_permissions: z.record(z.boolean()).optional(),
+      }),
+      bookingLink: z.object({
+        user_id: uuidSchema,
+        title: z.string().min(1),
+        duration_minutes: z.number(),
+        description: z.string().optional(),
+        confirmation_message: z.string().optional(),
+        guest_permissions: z.record(z.boolean()).optional(),
+      }).passthrough(),
+    });
+
+    const parsed = await parseBody(req, bodySchema, ctx.corsHeaders);
+    if ('error' in parsed) return parsed.error;
+    const { booking, bookingLink } = parsed.data;
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
@@ -79,8 +119,13 @@ Deno.serve(createHandler(async (req, ctx) => {
       minute: "2-digit",
     })}`;
 
-    const confirmationMessage = bookingLink.confirmation_message || 
-      `Your meeting with ${ownerProfile?.full_name || 'your host'} has been confirmed.`;
+    const safeGuestName = sanitizeForEmail(booking.guest_name);
+    const safeHostName = sanitizeForEmail(ownerProfile?.full_name) || 'your host';
+    const safeNotes = sanitizeForEmail(booking.notes);
+    const safeConfirmationMessage = sanitizeForEmail(bookingLink.confirmation_message);
+
+    const confirmationMessage = safeConfirmationMessage ||
+      `Your meeting with ${safeHostName} has been confirmed.`;
 
     // Determine video platform and meeting link
     const activePlatform = booking.active_video_platform;
@@ -172,7 +217,7 @@ Deno.serve(createHandler(async (req, ctx) => {
       ${StatusBadge({ status: 'confirmed', text: 'BOOKING CONFIRMED' })}
       ${Heading({ text: bookingLink.title, level: 1, align: 'center' })}
       ${Spacer(24)}
-      ${Paragraph(`Hi ${booking.guest_name},`, 'primary')}
+      ${Paragraph(`Hi ${safeGuestName},`, 'primary')}
       ${Spacer(8)}
       ${Paragraph(confirmationMessage, 'secondary')}
       ${Spacer(32)}
@@ -181,12 +226,12 @@ Deno.serve(createHandler(async (req, ctx) => {
         content: `
           ${Heading({ text: 'Meeting Details', level: 2 })}
           ${Spacer(16)}
-          ${InfoRow({ icon: '👤', label: 'Host', value: ownerProfile?.full_name || 'Your Host' })}
+          ${InfoRow({ icon: '👤', label: 'Host', value: safeHostName })}
           ${InfoRow({ icon: '📅', label: 'Date', value: formattedDate })}
           ${InfoRow({ icon: '🕐', label: 'Time', value: `${formattedTime} (${booking.timezone})` })}
           ${InfoRow({ icon: '⏱️', label: 'Duration', value: `${bookingLink.duration_minutes} minutes` })}
           ${bookingLink.description ? InfoRow({ icon: '📝', label: 'Description', value: bookingLink.description }) : ''}
-          ${booking.notes ? InfoRow({ icon: '💬', label: 'Your Notes', value: booking.notes }) : ''}
+          ${safeNotes ? InfoRow({ icon: '💬', label: 'Your Notes', value: safeNotes }) : ''}
         `
       })}
       ${Spacer(24)}
@@ -301,53 +346,37 @@ Deno.serve(createHandler(async (req, ctx) => {
           : `${appUrl}/bookings/${booking.id}`;
         
         // Build permission-based action buttons
-        const actionButtons = [];
-        
+        const actionButtons: string[] = [];
+
         if (effectivePermissions.can_propose_times) {
-          actionButtons.push(`
-            <a href="${guestPortalUrl}?action=propose" 
-               style="display: inline-block; padding: 10px 20px; margin: 5px; 
-                      background-color: transparent; border: 1px solid ${EMAIL_COLORS.gold}; 
-                      color: ${EMAIL_COLORS.gold}; text-decoration: none; border-radius: 6px; 
-                      font-size: 14px;">
-              Propose Different Time
-            </a>
-          `);
+          actionButtons.push(
+            Button({ url: `${guestPortalUrl}?action=propose`, text: 'Propose Different Time', variant: 'secondary' })
+          );
         }
-        
+
         if (effectivePermissions.can_cancel) {
-          actionButtons.push(`
-            <a href="${guestPortalUrl}?action=cancel" 
-               style="display: inline-block; padding: 10px 20px; margin: 5px; 
-                      background-color: transparent; border: 1px solid #dc2626; 
-                      color: #dc2626; text-decoration: none; border-radius: 6px; 
-                      font-size: 14px;">
-              Cancel Meeting
-            </a>
-          `);
+          actionButtons.push(
+            Button({ url: `${guestPortalUrl}?action=cancel`, text: 'Cancel Meeting', variant: 'secondary' })
+          );
         }
-        
+
         if (effectivePermissions.can_add_attendees) {
-          actionButtons.push(`
-            <a href="${guestPortalUrl}?action=add_guest" 
-               style="display: inline-block; padding: 10px 20px; margin: 5px; 
-                      background-color: transparent; border: 1px solid ${EMAIL_COLORS.textSecondary}; 
-                      color: ${EMAIL_COLORS.textSecondary}; text-decoration: none; border-radius: 6px; 
-                      font-size: 14px;">
-              Add Attendees
-            </a>
-          `);
+          actionButtons.push(
+            Button({ url: `${guestPortalUrl}?action=add_guest`, text: 'Add Attendees', variant: 'secondary' })
+          );
         }
-        
-        const actionButtonsHtml = actionButtons.length > 0 
+
+        const actionButtonsHtml = actionButtons.length > 0
           ? `
             ${Spacer(24)}
-            <div style="text-align: center;">
-              <p style="color: ${EMAIL_COLORS.textSecondary}; font-size: 12px; margin-bottom: 12px;">
-                Manage your attendance:
-              </p>
-              ${actionButtons.join('')}
-            </div>
+            ${Paragraph('Manage your attendance:', 'muted')}
+            <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+              <tr>
+                <td align="center">
+                  ${actionButtons.join(Spacer(8))}
+                </td>
+              </tr>
+            </table>
           `
           : '';
         
@@ -356,17 +385,17 @@ Deno.serve(createHandler(async (req, ctx) => {
           ${StatusBadge({ status: 'new', text: "YOU'RE INVITED" })}
           ${Heading({ text: bookingLink.title, level: 1, align: 'center' })}
           ${Spacer(24)}
-          ${Paragraph(`Hi ${guest.name || 'there'},`, 'primary')}
+          ${Paragraph(`Hi ${sanitizeForEmail(guest.name) || 'there'},`, 'primary')}
           ${Spacer(8)}
-          ${Paragraph(`<strong>${booking.guest_name}</strong> has invited you to a meeting.`, 'secondary')}
+          ${Paragraph(`<strong>${safeGuestName}</strong> has invited you to a meeting.`, 'secondary')}
           ${Spacer(32)}
           ${Card({
             variant: 'highlight',
             content: `
               ${Heading({ text: 'Meeting Details', level: 2 })}
               ${Spacer(16)}
-              ${InfoRow({ icon: '👤', label: 'Host', value: ownerProfile?.full_name || 'Meeting Host' })}
-              ${InfoRow({ icon: '📧', label: 'Booked by', value: `${booking.guest_name} (${booking.guest_email})` })}
+              ${InfoRow({ icon: '👤', label: 'Host', value: safeHostName })}
+              ${InfoRow({ icon: '📧', label: 'Booked by', value: `${safeGuestName} (${booking.guest_email})` })}
               ${InfoRow({ icon: '📅', label: 'Date', value: formattedDate })}
               ${InfoRow({ icon: '🕐', label: 'Time', value: `${formattedTime} (${booking.timezone})` })}
               ${InfoRow({ icon: '⏱️', label: 'Duration', value: `${bookingLink.duration_minutes} minutes` })}
@@ -428,16 +457,11 @@ Deno.serve(createHandler(async (req, ctx) => {
       const guestListHtml = booking.guests && booking.guests.length > 0
         ? `
           ${Spacer(16)}
-          <div style="border-top: 1px solid ${EMAIL_COLORS.border}; padding-top: 16px;">
-            <p style="color: ${EMAIL_COLORS.textSecondary}; font-size: 12px; margin-bottom: 8px;">
-              Additional Attendees (${booking.guests.length}):
-            </p>
-            ${booking.guests.map((g: GuestWithPermissions) => 
-              `<p style="color: ${EMAIL_COLORS.textPrimary}; font-size: 14px; margin: 4px 0;">
-                • ${g.name || g.email} ${g.name ? `(${g.email})` : ''}
-              </p>`
-            ).join('')}
-          </div>
+          ${Divider({ spacing: 'small' })}
+          ${Paragraph(`Additional Attendees (${booking.guests.length}):`, 'muted')}
+          ${booking.guests.map((g: GuestWithPermissions) =>
+            InfoRow({ label: g.name || g.email, value: g.name ? g.email : '' })
+          ).join('')}
         `
         : '';
       
@@ -445,9 +469,9 @@ Deno.serve(createHandler(async (req, ctx) => {
         ${StatusBadge({ status: 'new', text: 'NEW BOOKING' })}
         ${Heading({ text: `New Booking: ${bookingLink.title}`, level: 1, align: 'center' })}
         ${Spacer(24)}
-        ${Paragraph(`Hi ${ownerProfile.full_name || 'there'},`, 'primary')}
+        ${Paragraph(`Hi ${safeHostName},`, 'primary')}
         ${Spacer(8)}
-        ${Paragraph(`You have a new booking from <strong>${booking.guest_name}</strong>.`, 'secondary')}
+        ${Paragraph(`You have a new booking from <strong>${safeGuestName}</strong>.`, 'secondary')}
         ${hasMeetingLink ? `
           ${Spacer(24)}
           ${Card({
@@ -473,13 +497,13 @@ Deno.serve(createHandler(async (req, ctx) => {
           content: `
             ${Heading({ text: 'Booking Details', level: 2 })}
             ${Spacer(16)}
-            ${InfoRow({ icon: '👤', label: 'Guest', value: booking.guest_name })}
+            ${InfoRow({ icon: '👤', label: 'Guest', value: safeGuestName })}
             ${InfoRow({ icon: '📧', label: 'Email', value: booking.guest_email })}
             ${booking.guest_phone ? InfoRow({ icon: '📱', label: 'Phone', value: booking.guest_phone }) : ''}
             ${InfoRow({ icon: '📅', label: 'Date', value: formattedDate })}
             ${InfoRow({ icon: '🕐', label: 'Time', value: `${formattedTime} (${booking.timezone})` })}
             ${InfoRow({ icon: '⏱️', label: 'Duration', value: `${bookingLink.duration_minutes} minutes` })}
-            ${booking.notes ? InfoRow({ icon: '💬', label: 'Guest Notes', value: booking.notes }) : ''}
+            ${safeNotes ? InfoRow({ icon: '💬', label: 'Guest Notes', value: safeNotes }) : ''}
             ${guestListHtml}
           `
         })}

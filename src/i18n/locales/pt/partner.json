@@ -1,131 +1,131 @@
 {
-  "title": "Partner Portal",
-  "subtitle": "Manage your hiring and recruitment",
+  "title": "Portal de Parceiros",
+  "subtitle": "Gerir o seu recrutamento e contratação",
   "dashboard": {
     "title": "Dashboard",
-    "welcome": "Welcome back",
+    "welcome": "Bem-vindo(a) de volta",
     "overview": "Visao Geral",
-    "recentActivity": "Recent Activity",
-    "quickActions": "Quick Actions",
-    "stats": "Your Stats"
+    "recentActivity": "Atividade Recente",
+    "quickActions": "Ações Rápidas",
+    "stats": "As suas Estatísticas"
   },
   "candidates": {
     "title": "Candidatos",
-    "active": "Active Candidates",
-    "pipeline": "Candidate Pipeline",
-    "shortlisted": "Shortlisted",
-    "interviewed": "Interviewed",
-    "offered": "Offers Extended",
-    "hired": "Hired",
-    "viewAll": "View All Candidates",
-    "addCandidate": "Add Candidate",
-    "searchCandidates": "Search Candidates"
+    "active": "Candidatos Ativos",
+    "pipeline": "Pipeline de Candidatos",
+    "shortlisted": "Pré-selecionados",
+    "interviewed": "Entrevistados",
+    "offered": "Ofertas Estendidas",
+    "hired": "Contratados",
+    "viewAll": "Ver Todos os Candidatos",
+    "addCandidate": "Adicionar Candidato",
+    "searchCandidates": "Pesquisar Candidatos"
   },
   "jobs": {
     "title": "Vagas",
-    "activeJobs": "Active Jobs",
-    "draftJobs": "Draft Jobs",
-    "closedJobs": "Closed Jobs",
-    "createJob": "Create Job",
-    "viewAll": "View All Jobs",
-    "applicationsReceived": "Applications Received",
-    "positionsFilled": "Positions Filled"
+    "activeJobs": "Empregos Ativos",
+    "draftJobs": "Empregos Rascunho",
+    "closedJobs": "Empregos Encerrados",
+    "createJob": "Criar Emprego",
+    "viewAll": "Ver Todos os Empregos",
+    "applicationsReceived": "Candidaturas Recebidas",
+    "positionsFilled": "Posições Preenchidas"
   },
   "analytics": {
     "title": "Analytics",
-    "hiringMetrics": "Hiring Metrics",
-    "timeToHire": "Time to Hire",
-    "costPerHire": "Cost per Hire",
-    "offerAcceptance": "Offer Acceptance Rate",
-    "sourceEffectiveness": "Source Effectiveness",
-    "pipelineHealth": "Pipeline Health"
+    "hiringMetrics": "Métricas de Contratação",
+    "timeToHire": "Tempo para Contratar",
+    "costPerHire": "Custo por Contratação",
+    "offerAcceptance": "Taxa de Aceitação de Ofertas",
+    "sourceEffectiveness": "Eficácia da Fonte",
+    "pipelineHealth": "Saúde do Pipeline"
   },
   "team": {
     "title": "Equipa",
-    "members": "Team Members",
-    "addMember": "Add Team Member",
-    "roles": "Roles & Permissions",
-    "activity": "Team Activity",
-    "inviteMember": "Invite Member"
+    "members": "Membros da Equipa",
+    "addMember": "Adicionar Membro da Equipa",
+    "roles": "Funções e Permissões",
+    "activity": "Atividade da Equipa",
+    "inviteMember": "Convidar Membro"
   },
   "settings": {
     "title": "Definicoes",
-    "company": "Company Profile",
+    "company": "Perfil da Empresa",
     "branding": "Branding",
     "integrations": "Integracoes",
     "notifications": "Notificacoes",
-    "billing": "Billing",
-    "apiAccess": "API Access"
+    "billing": "Faturação",
+    "apiAccess": "Acesso API"
   },
   "company": {
-    "title": "Company Profile",
-    "name": "Company Name",
-    "logo": "Company Logo",
+    "title": "Perfil da Empresa",
+    "name": "Nome da Empresa",
+    "logo": "Logótipo da Empresa",
     "description": "Descricao",
-    "industry": "Industry",
-    "size": "Company Size",
-    "location": "Headquarters",
+    "industry": "Setor",
+    "size": "Tamanho da Empresa",
+    "location": "Sede",
     "website": "Website",
-    "culture": "Company Culture",
-    "benefits": "Benefits & Perks"
+    "culture": "Cultura da Empresa",
+    "benefits": "Benefícios & Vantagens"
   },
   "pipeline": {
-    "title": "Hiring Pipeline",
-    "stages": "Pipeline Stages",
-    "customize": "Customize Stages",
-    "metrics": "Stage Metrics",
-    "bottlenecks": "Bottlenecks",
-    "velocity": "Pipeline Velocity"
+    "title": "Pipeline de Contratação",
+    "stages": "Etapas do Pipeline",
+    "customize": "Personalizar Etapas",
+    "metrics": "Métricas da Etapa",
+    "bottlenecks": "Gargalos",
+    "velocity": "Velocidade do Pipeline"
   },
   "interviews": {
     "title": "Entrevistas",
-    "scheduled": "Scheduled Interviews",
-    "pending": "Pending Feedback",
+    "scheduled": "Entrevistas Agendadas",
+    "pending": "Feedback Pendente",
     "completed": "Concluido",
-    "schedule": "Schedule Interview",
-    "feedback": "Submit Feedback",
+    "schedule": "Agendar Entrevista",
+    "feedback": "Submeter Feedback",
     "scorecards": "Scorecards"
   },
   "offers": {
-    "title": "Offers",
-    "pending": "Pending Offers",
-    "accepted": "Accepted",
+    "title": "Ofertas",
+    "pending": "Ofertas Pendentes",
+    "accepted": "Aceites",
     "declined": "Recusado",
-    "createOffer": "Create Offer",
-    "template": "Offer Templates",
-    "approval": "Approval Workflow"
+    "createOffer": "Criar Oferta",
+    "template": "Modelos de Oferta",
+    "approval": "Fluxo de Aprovação"
   },
   "reports": {
     "title": "Relatorios",
-    "generate": "Generate Report",
-    "scheduled": "Scheduled Reports",
+    "generate": "Gerar Relatório",
+    "scheduled": "Relatórios Agendados",
     "download": "Transferir",
-    "share": "Share Report",
+    "share": "Partilhar Relatório",
     "types": {
-      "hiring": "Hiring Report",
-      "diversity": "Diversity Report",
-      "pipeline": "Pipeline Report",
-      "source": "Source Report"
+      "hiring": "Relatório de Contratação",
+      "diversity": "Relatório de Diversidade",
+      "pipeline": "Relatório de Pipeline",
+      "source": "Relatório de Origem"
     }
   },
   "integrations": {
     "title": "Integracoes",
-    "ats": "ATS Integration",
-    "calendar": "Calendar Sync",
-    "email": "Email Integration",
+    "ats": "Integração ATS",
+    "calendar": "Sincronização de Calendário",
+    "email": "Integração de Email",
     "linkedin": "LinkedIn",
     "slack": "Slack",
     "teams": "Microsoft Teams"
   },
   "notifications": {
-    "newApplication": "New application received",
-    "interviewScheduled": "Interview scheduled",
-    "feedbackPending": "Feedback pending",
-    "offerAccepted": "Offer accepted",
-    "candidateUpdate": "Candidate update"
+    "newApplication": "Nova candidatura recebida",
+    "interviewScheduled": "Entrevista agendada",
+    "feedbackPending": "Feedback pendente",
+    "offerAccepted": "Oferta aceite",
+    "candidateUpdate": "Atualização do candidato"
   },
   "actions": {
-    "viewDetails": "View Details",
+    "viewDetails": "Ver Detalhes",
     "edit": "Editar",
     "delete": "Eliminar",
     "archive": "Arquivar",
@@ -134,511 +134,511 @@
   },
   "filters": {
     "all": "Todos",
-    "byJob": "By Job",
-    "byStage": "By Stage",
-    "byDate": "By Date",
-    "bySource": "By Source",
-    "byRecruiter": "By Recruiter"
+    "byJob": "Por Cargo",
+    "byStage": "Por Etapa",
+    "byDate": "Por Data",
+    "bySource": "Por Fonte",
+    "byRecruiter": "Por Recrutador"
   },
   "empty": {
-    "noCandidates": "No candidates yet",
-    "noJobs": "No jobs posted",
-    "noInterviews": "No interviews scheduled",
-    "noOffers": "No pending offers"
+    "noCandidates": "Ainda não há candidatos",
+    "noJobs": "Nenhum cargo publicado",
+    "noInterviews": "Nenhuma entrevista agendada",
+    "noOffers": "Nenhuma oferta pendente"
   },
   "status": {
     "active": "Ativo",
     "inactive": "Inativo",
     "pending": "Pendente",
-    "verified": "Verified"
+    "verified": "Verificado"
   },
   "referrals": {
-    "title": "Referrals",
-    "myReferrals": "My Referrals",
-    "earnings": "Referral Earnings",
-    "pending": "Pending Rewards",
-    "refer": "Refer a Candidate",
-    "referCompany": "Refer a Company"
+    "title": "Recomendações",
+    "myReferrals": "As minhas Recomendações",
+    "earnings": "Ganhos de Recomendação",
+    "pending": "Recompensas Pendentes",
+    "refer": "Recomendar um Candidato",
+    "referCompany": "Recomendar uma Empresa"
   },
   "support": {
     "title": "Suporte",
-    "helpCenter": "Help Center",
-    "contact": "Contact Support",
-    "documentation": "Documentation",
+    "helpCenter": "Central de Ajuda",
+    "contact": "Contactar Suporte",
+    "documentation": "Documentação",
     "faq": "FAQ"
   },
   "funnel": {
     "steps": {
-      "aboutYou": "About you",
-      "yourBrief": "Your brief",
+      "aboutYou": "Sobre si",
+      "yourBrief": "O seu briefing",
       "review": "Revisao"
     },
-    "partnerRequest": "Partner Request",
-    "briefsThisWeek": "{{count}} briefs submitted this week",
-    "beginYourSearch": "Begin your search",
-    "andYourName": "And your name?",
-    "followUpAtAddress": "We'll follow up at this address",
-    "soWeKnowWho": "So we know who to reach out to",
-    "workEmail": "Work email",
-    "dataNeverShared": "Your data is never shared with third parties.",
+    "partnerRequest": "Pedido de Parceiro",
+    "briefsThisWeek": "{{count}} briefings submetidos esta semana",
+    "beginYourSearch": "Comece a sua pesquisa",
+    "andYourName": "E o seu nome?",
+    "followUpAtAddress": "Faremos o acompanhamento neste endereço",
+    "soWeKnowWho": "Para sabermos quem contactar",
+    "workEmail": "Email profissional",
+    "dataNeverShared": "Os seus dados nunca são partilhados com terceiros.",
     "continue": "Continuar",
-    "verifying": "Verifying…",
-    "couldNotVerifyEmail": "We couldn't verify this email address. You can try a different one or verify with a code.",
-    "useDifferentEmail": "Use different email",
-    "verifyWithCode": "Verify with code",
-    "enterOtpCode": "Enter the 6-digit code sent to",
-    "didntReceive": "Didn't receive it?",
-    "resendCode": "Resend code",
-    "yourName": "Your name",
-    "tellUsAboutRole": "Tell us about the role",
-    "tellUsAboutRoleSubtitle": "The more context you share, the better your shortlist.",
-    "roleTitle": "What role are you looking to fill?",
-    "roleTitlePlaceholder": "e.g. VP of Engineering, CFO, Head of Product",
-    "hiringDriver": "What's driving this hire?",
-    "hiringDriverGrowth": "Growth — scaling the team",
-    "hiringDriverReplacement": "Replacement — someone left",
-    "hiringDriverNewFunction": "New function — building from scratch",
-    "hiringDriverConfidential": "Confidential — discreet search",
-    "seniorityLevel": "Seniority level",
-    "seniorityDirector": "Director / VP",
+    "verifying": "A verificar…",
+    "couldNotVerifyEmail": "Não foi possível verificar este endereço de email. Pode tentar um diferente ou verificar com um código.",
+    "useDifferentEmail": "Usar email diferente",
+    "verifyWithCode": "Verificar com código",
+    "enterOtpCode": "Introduza o código de 6 dígitos enviado para",
+    "didntReceive": "Não recebeu?",
+    "resendCode": "Reenviar código",
+    "yourName": "O seu nome",
+    "tellUsAboutRole": "Fale-nos sobre a função",
+    "tellUsAboutRoleSubtitle": "Quanto mais contexto partilhar, melhor será a sua lista restrita.",
+    "roleTitle": "Que função pretende preencher?",
+    "roleTitlePlaceholder": "p. ex., VP de Engenharia, CFO, Head of Product",
+    "hiringDriver": "O que motiva esta contratação?",
+    "hiringDriverGrowth": "Crescimento — dimensionamento da equipa",
+    "hiringDriverReplacement": "Substituição — alguém saiu",
+    "hiringDriverNewFunction": "Nova função — construção de raiz",
+    "hiringDriverConfidential": "Confidencial — pesquisa discreta",
+    "seniorityLevel": "Nível de senioridade",
+    "seniorityDirector": "Diretor / VP",
     "seniorityCSuite": "C-Suite",
     "seniorityHead": "Head of / Senior Lead",
-    "senioritySpecialist": "Specialist IC",
-    "additionalContext": "Anything else we should know?",
-    "additionalContextPlaceholder": "Team size, reporting line, challenges with previous hires, specific skills…",
-    "optional": "optional",
+    "senioritySpecialist": "IC Especialista",
+    "additionalContext": "Mais alguma coisa que devamos saber?",
+    "additionalContextPlaceholder": "Tamanho da equipa, hierarquia, desafios com contratações anteriores, competências específicas…",
+    "optional": "opcional",
     "website": "Website",
-    "whereAreYouBased": "Where are you based?",
-    "almostThere": "Almost there",
-    "helpsUsReachYou": "Add any final details and review your brief.",
-    "phoneNumber": "Best number to reach you",
-    "phoneHint": "Your strategist may call to discuss your brief. WhatsApp or phone.",
-    "yourDetails": "Your details",
+    "whereAreYouBased": "Onde se encontra?",
+    "almostThere": "Quase a chegar lá",
+    "helpsUsReachYou": "Adicione os detalhes finais e reveja o seu resumo.",
+    "phoneNumber": "Melhor número para o contactar",
+    "phoneHint": "O seu estratega poderá ligar para discutir o seu resumo. WhatsApp ou telefone.",
+    "yourDetails": "Os seus detalhes",
     "summary": {
       "name": "Nome",
       "email": "Email",
       "company": "Empresa",
-      "industry": "Industry",
+      "industry": "Setor",
       "role": "Funcao",
-      "seniority": "Seniority",
-      "hiringDriver": "Driving this hire",
+      "seniority": "Senioridade",
+      "hiringDriver": "Motivação desta contratação",
       "website": "Website",
       "location": "Localizacao",
       "phone": "Telefone",
-      "context": "Additional context"
+      "context": "Contexto adicional"
     },
-    "restoringProgress": "Restoring your progress…",
+    "restoringProgress": "A restaurar o seu progresso…",
     "back": "Voltar",
-    "submitting": "Submitting…",
-    "submitBrief": "Get my shortlist",
-    "welcomeBack": "Welcome back!",
-    "progressRestored": "Your progress has been restored.",
-    "resumingProgress": "Resuming your progress…",
-    "validEmailRequired": "Please enter a valid email address",
-    "verificationCodeSent": "Verification code sent",
-    "checkEmail": "Check {{email}} for your code",
-    "couldNotSendCode": "Could not send verification code",
-    "invalidCode": "Invalid verification code",
-    "verificationFailed": "Verification failed",
-    "completeRequiredFields": "Please complete all required fields",
-    "roleRequired": "Please enter the role you're looking to fill",
-    "requestSubmitted": "Request submitted!",
-    "strategistInTouch": "A strategist will be in touch soon.",
-    "strategistInTouch24h": "A strategist will be in touch within 24 hours.",
-    "couldNotVerifyRequest": "Could not verify your request",
+    "submitting": "A submeter…",
+    "submitBrief": "Obter a minha lista restrita",
+    "welcomeBack": "Bem-vindo(a) de volta!",
+    "progressRestored": "O seu progresso foi restaurado.",
+    "resumingProgress": "A retomar o seu progresso…",
+    "validEmailRequired": "Por favor, introduza um endereço de email válido",
+    "verificationCodeSent": "Código de verificação enviado",
+    "checkEmail": "Verifique {{email}} para obter o seu código",
+    "couldNotSendCode": "Não foi possível enviar o código de verificação",
+    "invalidCode": "Código de verificação inválido",
+    "verificationFailed": "A verificação falhou",
+    "completeRequiredFields": "Por favor, preencha todos os campos obrigatórios",
+    "roleRequired": "Por favor, introduza a função que pretende preencher",
+    "requestSubmitted": "Pedido submetido!",
+    "strategistInTouch": "Um estratega entrará em contacto brevemente.",
+    "strategistInTouch24h": "Um estratega entrará em contacto dentro de 24 horas.",
+    "couldNotVerifyRequest": "Não foi possível verificar o seu pedido",
     "somethingWentWrong": "Algo correu mal"
   },
   "funnelAnalytics": {
-    "text1": "Funnel Analytics",
-    "text2": "Real-time partner request tracking and insights",
-    "text3": "Total Views",
-    "text4": "Unique Sessions",
-    "text5": "Submissions",
-    "text6": "Conversion Rate",
-    "text7": "Drop-off Rate",
-    "text8": "Funnel Step Progression",
-    "text9": "Request Status Distribution",
-    "text10": "Partner Requests",
-    "text11": "Filter by status",
-    "text12": "All Statuses",
+    "text1": "Análise do Funil",
+    "text2": "Acompanhamento e insights de pedidos de parceiros em tempo real",
+    "text3": "Visualizações Totais",
+    "text4": "Sessões Únicas",
+    "text5": "Submissões",
+    "text6": "Taxa de Conversão",
+    "text7": "Taxa de Abandono",
+    "text8": "Progressão da Etapa do Funil",
+    "text9": "Distribuição do Status do Pedido",
+    "text10": "Pedidos de Parceiros",
+    "text11": "Filtrar por estado",
+    "text12": "Todos os Estados",
     "text13": "Pendente",
-    "text14": "In Review",
+    "text14": "Em Análise",
     "text15": "Aprovado",
     "text16": "Rejeitado",
     "text17": "Data",
     "text18": "Empresa",
-    "text19": "Contact",
-    "text20": "Industry",
-    "text21": "Type",
-    "text22": "Status",
-    "text23": "Source"
+    "text19": "Contacto",
+    "text20": "Indústria",
+    "text21": "Tipo",
+    "text22": "Estado",
+    "text23": "Fonte"
   },
   "partnerAnalyticsDashboard": {
-    "text1": "No company associated with your account",
+    "text1": "Nenhuma empresa associada à sua conta",
     "text2": "Visao Geral",
     "text3": "Pipeline",
-    "text4": "Trends",
-    "text5": "Benchmarks"
+    "text4": "Tendências",
+    "text5": "Referências"
   },
   "partnerFunnel": {
-    "desc": "Describe the role. We handle the rest.",
-    "desc2": "No fees until you hire. No long-term contracts.",
+    "desc": "Descreva a função. Nós tratamos do resto.",
+    "desc2": "Sem taxas até contratar. Sem contratos de longo prazo.",
     "text3": "Quantum Club",
     "text4": "Quantum Club",
-    "text5": "Partnership Applications Temporarily Paused",
+    "text5": "Candidaturas de Parceria Temporariamente Pausadas",
     "text6": "Quantum Club",
     "text7": "Quantum Club",
-    "text8": "Share your brief",
-    "text9": "Speak with a strategist",
-    "text10": "Review your shortlist"
+    "text8": "Partilhe o seu briefing",
+    "text9": "Fale com um estratega",
+    "text10": "Reveja a sua lista restrita"
   },
   "partnerRejections": {
-    "text1": "Talent Pool Opportunity",
-    "text2": "Search candidates...",
-    "text3": "All Jobs",
-    "text4": "All Jobs",
-    "text5": "All Reasons",
-    "text6": "All Reasons"
+    "text1": "Oportunidade de Banco de Talentos",
+    "text2": "Pesquisar candidatos...",
+    "text3": "Todos os Empregos",
+    "text4": "Todos os Empregos",
+    "text5": "Todos os Motivos",
+    "text6": "Todos os Motivos"
   },
   "partnerRelationships": {
-    "text1": "Candidate Relationships",
-    "text2": "Monitor and nurture your candidate connections"
+    "text1": "Relações com Candidatos",
+    "text2": "Monitorize e cultive as suas ligações com candidatos"
   },
   "partnerSetup": {
-    "desc": "Click the camera icon to upload",
-    "desc2": "We can import your profile photo from LinkedIn automatically."
+    "desc": "Clique no ícone da câmara para carregar",
+    "desc2": "Podemos importar a sua foto de perfil do LinkedIn automaticamente."
   },
   "partnerWelcome": {
-    "title": "What's Next",
-    "desc": "Your Organization",
-    "desc2": "Your Dedicated Strategist",
-    "desc3": "Explore Open Roles",
-    "desc4": "Browse exclusive opportunities curated for your network",
-    "desc5": "Submit Candidates",
-    "desc6": "Introduce top talent through our streamlined process",
-    "desc7": "Schedule Your Onboarding Call"
+    "title": "O Que Vem a Seguir",
+    "desc": "A Sua Organização",
+    "desc2": "O Seu Estratega Dedicado",
+    "desc3": "Explore Funções Abertas",
+    "desc4": "Navegue por oportunidades exclusivas selecionadas para a sua rede",
+    "desc5": "Submeta Candidatos",
+    "desc6": "Apresente os melhores talentos através do nosso processo simplificado",
+    "desc7": "Agende a Sua Chamada de Integração"
   },
   "addCandidateDialog": {
     "toast": {
-      "duplicateEmailDetected": "Duplicate Email Detected",
-      "duplicateEmailDetectedDesc": "A candidate with this email already exists. Please search for the existing candidate or use a different email.",
-      "databaseError": "Database Error",
-      "databaseErrorDesc": "Unable to link candidate data. Please try again or contact support if the issue persists.",
-      "permissionDenied": "Permission Denied",
-      "permissionDeniedDesc": "You don't have permission to add candidates. Please contact an administrator.",
-      "duplicateCandidate": "Duplicate Candidate",
-      "duplicateCandidateDesc": "This candidate already exists in the system. Please check existing applications."
+      "duplicateEmailDetected": "Email Duplicado Detetado",
+      "duplicateEmailDetectedDesc": "Já existe um candidato com este email. Por favor, procure o candidato existente ou use um email diferente.",
+      "databaseError": "Erro de Base de Dados",
+      "databaseErrorDesc": "Não foi possível ligar os dados do candidato. Por favor, tente novamente ou contacte o suporte se o problema persistir.",
+      "permissionDenied": "Permissão Negada",
+      "permissionDeniedDesc": "Não tem permissão para adicionar candidatos. Por favor, contacte um administrador.",
+      "duplicateCandidate": "Candidato Duplicado",
+      "duplicateCandidateDesc": "Este candidato já existe no sistema. Por favor, verifique as candidaturas existentes."
     },
     "placeholder": {
       "johnDoe": "John Doe",
       "techCorp": "Tech Corp",
       "seniorDeveloper": "Senior Developer",
-      "whyThisCandidateSourceSpecialConsiderati": "Why this candidate? Source? Special considerations?"
+      "whyThisCandidateSourceSpecialConsiderati": "Porquê este candidato? Fonte? Considerações especiais?"
     }
   },
   "addJobTeamMemberDialog": {
-    "dialogTitle": "Add Team Member",
+    "dialogTitle": "Adicionar Membro da Equipa",
     "toast": {
-      "failedToLoadTeamMembers": "Failed to load team members",
-      "failedToLoadTqcTeamMembers": "Failed to load TQC team members",
-      "pleaseSelectATeamMember": "Please select a team member",
-      "pleaseSelectAUser": "Please select a user",
-      "pleaseProvideAReasonForThisAssignment": "Please provide a reason for this assignment",
-      "teamMemberAddedSuccessfully": "Team member added successfully"
+      "failedToLoadTeamMembers": "Falha ao carregar membros da equipa",
+      "failedToLoadTqcTeamMembers": "Falha ao carregar membros da equipa TQC",
+      "pleaseSelectATeamMember": "Por favor, selecione um membro da equipa",
+      "pleaseSelectAUser": "Por favor, selecione um utilizador",
+      "pleaseProvideAReasonForThisAssignment": "Por favor, forneça uma razão para esta atribuição",
+      "teamMemberAddedSuccessfully": "Membro da equipa adicionado com sucesso"
     },
     "label": {
-      "teamMember": "Team Member",
+      "teamMember": "Membro da Equipa",
       "role": "Funcao",
       "permissions": "Permissoes",
-      "selectTqcTeamMember": "Select TQC Team Member",
-      "assignmentReason": "Assignment Reason"
+      "selectTqcTeamMember": "Selecionar Membro da Equipa TQC",
+      "assignmentReason": "Motivo da Atribuição"
     },
     "placeholder": {
-      "selectATeamMember": "Select a team member",
-      "searchTqcTeamByNameOrEmail": "Search TQC team by name or email...",
-      "whyIsThisPersonBeingAssignedToThisJob": "Why is this person being assigned to this job?"
+      "selectATeamMember": "Selecione um membro da equipa",
+      "searchTqcTeamByNameOrEmail": "Pesquise a equipa TQC por nome ou email...",
+      "whyIsThisPersonBeingAssignedToThisJob": "Por que esta pessoa está a ser atribuída a este trabalho?"
     },
     "badge": {
       "admin": "Administrador",
-      "strategist": "Strategist"
+      "strategist": "Estrategista"
     },
-    "noMatchingTeamMembersFound": "No matching team members found",
-    "externalUsersReceiveLimitedTimeboxedAcce": "External users receive limited, time-boxed access with audit logging",
-    "dialogDescription": "Assign a team member or external user to this job with specific role and permissions.",
+    "noMatchingTeamMembersFound": "Nenhum membro da equipa correspondente encontrado",
+    "externalUsersReceiveLimitedTimeboxedAcce": "Utilizadores externos recebem acesso limitado e com tempo definido, com registo de auditoria",
+    "dialogDescription": "Atribua um membro da equipa ou utilizador externo a este trabalho com função e permissões específicas.",
     "option": {
-      "hiringManager": "Hiring Manager",
-      "founderexecutiveReviewer": "Founder/Executive Reviewer",
-      "technicalInterviewer": "Technical Interviewer",
-      "behavioralInterviewer": "Behavioral Interviewer",
-      "panelMember": "Panel Member",
-      "interviewCoordinator": "Interview Coordinator",
-      "observer": "Observer"
+      "hiringManager": "Gestor de Contratação",
+      "founderexecutiveReviewer": "Fundador/Revisor Executivo",
+      "technicalInterviewer": "Entrevistador Técnico",
+      "behavioralInterviewer": "Entrevistador Comportamental",
+      "panelMember": "Membro do Painel",
+      "interviewCoordinator": "Coordenador de Entrevistas",
+      "observer": "Observador"
     }
   },
   "addStageDialog": {
-    "dialogTitle": "Add New Pipeline Stage",
+    "dialogTitle": "Adicionar Nova Etapa do Pipeline",
     "placeholder": {
-      "buildingroomNumberReceptionInstructionsP": "Building/Room number, Reception instructions, Parking information, Accessibility notes...",
-      "listMaterialsCandidatesShouldPreparePort": "List materials candidates should prepare (portfolio, references, certificates, etc.)"
+      "buildingroomNumberReceptionInstructionsP": "Número do edifício/sala, instruções de receção, informações de estacionamento, notas de acessibilidade...",
+      "listMaterialsCandidatesShouldPreparePort": "Liste os materiais que os candidatos devem preparar (portfólio, referências, certificados, etc.)"
     },
-    "configureEveryDetailForALuxuryTailoredCa": "Configure every detail for a luxury, tailored candidate experience",
-    "candidatesCanChooseBetweenOnlineOrInpers": "Candidates can choose between online or in-person. Configure both options above or provide flexible instructions.",
-    "thisHelpsEvaluatorsProvideConsistentStru": "This helps evaluators provide consistent, structured feedback",
-    "quickstartWithPreconfiguredStageTemplate": "Quick-start with pre-configured stage templates",
+    "configureEveryDetailForALuxuryTailoredCa": "Configure todos os detalhes para uma experiência de candidato de luxo e personalizada",
+    "candidatesCanChooseBetweenOnlineOrInpers": "Os candidatos podem escolher entre online ou presencial. Configure ambas as opções acima ou forneça instruções flexíveis.",
+    "thisHelpsEvaluatorsProvideConsistentStru": "Isto ajuda os avaliadores a fornecer feedback consistente e estruturado",
+    "quickstartWithPreconfiguredStageTemplate": "Comece rapidamente com modelos de etapa pré-configurados",
     "option": {
-      "noTeamMembersAvailable": "No team members available"
+      "noTeamMembersAvailable": "Nenhum membro da equipa disponível"
     },
     "desc": {
-      "stageConfigurationSavedAndAuditLogged": "Stage configuration saved and audit logged"
+      "stageConfigurationSavedAndAuditLogged": "Configuração da etapa guardada e registada para auditoria"
     }
   },
   "addToJobDialog": {
-    "dialogTitle": "Add to Job Pipeline",
+    "dialogTitle": "Adicionar ao Pipeline de Trabalho",
     "toast": {
-      "candidateAddedButInteractionLogFailed": "Candidate added but interaction log failed",
-      "candidateAddedButAuditLogFailed": "Candidate added but audit log failed",
-      "failedToAddCandidate": "Failed to add candidate to job"
+      "candidateAddedButInteractionLogFailed": "Candidato adicionado, mas o registo de interação falhou",
+      "candidateAddedButAuditLogFailed": "Candidato adicionado, mas o registo de auditoria falhou",
+      "failedToAddCandidate": "Falha ao adicionar candidato ao trabalho"
     },
     "label": {
-      "startingStage": "Starting Stage",
-      "notesOptional": "Notes (optional)"
+      "startingStage": "Etapa Inicial",
+      "notesOptional": "Notas (opcional)"
     },
     "placeholder": {
-      "searchJobsByTitleOrCompany": "Search jobs by title or company...",
-      "whyAreYouAddingThisCandidate": "Why are you adding this candidate?"
+      "searchJobsByTitleOrCompany": "Pesquise trabalhos por título ou empresa...",
+      "whyAreYouAddingThisCandidate": "Por que está a adicionar este candidato?"
     },
     "badge": {
-      "alreadyInPipeline": "Already in pipeline"
+      "alreadyInPipeline": "Já no pipeline"
     },
-    "noActiveJobsFound": "No active jobs found."
+    "noActiveJobsFound": "Nenhum trabalho ativo encontrado."
   },
   "adminBoardTools": {
     "toast": {
-      "globalAnalytics": "Global Analytics",
-      "globalAnalyticsDesc": "Cross-company insights and platform-wide metrics",
-      "talentPoolAccessGranted": "Talent Pool Access Granted",
-      "talentPoolAccessGrantedDesc": "Full access to 12,847 candidate profiles",
-      "companyManagement": "Company Management",
-      "companyManagementDesc": "Manage all partner companies and their access levels",
-      "bulkOperations": "Bulk Operations",
-      "bulkOperationsDesc": "Perform bulk actions across multiple jobs and candidates",
-      "platformSettings": "Platform Settings",
-      "platformSettingsDesc": "Configure global platform rules, AI models, and workflows",
-      "aiConfiguration": "AI Configuration",
-      "aiConfigurationDesc": "Adjust matching algorithms, scoring weights, and ML models",
-      "systemHealthOptimal": "System Health: Optimal",
-      "systemHealthOptimalDesc": "All services running normally. 99.97% uptime",
-      "globalDataExport": "Global Data Export",
-      "globalDataExportDesc": "Exporting anonymized platform analytics...",
-      "accessControl": "Access Control",
-      "accessControlDesc": "Manage roles, permissions, and security policies"
+      "globalAnalytics": "Análise Global",
+      "globalAnalyticsDesc": "Insights entre empresas e métricas em toda a plataforma",
+      "talentPoolAccessGranted": "Acesso Concedido ao Banco de Talentos",
+      "talentPoolAccessGrantedDesc": "Acesso total a 12.847 perfis de candidatos",
+      "companyManagement": "Gestão de Empresas",
+      "companyManagementDesc": "Gerir todas as empresas parceiras e os seus níveis de acesso",
+      "bulkOperations": "Operações em Massa",
+      "bulkOperationsDesc": "Efetue ações em massa em vários empregos e candidatos",
+      "platformSettings": "Definições da Plataforma",
+      "platformSettingsDesc": "Configure regras globais da plataforma, modelos de IA e fluxos de trabalho",
+      "aiConfiguration": "Configuração de IA",
+      "aiConfigurationDesc": "Ajuste algoritmos de correspondência, pesos de pontuação e modelos de ML",
+      "systemHealthOptimal": "Saúde do Sistema: Ótima",
+      "systemHealthOptimalDesc": "Todos os serviços a funcionar normalmente. 99,97% de tempo de atividade",
+      "globalDataExport": "Exportação Global de Dados",
+      "globalDataExportDesc": "A exportar análises anónimas da plataforma...",
+      "accessControl": "Controlo de Acesso",
+      "accessControlDesc": "Gerir funções, permissões e políticas de segurança"
     },
     "badge": {
-      "quantumClubAdmin": "QUANTUM CLUB ADMIN"
+      "quantumClubAdmin": "ADMINISTRADOR THE QUANTUM CLUB"
     },
-    "platformwideManagementAnalytics": "Platform-wide management & analytics",
-    "companyManagement": "Company Management",
-    "viewManageAllPartners": "View & manage all partners",
-    "bulkOperations": "Bulk Operations",
-    "crossjobActionsAtScale": "Cross-job actions at scale",
-    "aiModelConfig": "AI Model Config",
-    "tuneMatchingAlgorithms": "Tune matching algorithms",
-    "systemHealth": "System Health",
-    "platformStatusUptime": "Platform status & uptime",
-    "accessControl": "Access Control",
-    "rolesPermissions": "Roles & permissions",
-    "platformSettings": "Platform Settings",
-    "globalConfigurations": "Global configurations",
-    "exportGlobalData": "Export Global Data",
-    "platformwideAnalytics": "Platform-wide analytics",
-    "refreshAllMetrics": "Refresh All Metrics",
-    "recalculateEverything": "Recalculate everything"
+    "platformwideManagementAnalytics": "Gestão e análises em toda a plataforma",
+    "companyManagement": "Gestão de Empresas",
+    "viewManageAllPartners": "Ver e gerir todos os parceiros",
+    "bulkOperations": "Operações em Massa",
+    "crossjobActionsAtScale": "Ações entre empregos em escala",
+    "aiModelConfig": "Configuração do Modelo de IA",
+    "tuneMatchingAlgorithms": "Ajustar algoritmos de correspondência",
+    "systemHealth": "Saúde do Sistema",
+    "platformStatusUptime": "Estado da plataforma e tempo de atividade",
+    "accessControl": "Controlo de Acesso",
+    "rolesPermissions": "Funções e permissões",
+    "platformSettings": "Definições da Plataforma",
+    "globalConfigurations": "Configurações globais",
+    "exportGlobalData": "Exportar Dados Globais",
+    "platformwideAnalytics": "Análises em toda a plataforma",
+    "refreshAllMetrics": "Atualizar Todas as Métricas",
+    "recalculateEverything": "Recalcular tudo"
   },
   "adminJobTools": {
-    "sheetTitle": "Email Dump",
+    "sheetTitle": "Despejo de Email",
     "toast": {
-      "metricsUpdatedSuccessfully": "Metrics updated successfully",
-      "aiMatchingEngine": "AI Matching Engine",
-      "aiMatchingEngineDesc": "Analyzing global talent pool for perfect matches...",
-      "found23HighpotentialCandidates": "Found 23 high-potential candidates",
-      "found23HighpotentialCandidatesDesc": "Advanced AI scoring applied. Review in pipeline.",
-      "bulkImport": "Bulk Import",
-      "bulkImportDesc": "Upload CSV or connect ATS to import candidates",
-      "pipelineHealth94": "Pipeline Health: 94%",
-      "pipelineHealth94Desc": "Excellent flow. Avg time-to-hire: 12 days",
-      "exportingPipelineData": "Exporting pipeline data",
-      "exportingPipelineDataDesc": "Full analytics export with GDPR compliance",
-      "recalculatingMetrics": "Recalculating metrics...",
-      "recalculatingMetricsDesc": "Using latest AI models and scoring algorithms"
+      "metricsUpdatedSuccessfully": "Métricas atualizadas com sucesso",
+      "aiMatchingEngine": "Motor de Correspondência de IA",
+      "aiMatchingEngineDesc": "A analisar o conjunto de talentos global para correspondências perfeitas...",
+      "found23HighpotentialCandidates": "Encontrados 23 candidatos de alto potencial",
+      "found23HighpotentialCandidatesDesc": "Pontuação avançada de IA aplicada. Reveja no pipeline.",
+      "bulkImport": "Importação em Massa",
+      "bulkImportDesc": "Carregue CSV ou ligue ATS para importar candidatos",
+      "pipelineHealth94": "Saúde do Pipeline: 94%",
+      "pipelineHealth94Desc": "Excelente fluxo. Tempo médio de contratação: 12 dias",
+      "exportingPipelineData": "A exportar dados do pipeline",
+      "exportingPipelineDataDesc": "Exportação completa de análises com conformidade com o RGPD",
+      "recalculatingMetrics": "A recalcular métricas...",
+      "recalculatingMetricsDesc": "A usar os modelos de IA e algoritmos de pontuação mais recentes"
     },
     "badge": {
-      "adminJobTools": "ADMIN JOB TOOLS"
+      "adminJobTools": "FERRAMENTAS DE ADMINISTRAÇÃO DE VAGAS"
     },
-    "joblevelOperations": "Job-level operations"
+    "joblevelOperations": "Operações ao nível da vaga"
   },
   "advancedJobFilters": {
-    "title": "Advanced Filters",
-    "status": "Status",
+    "title": "Filtros Avançados",
+    "status": "Estado",
     "company": "Empresa",
-    "createdDateRange": "Created Date Range",
-    "fromDate": "From date",
-    "toDate": "To date"
+    "createdDateRange": "Intervalo de Datas de Criação",
+    "fromDate": "Data de início",
+    "toDate": "Data de fim"
   },
   "applicantPipeline": {
-    "noActiveJobs": "No active jobs",
-    "applicantPipeline": "Applicant Pipeline",
-    "noApplicationsYet": "No applications yet",
+    "noActiveJobs": "Sem vagas ativas",
+    "applicantPipeline": "Pipeline de Candidatos",
+    "noApplicationsYet": "Ainda não há candidaturas",
     "toast": {
-      "failedToLoadApplicants": "Failed to load applicants"
+      "failedToLoadApplicants": "Falha ao carregar candidatos"
     },
-    "publishAJobToStartReceivingApplications": "Publish a job to start receiving applications",
-    "applicationsWillAppearHereOnceCandidates": "Applications will appear here once candidates start applying",
-    "noCandidatesInThisStage": "No candidates in this stage"
+    "publishAJobToStartReceivingApplications": "Publique uma vaga para começar a receber candidaturas",
+    "applicationsWillAppearHereOnceCandidates": "As candidaturas aparecerão aqui quando os candidatos começarem a candidatar-se",
+    "noCandidatesInThisStage": "Sem candidatos nesta fase"
   },
   "applicationsAnalytics": {
-    "title": "Pipeline Distribution",
-    "avgTimeToHire": "Avg. Time to Hire",
-    "conversionRate": "Conversion Rate",
-    "activePipelines": "Active Pipelines",
-    "stalledPipelines": "Stalled Pipelines",
-    "excellent": "Excellent",
-    "needsImprovement": "Needs improvement",
-    "inProgress": "In progress",
-    "needAttention": "Need attention"
+    "title": "Distribuição do Pipeline",
+    "avgTimeToHire": "Tempo Médio de Contratação",
+    "conversionRate": "Taxa de Conversão",
+    "activePipelines": "Pipelines Ativos",
+    "stalledPipelines": "Pipelines Paralisados",
+    "excellent": "Excelente",
+    "needsImprovement": "Precisa de melhorias",
+    "inProgress": "Em progresso",
+    "needAttention": "Precisa de atenção"
   },
   "applicationsFilters": {
     "placeholder": {
-      "allStatuses": "All statuses",
-      "allJobs": "All jobs",
-      "allCompanies": "All companies",
-      "allSources": "All sources",
-      "allUrgency": "All urgency"
+      "allStatuses": "Todos os estados",
+      "allJobs": "Todas as vagas",
+      "allCompanies": "Todas as empresas",
+      "allSources": "Todas as fontes",
+      "allUrgency": "Todas as urgências"
     },
     "option": {
-      "allStatuses": "All Statuses",
+      "allStatuses": "Todos os Estados",
       "active": "Ativo",
-      "hired": "Hired",
+      "hired": "Contratado",
       "rejected": "Rejeitado",
-      "withdrawn": "Withdrawn",
-      "allJobs": "All Jobs",
-      "allCompanies": "All Companies",
-      "allSources": "All Sources",
+      "withdrawn": "Retirado",
+      "allJobs": "Todas as Vagas",
+      "allCompanies": "Todas as Empresas",
+      "allSources": "Todas as Fontes",
       "linkedin": "LinkedIn",
-      "referral": "Referral",
-      "direct": "Direct",
-      "agency": "Agency",
+      "referral": "Recomendação",
+      "direct": "Direto",
+      "agency": "Agência",
       "all": "Todos",
-      "recentActivity": "Recent Activity"
+      "recentActivity": "Atividade Recente"
     }
   },
   "applicationsTable": {
     "badge": {
-      "noActivity": "No Activity",
-      "urgent": "Urgent",
-      "pendingSignup": "Pending Signup"
+      "noActivity": "Sem Atividade",
+      "urgent": "Urgente",
+      "pendingSignup": "Inscrição Pendente"
     },
-    "noApplicationsFoundMatchingYourFilters": "No applications found matching your filters"
+    "noApplicationsFoundMatchingYourFilters": "Não foram encontradas candidaturas que correspondam aos seus filtros"
   },
   "benchmarkComparison": {
     "badge": {
-      "updatedToday": "Updated today"
+      "updatedToday": "Atualizado hoje"
     },
-    "completeMoreHiringCyclesToUnlockBenchmar": "Complete more hiring cycles to unlock benchmark comparisons"
+    "completeMoreHiringCyclesToUnlockBenchmar": "Conclua mais ciclos de contratação para desbloquear comparações de referência"
   },
   "calendarInterviewLinker": {
     "badge": {
       "tqc": "TQC"
     },
-    "automaticallyDetectedInterviewsFromYourC": "Automatically detected interviews from your calendar",
-    "selectACalendarEventToLinkAsAnInterview": "Select a calendar event to link as an interview",
-    "interviewsThatHaveBeenConfirmedAndLinked": "Interviews that have been confirmed and linked to this job",
-    "dialogDescription": "Browse your calendar events or view automatically detected interviews"
+    "automaticallyDetectedInterviewsFromYourC": "Entrevistas detetadas automaticamente a partir do seu calendário",
+    "selectACalendarEventToLinkAsAnInterview": "Selecione um evento do calendário para associar como entrevista",
+    "interviewsThatHaveBeenConfirmedAndLinked": "Entrevistas que foram confirmadas e associadas a esta vaga",
+    "dialogDescription": "Navegue pelos seus eventos do calendário ou veja as entrevistas detetadas automaticamente"
   },
   "candidateActionDialog": {
     "toast": {
-      "noNextStageAvailable": "No next stage available",
-      "pleaseProvideARejectionReason": "Please provide a rejection reason",
-      "failedToProcessAction": "Failed to process action"
+      "noNextStageAvailable": "Não existe uma próxima fase disponível",
+      "pleaseProvideARejectionReason": "Por favor, forneça um motivo para a rejeição",
+      "failedToProcessAction": "Falha ao processar a ação"
     },
     "label": {
-      "rejectionReason": "Rejection Reason *"
+      "rejectionReason": "Motivo da Rejeição *"
     },
     "placeholder": {
-      "selectAReason": "Select a reason"
+      "selectAReason": "Selecione um motivo"
     },
-    "clubCheckAdvanceCandidate": "Club Check - Advance Candidate",
-    "thisCandidateHasPassedClubVettingStandar": "This candidate has passed Club vetting standards",
+    "clubCheckAdvanceCandidate": "Club Check - Avançar Candidato",
+    "thisCandidateHasPassedClubVettingStandar": "Este candidato passou os padrões de avaliação do Club",
     "option": {
-      "notAFit": "Not a fit",
-      "salaryExpectations": "Salary expectations",
+      "notAFit": "Não se adequa",
+      "salaryExpectations": "Expectativas salariais",
       "location": "Localizacao",
-      "seniorityMismatch": "Seniority mismatch",
-      "skillsGap": "Skills gap",
-      "culturalFit": "Cultural fit",
-      "other": "Other"
+      "seniorityMismatch": "Incompatibilidade de senioridade",
+      "skillsGap": "Lacuna de competências",
+      "culturalFit": "Ajuste cultural",
+      "other": "Outro"
     },
     "desc": {
-      "clubCheckCompletedSuccessfully": "Club Check completed successfully",
-      "feedbackRecordedAndCandidateNotified": "Feedback recorded and candidate notified"
+      "clubCheckCompletedSuccessfully": "Club Check concluído com sucesso",
+      "feedbackRecordedAndCandidateNotified": "Feedback registado e candidato notificado"
     }
   },
   "candidateAnalytics": {
     "toast": {
-      "failedToLoadAnalytics": "Failed to load analytics"
+      "failedToLoadAnalytics": "Falha ao carregar as análises"
     },
     "badge": {
-      "highInterest": "High Interest",
-      "excellentFit": "Excellent Fit",
-      "highlyEngaged": "Highly Engaged"
+      "highInterest": "Alto Interesse",
+      "excellentFit": "Excelente Ajuste",
+      "highlyEngaged": "Altamente Envolvido"
     },
-    "profileViews": "Profile Views",
-    "uniqueViewers": "Unique Viewers",
-    "engagementScore": "Engagement Score",
-    "fitScore": "Fit Score",
-    "noProfileViewsYet": "No profile views yet",
-    "thisCandidateHasReceivedSignificantAtten": "This candidate has received significant attention from the team",
-    "aiAnalysisShowsStrongAlignmentWithRoleRe": "AI analysis shows strong alignment with role requirements",
-    "candidateShowsStrongEngagementWithTheApp": "Candidate shows strong engagement with the application process",
-    "noInsightsAvailableYetProfileViewsAndInt": "No insights available yet. Profile views and interactions will generate AI insights.",
-    "description": "Team members who recently viewed this profile"
+    "profileViews": "Visualizações de Perfil",
+    "uniqueViewers": "Visualizadores Únicos",
+    "engagementScore": "Pontuação de Envolvimento",
+    "fitScore": "Pontuação de Ajuste",
+    "noProfileViewsYet": "Ainda não há visualizações de perfil",
+    "thisCandidateHasReceivedSignificantAtten": "Este candidato recebeu atenção significativa da equipa",
+    "aiAnalysisShowsStrongAlignmentWithRoleRe": "A análise de IA mostra um forte alinhamento com os requisitos da função",
+    "candidateShowsStrongEngagementWithTheApp": "O candidato demonstra um forte envolvimento com o processo de candidatura",
+    "noInsightsAvailableYetProfileViewsAndInt": "Ainda não existem informações disponíveis. As visualizações de perfil e as interações irão gerar informações de IA.",
+    "description": "Membros da equipa que visualizaram recentemente este perfil"
   },
   "candidateDecisionDashboard": {
-    "dialogTitle": "Move to Offer Stage",
+    "dialogTitle": "Mover para a Fase de Oferta",
     "toast": {
-      "noApplicationSelected": "No application selected",
-      "candidateMovedToOfferStage": "Candidate moved to Offer stage",
-      "failedToMoveCandidateToOfferStage": "Failed to move candidate to offer stage",
-      "failedToLogVerdict": "Failed to log verdict",
-      "openingInterviewScheduler": "Opening interview scheduler..."
+      "noApplicationSelected": "Nenhuma candidatura selecionada",
+      "candidateMovedToOfferStage": "Candidato movido para a fase de Oferta",
+      "failedToMoveCandidateToOfferStage": "Falha ao mover o candidato para a fase de Oferta",
+      "failedToLogVerdict": "Falha ao registar o veredicto",
+      "openingInterviewScheduler": "A abrir o agendador de entrevistas..."
     },
     "placeholder": {
-      "addNotesAboutYourDecision": "Add notes about your decision..."
+      "addNotesAboutYourDecision": "Adicione notas sobre a sua decisão..."
     },
-    "overall": "Overall",
-    "yearsExp": "Years Exp",
-    "salaryRange": "Salary Range",
-    "noticePeriod": "Notice Period",
-    "preferredLocation": "Preferred Location",
-    "quickActions": "Quick Actions",
+    "overall": "Geral",
+    "yearsExp": "Anos de Exp.",
+    "salaryRange": "Intervalo Salarial",
+    "noticePeriod": "Período de Aviso Prévio",
+    "preferredLocation": "Localização Preferencial",
+    "quickActions": "Ações Rápidas",
     "alert": {
-      "thisActionWillTriggerTheOfferWorkflowAndDesc": "This action will trigger the offer workflow and notify relevant stakeholders."
+      "thisActionWillTriggerTheOfferWorkflowAndDesc": "Esta ação irá acionar o fluxo de trabalho de oferta e notificar as partes interessadas relevantes."
     }
   },
   "candidateDetailDialog": {
-    "title": "Candidate Info",
+    "title": "Informações do Candidato",
     "toast": {
-      "failedToAddComment": "Failed to add comment",
-      "commentAdded": "Comment added",
-      "failedToSubmitScorecard": "Failed to submit scorecard",
-      "scorecardSubmitted": "Scorecard submitted",
-      "failedToMoveCandidate": "Failed to move candidate",
-      "candidateMoved": "Candidate moved"
+      "failedToAddComment": "Falha ao adicionar comentário",
+      "commentAdded": "Comentário adicionado",
+      "failedToSubmitScorecard": "Falha ao submeter o scorecard",
+      "scorecardSubmitted": "Scorecard submetido",
+      "failedToMoveCandidate": "Falha ao mover o candidato",
+      "candidateMoved": "Candidato movido"
     },
     "placeholder": {
-      "moveToStage": "Move to stage...",
-      "whatAreTheirStrengths": "What are their strengths?",
-      "anyConcerns": "Any concerns?",
-      "additionalNotes": "Additional notes..."
+      "moveToStage": "Mover para a fase...",
+      "whatAreTheirStrengths": "Quais são os seus pontos fortes?",
+      "anyConcerns": "Alguma preocupação?",
+      "additionalNotes": "Notas adicionais..."
     },
     "tab": {
       "overview": "Visao Geral",
@@ -646,981 +646,981 @@
       "comments": "Comentarios",
       "activity": "Atividade"
     },
-    "activityTimelineComingSoon": "Activity timeline coming soon",
-    "pipelineStage": "Pipeline Stage",
+    "activityTimelineComingSoon": "Linha do tempo de atividade em breve",
+    "pipelineStage": "Fase do Pipeline",
     "option": {
-      "strongYes": "Strong Yes",
+      "strongYes": "Sim Forte",
       "yes": "Sim",
-      "neutral": "Neutral",
-      "strongNo": "Strong No"
+      "neutral": "Neutro",
+      "strongNo": "Não Forte"
     }
   },
   "candidateDocumentsViewer": {
-    "dialogTitle": "Select Document Type",
+    "dialogTitle": "Selecionar Tipo de Documento",
     "toast": {
-      "failedToLoadDocuments": "Failed to load documents",
-      "failedToUpdateDocument": "Failed to update document",
-      "documentDeleted": "Document deleted",
-      "failedToDeleteDocument": "Failed to delete document"
+      "failedToLoadDocuments": "Falha ao carregar documentos",
+      "failedToUpdateDocument": "Falha ao atualizar documento",
+      "documentDeleted": "Documento eliminado",
+      "failedToDeleteDocument": "Falha ao eliminar documento"
     },
     "label": {
-      "documentType": "Document Type",
-      "expiryDateOptional": "Expiry Date (Optional)"
+      "documentType": "Tipo de Documento",
+      "expiryDateOptional": "Data de Validade (Opcional)"
     },
-    "loadingDocuments": "Loading documents",
-    "releaseToUpload": "Release to upload",
-    "noDocumentsYet": "No documents yet",
-    "uploadTheFirstDocumentToGetStarted": "Upload the first document to get started",
-    "documentsWillBeAutomaticallyArchivedAfte": "Documents will be automatically archived after this date for GDPR compliance",
-    "verified": "Verified",
+    "loadingDocuments": "A carregar documentos",
+    "releaseToUpload": "Soltar para carregar",
+    "noDocumentsYet": "Ainda não existem documentos",
+    "uploadTheFirstDocumentToGetStarted": "Carregue o primeiro documento para começar",
+    "documentsWillBeAutomaticallyArchivedAfte": "Os documentos serão automaticamente arquivados após esta data para cumprimento do RGPD",
+    "verified": "Verificado",
     "title": {
-      "documentPreview": "Document preview"
+      "documentPreview": "Pré-visualização do documento"
     }
   },
   "candidateInteractionLog": {
-    "title": "Interaction Timeline",
+    "title": "Cronologia de Interações",
     "toast": {
-      "pleaseEnterNoteContent": "Please enter note content",
-      "noteAddedSuccessfully": "Note added successfully",
-      "failedToAddNote": "Failed to add note"
+      "pleaseEnterNoteContent": "Por favor, introduza o conteúdo da nota",
+      "noteAddedSuccessfully": "Nota adicionada com sucesso",
+      "failedToAddNote": "Falha ao adicionar nota"
     },
     "label": {
-      "logNewInteraction": "Log New Interaction"
+      "logNewInteraction": "Registar Nova Interação"
     },
     "placeholder": {
-      "enterInteractionDetails": "Enter interaction details..."
+      "enterInteractionDetails": "Introduza os detalhes da interação..."
     },
-    "noInteractionsLoggedYet": "No interactions logged yet",
-    "description": "Loading candidate interactions...",
+    "noInteractionsLoggedYet": "Ainda não foram registadas interações",
+    "description": "A carregar interações do candidato...",
     "option": {
       "note": "Nota",
-      "phoneCall": "Phone Call",
+      "phoneCall": "Chamada Telefónica",
       "email": "Email",
       "message": "Mensagem",
       "meeting": "Reuniao"
     }
   },
   "candidateInternalRatingCard": {
-    "title": "Rating History",
+    "title": "Histórico de Avaliações",
     "toast": {
-      "ratingsUpdatedSuccessfully": "Ratings updated successfully",
-      "failedToUpdateRatings": "Failed to update ratings"
+      "ratingsUpdatedSuccessfully": "Avaliações atualizadas com sucesso",
+      "failedToUpdateRatings": "Falha ao atualizar avaliações"
     },
     "placeholder": {
-      "addContextForTheseRatings": "Add context for these ratings..."
+      "addContextForTheseRatings": "Adicione contexto para estas avaliações..."
     },
-    "overallTeamAssessmentOfCandidateQuality": "Overall team assessment of candidate quality",
-    "candidateResponsivenessAndInterestLevel": "Candidate responsiveness and interest level",
-    "skillsAndExperienceAlignmentWithOpportun": "Skills and experience alignment with opportunities",
-    "viewAllRatingChangesAndTeamMemberAssessm": "View all rating changes and team member assessments over time",
-    "description": "Team evaluation metrics (not visible to candidate)"
+    "overallTeamAssessmentOfCandidateQuality": "Avaliação geral da equipa sobre a qualidade do candidato",
+    "candidateResponsivenessAndInterestLevel": "Capacidade de resposta e nível de interesse do candidato",
+    "skillsAndExperienceAlignmentWithOpportun": "Alinhamento de competências e experiência com oportunidades",
+    "viewAllRatingChangesAndTeamMemberAssessm": "Ver todas as alterações de avaliação e avaliações dos membros da equipa ao longo do tempo",
+    "description": "Métricas de avaliação da equipa (não visíveis para o candidato)"
   },
   "candidateInvitationDialog": {
     "toast": {
-      "invitationSentSuccessfully": "Invitation sent successfully!",
-      "failedToSendInvitation": "Failed to send invitation"
+      "invitationSentSuccessfully": "Convite enviado com sucesso!",
+      "failedToSendInvitation": "Falha ao enviar convite"
     },
     "label": {
-      "emailAddress": "Email Address",
-      "linkToSpecificJobsOptional": "Link to Specific Jobs (Optional)",
-      "personalMessage": "Personal Message"
+      "emailAddress": "Endereço de Email",
+      "linkToSpecificJobsOptional": "Link para Empregos Específicos (Opcional)",
+      "personalMessage": "Mensagem Pessoal"
     },
-    "selectedJobsWillBeMentionedInTheInvitati": "Selected jobs will be mentioned in the invitation email",
-    "thisMessageWillBeIncludedInTheInvitation": "This message will be included in the invitation email",
-    "whatHappensNext": "What happens next?"
+    "selectedJobsWillBeMentionedInTheInvitati": "Os empregos selecionados serão mencionados no email de convite",
+    "thisMessageWillBeIncludedInTheInvitation": "Esta mensagem será incluída no email de convite",
+    "whatHappensNext": "O que acontece a seguir?"
   },
   "candidateLinkedJobs": {
     "toast": {
-      "failedToLoadLinkedJobs": "Failed to load linked jobs"
+      "failedToLoadLinkedJobs": "Falha ao carregar empregos associados"
     },
-    "applied": "Applied",
-    "lastUpdated": "Last Updated",
-    "salaryRange": "Salary Range",
-    "stageProgress": "Stage Progress",
-    "description": "No job applications found"
+    "applied": "Candidatou-se",
+    "lastUpdated": "Última atualização",
+    "salaryRange": "Intervalo Salarial",
+    "stageProgress": "Progresso da Etapa",
+    "description": "Não foram encontradas candidaturas de emprego"
   },
   "candidateNotesManager": {
     "toast": {
-      "noteContentIsRequired": "Note content is required",
-      "youMustBeLoggedInToCreateNotes": "You must be logged in to create notes",
-      "noteSaved": "Note saved",
-      "failedToDeleteNote": "Failed to delete note",
-      "noteDeleted": "Note deleted",
-      "failedToUpdateNote": "Failed to update note"
+      "noteContentIsRequired": "O conteúdo da nota é obrigatório",
+      "youMustBeLoggedInToCreateNotes": "Tem de iniciar sessão para criar notas",
+      "noteSaved": "Nota guardada",
+      "failedToDeleteNote": "Falha ao eliminar a nota",
+      "noteDeleted": "Nota eliminada",
+      "failedToUpdateNote": "Falha ao atualizar a nota"
     },
     "placeholder": {
-      "noteTitle": "Note title...",
-      "addYourNotesHere": "Add your notes here..."
+      "noteTitle": "Título da nota...",
+      "addYourNotesHere": "Adicione as suas notas aqui..."
     },
     "tab": {
-      "allNotes": "All Notes",
-      "tqcInternal": "TQC Internal",
-      "partnerShared": "Partner Shared",
-      "general": "General"
+      "allNotes": "Todas as Notas",
+      "tqcInternal": "TQC Interno",
+      "partnerShared": "Partilhado pelo Parceiro",
+      "general": "Geral"
     },
-    "loadingNotes": "Loading notes...",
-    "tqcInternal": "TQC Internal",
-    "visibleOnlyToTqcTeam": "Visible only to TQC team",
-    "general": "General",
-    "visibleToEveryone": "Visible to everyone"
+    "loadingNotes": "A carregar notas...",
+    "tqcInternal": "TQC Interno",
+    "visibleOnlyToTqcTeam": "Visível apenas para a equipa TQC",
+    "general": "Geral",
+    "visibleToEveryone": "Visível para todos"
   },
   "candidatePipelineStatus": {
     "toast": {
-      "failedToLoadPipelineStatus": "Failed to load pipeline status",
-      "pipelineStageUpdated": "Pipeline stage updated",
-      "failedToUpdateStage": "Failed to update stage"
+      "failedToLoadPipelineStatus": "Falha ao carregar o estado do pipeline",
+      "pipelineStageUpdated": "Etapa do pipeline atualizada",
+      "failedToUpdateStage": "Falha ao atualizar a etapa"
     },
-    "currentStage": "Current Stage",
-    "progress": "Progress",
-    "description": "No active applications found"
+    "currentStage": "Etapa Atual",
+    "progress": "Progresso",
+    "description": "Nenhuma candidatura ativa encontrada"
   },
   "candidateQuickActions": {
-    "dialogTitle": "Import from LinkedIn",
+    "dialogTitle": "Importar do LinkedIn",
     "toast": {
-      "pleaseEnterALinkedinUrl": "Please enter a LinkedIn URL",
-      "linkedinProfileImportedSuccessfully": "LinkedIn profile imported successfully.",
-      "failedToImportLinkedinProfile": "Failed to import LinkedIn profile",
-      "profileExportedSuccessfully": "Profile exported successfully",
-      "failedToExportProfile": "Failed to export profile"
+      "pleaseEnterALinkedinUrl": "Por favor, introduza um URL do LinkedIn",
+      "linkedinProfileImportedSuccessfully": "Perfil do LinkedIn importado com sucesso.",
+      "failedToImportLinkedinProfile": "Falha ao importar o perfil do LinkedIn",
+      "profileExportedSuccessfully": "Perfil exportado com sucesso",
+      "failedToExportProfile": "Falha ao exportar o perfil"
     },
     "label": {
-      "linkedinProfileUrl": "LinkedIn Profile URL"
+      "linkedinProfileUrl": "URL do Perfil do LinkedIn"
     },
-    "dialogDescription": "Enter a LinkedIn profile URL to automatically enrich this candidate's profile"
+    "dialogDescription": "Introduza um URL de perfil do LinkedIn para enriquecer automaticamente o perfil deste candidato"
   },
   "companyAchievements": {
-    "title": "Custom Achievements",
-    "basicInformation": "Basic Information",
-    "unlockCriteria": "Unlock Criteria",
-    "noCustomAchievementsYet": "No custom achievements yet",
+    "title": "Conquistas Personalizadas",
+    "basicInformation": "Informação Básica",
+    "unlockCriteria": "Critérios de Desbloqueio",
+    "noCustomAchievementsYet": "Ainda não existem conquistas personalizadas",
     "label": {
-      "achievementName": "Achievement Name *",
-      "description": "Description *",
-      "icon": "Icon",
-      "interactionType": "Interaction Type *",
-      "requiredAmount": "Required Amount *",
-      "timeboundChallenge": "Time-Bound Challenge",
-      "daysToComplete": "Days to Complete *"
+      "achievementName": "Nome da Conquista *",
+      "description": "Descrição *",
+      "icon": "Ícone",
+      "interactionType": "Tipo de Interação *",
+      "requiredAmount": "Quantidade Necessária *",
+      "timeboundChallenge": "Desafio com Prazo",
+      "daysToComplete": "Dias para Concluir *"
     },
     "placeholder": {
-      "describeWhatThisAchievementRepresentsAnd": "Describe what this achievement represents and how to earn it"
+      "describeWhatThisAchievementRepresentsAnd": "Descreva o que este feito representa e como obtê-lo"
     },
-    "requireCompletionWithinASpecificTimefram": "Require completion within a specific timeframe",
-    "createYourFirstCustomAchievementToRecogn": "Create your first custom achievement to recognize and reward exceptional contributions from your team.",
-    "noPlatformAchievementsEarnedByTeamMember": "No platform achievements earned by team members yet",
-    "analytics": "Analytics",
-    "description": "Standard achievements earned by your team members across the platform",
-    "dialogDescription": "Define criteria and rewards for exceptional team contributions",
-    "created": "Created",
-    "totalAwarded": "Total Awarded",
-    "avgPerAchievement": "Avg per Achievement",
+    "requireCompletionWithinASpecificTimefram": "Exigir conclusão dentro de um prazo específico",
+    "createYourFirstCustomAchievementToRecogn": "Crie o seu primeiro feito personalizado para reconhecer e recompensar contribuições excecionais da sua equipa.",
+    "noPlatformAchievementsEarnedByTeamMember": "Nenhum feito da plataforma obtido por membros da equipa ainda",
+    "analytics": "Análise",
+    "description": "Feitos padrão obtidos pelos membros da sua equipa em toda a plataforma",
+    "dialogDescription": "Defina critérios e recompensas para contribuições excecionais da equipa",
+    "created": "Criado",
+    "totalAwarded": "Total Atribuído",
+    "avgPerAchievement": "Média por Feito",
     "active": "Ativo"
   },
   "companyAnalyticsChart": {
     "toast": {
-      "failedToLoadAnalytics": "Failed to load analytics"
+      "failedToLoadAnalytics": "Falha ao carregar a análise"
     },
     "desc": {
-      "last30Days": "Last 30 days",
-      "currentFollowers": "Current followers",
-      "reactionsComments": "Reactions & comments"
+      "last30Days": "Últimos 30 dias",
+      "currentFollowers": "Seguidores atuais",
+      "reactionsComments": "Reações e comentários"
     }
   },
   "companyBranding": {
-    "brandColors": "Brand Colors",
-    "typography": "Typography",
-    "logosAssets": "Logos & Assets",
-    "brandPreview": "Brand Preview",
+    "brandColors": "Cores da Marca",
+    "typography": "Tipografia",
+    "logosAssets": "Logótipos e Recursos",
+    "brandPreview": "Pré-visualização da Marca",
     "toast": {
-      "failedToLoadBranding": "Failed to load branding",
-      "brandingUpdatedSuccessfully": "Branding updated successfully",
-      "failedToUpdateBranding": "Failed to update branding"
+      "failedToLoadBranding": "Falha ao carregar a imagem da marca",
+      "brandingUpdatedSuccessfully": "Imagem da marca atualizada com sucesso",
+      "failedToUpdateBranding": "Falha ao atualizar a imagem da marca"
     },
     "label": {
-      "primaryColor": "Primary Color",
-      "secondaryColor": "Secondary Color",
-      "accentColor": "Accent Color",
-      "headingFont": "Heading Font",
-      "bodyFont": "Body Font",
-      "lightLogoUrl": "Light Logo URL",
-      "darkLogoUrl": "Dark Logo URL",
-      "faviconUrl": "Favicon URL",
-      "socialPreviewImage": "Social Preview Image"
+      "primaryColor": "Cor Primária",
+      "secondaryColor": "Cor Secundária",
+      "accentColor": "Cor de Destaque",
+      "headingFont": "Fonte do Título",
+      "bodyFont": "Fonte do Corpo",
+      "lightLogoUrl": "URL do Logótipo Claro",
+      "darkLogoUrl": "URL do Logótipo Escuro",
+      "faviconUrl": "URL do Favicon",
+      "socialPreviewImage": "Imagem de Pré-visualização Social"
     },
-    "description": "Customize your company's visual identity"
+    "description": "Personalize a identidade visual da sua empresa"
   },
   "companyBrandingEditor": {
-    "preview": "Preview",
-    "headingExample": "Heading Example",
+    "preview": "Pré-visualizar",
+    "headingExample": "Exemplo de Título",
     "toast": {
-      "failedToLoadBrandingSettings": "Failed to load branding settings",
-      "brandingUpdatedSuccessfully": "Branding updated successfully",
-      "failedToUpdateBranding": "Failed to update branding"
+      "failedToLoadBrandingSettings": "Falha ao carregar as definições de imagem da marca",
+      "brandingUpdatedSuccessfully": "Imagem da marca atualizada com sucesso",
+      "failedToUpdateBranding": "Falha ao atualizar a imagem da marca"
     },
     "label": {
-      "primaryColor": "Primary Color",
-      "secondaryColor": "Secondary Color",
-      "accentColor": "Accent Color",
-      "headingFont": "Heading Font",
-      "bodyFont": "Body Font"
+      "primaryColor": "Cor Primária",
+      "secondaryColor": "Cor Secundária",
+      "accentColor": "Cor de Destaque",
+      "headingFont": "Fonte do Título",
+      "bodyFont": "Fonte do Corpo"
     },
     "placeholder": {
       "interRobotoEtc": "Inter, Roboto, etc."
     },
-    "bodyTextExampleWithYourSelectedFontAndCo": "Body text example with your selected font and colors.",
-    "description": "Customize your company's visual identity"
+    "bodyTextExampleWithYourSelectedFontAndCo": "Exemplo de texto do corpo com a fonte e cores selecionadas.",
+    "description": "Personalize a identidade visual da sua empresa"
   },
   "companyFollowers": {
     "toast": {
-      "failedToLoadFollowers": "Failed to load followers"
+      "failedToLoadFollowers": "Falha ao carregar os seguidores"
     },
     "badge": {
-      "notificationsOn": "Notifications On"
+      "notificationsOn": "Notificações Ativadas"
     },
-    "noFollowersYet": "No followers yet"
+    "noFollowersYet": "Ainda não tem seguidores"
   },
   "companyPosts": {
-    "companyPosts": "Company Posts",
+    "companyPosts": "Publicações da Empresa",
     "toast": {
-      "failedToLoadPosts": "Failed to load posts",
-      "postUpdatedSuccessfully": "Post updated successfully",
-      "postCreatedSuccessfully": "Post created successfully",
-      "failedToSavePost": "Failed to save post",
-      "postDeletedSuccessfully": "Post deleted successfully",
-      "failedToDeletePost": "Failed to delete post"
+      "failedToLoadPosts": "Falha ao carregar as publicações",
+      "postUpdatedSuccessfully": "Publicação atualizada com sucesso",
+      "postCreatedSuccessfully": "Publicação criada com sucesso",
+      "failedToSavePost": "Falha ao guardar a publicação",
+      "postDeletedSuccessfully": "Publicação eliminada com sucesso",
+      "failedToDeletePost": "Falha ao eliminar a publicação"
     },
     "label": {
       "title": "Titulo",
-      "content": "Content",
-      "postType": "Post Type",
-      "tagsCommaSeparated": "Tags (comma separated)"
+      "content": "Conteúdo",
+      "postType": "Tipo de Publicação",
+      "tagsCommaSeparated": "Tags (separadas por vírgulas)"
     },
     "badge": {
-      "featured": "Featured",
-      "private": "Private"
+      "featured": "Em Destaque",
+      "private": "Privado"
     },
-    "manageYourCompanyNewsAndUpdates": "Manage your company news and updates",
-    "noPostsYetCreateYourFirstPostToGetStarte": "No posts yet. Create your first post to get started.",
-    "public": "Public",
-    "featured": "Featured",
-    "dialogDescription": "Share news, milestones, events, and updates with your audience",
+    "manageYourCompanyNewsAndUpdates": "Gerir as notícias e atualizações da sua empresa",
+    "noPostsYetCreateYourFirstPostToGetStarte": "Ainda não há publicações. Crie a sua primeira publicação para começar.",
+    "public": "Público",
+    "featured": "Em Destaque",
+    "dialogDescription": "Partilhe notícias, marcos, eventos e atualizações com o seu público",
     "option": {
-      "news": "News",
-      "milestone": "Milestone",
-      "event": "Event",
+      "news": "Notícias",
+      "milestone": "Marco",
+      "event": "Evento",
       "media": "Media"
     }
   },
   "companyProfile": {
-    "title": "Company Profile",
+    "title": "Perfil da Empresa",
     "toast": {
-      "failedToLoadCompanyProfile": "Failed to load company profile",
-      "companyProfileUpdated": "Company profile updated",
-      "failedToUpdateCompanyProfile": "Failed to update company profile"
+      "failedToLoadCompanyProfile": "Falha ao carregar o perfil da empresa",
+      "companyProfileUpdated": "Perfil da empresa atualizado",
+      "failedToUpdateCompanyProfile": "Falha ao atualizar o perfil da empresa"
     },
     "label": {
-      "companyName": "Company Name",
-      "tagline": "Tagline",
+      "companyName": "Nome da Empresa",
+      "tagline": "Slogan",
       "description": "Descricao",
       "website": "Website",
-      "linkedinUrl": "LinkedIn URL",
-      "headquartersLocation": "Headquarters Location",
-      "industry": "Industry",
-      "companySize": "Company Size"
+      "linkedinUrl": "URL do LinkedIn",
+      "headquartersLocation": "Localização da Sede",
+      "industry": "Setor",
+      "companySize": "Tamanho da Empresa"
     },
-    "description": "Manage your company information and branding"
+    "description": "Gerir as informações e a imagem da sua empresa"
   },
   "companyWall": {
-    "title": "Company Wall",
+    "title": "Mural da Empresa",
     "toast": {
-      "failedToLoadCompanyPosts": "Failed to load company posts"
+      "failedToLoadCompanyPosts": "Falha ao carregar as publicações da empresa"
     },
     "badge": {
-      "featured": "Featured"
+      "featured": "Em Destaque"
     },
-    "noPostsYetBeTheFirstToShareSomething": "No posts yet. Be the first to share something!",
-    "description": "Latest news, updates, and announcements"
+    "noPostsYetBeTheFirstToShareSomething": "Ainda não há publicações. Seja o primeiro a partilhar algo!",
+    "description": "Últimas notícias, atualizações e anúncios"
   },
   "contractDeadlineAlerts": {
     "badge": {
-      "breached": "BREACHED"
+      "breached": "VIOLADO"
     },
-    "milestoneDeadlineHasPassed": "Milestone deadline has passed",
-    "milestoneDeadlineApproaching": "Milestone deadline approaching"
+    "milestoneDeadlineHasPassed": "O prazo do marco foi ultrapassado",
+    "milestoneDeadlineApproaching": "Prazo do marco a aproximar-se"
   },
   "createInterviewDialog": {
     "toast": {
-      "pleaseFillInAllRequiredFields": "Please fill in all required fields",
-      "pleaseSelectAtLeastOneInterviewer": "Please select at least one interviewer",
-      "interviewScheduledButFailedToAddToGoogle": "Interview scheduled, but failed to add to Google Calendar",
-      "interviewScheduledAndAddedToYourGoogleCa": "Interview scheduled and added to your Google Calendar!",
-      "interviewScheduledButCalendarSyncFailed": "Interview scheduled, but calendar sync failed",
-      "interviewScheduledSuccessfully": "Interview scheduled successfully"
+      "pleaseFillInAllRequiredFields": "Por favor, preencha todos os campos obrigatórios",
+      "pleaseSelectAtLeastOneInterviewer": "Por favor, selecione pelo menos um entrevistador",
+      "interviewScheduledButFailedToAddToGoogle": "Entrevista agendada, mas falha ao adicionar ao Google Calendar",
+      "interviewScheduledAndAddedToYourGoogleCa": "Entrevista agendada e adicionada ao seu Google Calendar!",
+      "interviewScheduledButCalendarSyncFailed": "Entrevista agendada, mas a sincronização do calendário falhou",
+      "interviewScheduledSuccessfully": "Entrevista agendada com sucesso"
     },
     "label": {
-      "addToGoogleCalendar": "Add to Google Calendar",
-      "interviewType": "Interview Type *",
-      "meetingTitle": "Meeting Title *",
+      "addToGoogleCalendar": "Adicionar ao Google Calendar",
+      "interviewType": "Tipo de Entrevista *",
+      "meetingTitle": "Título da Reunião *",
       "description": "Descricao",
-      "date": "Date *",
-      "time": "Time *",
-      "durationMinutes": "Duration (minutes)"
+      "date": "Data *",
+      "time": "Hora *",
+      "durationMinutes": "Duração (minutos)"
     },
     "placeholder": {
-      "companyCandidateNameInterviewStage": "Company - Candidate Name - Interview Stage",
-      "candidateEmail": "Candidate email",
-      "meetingDescriptionAndAgenda": "Meeting description and agenda"
+      "companyCandidateNameInterviewStage": "Empresa - Nome do Candidato - Etapa da Entrevista",
+      "candidateEmail": "Email do candidato",
+      "meetingDescriptionAndAgenda": "Descrição e agenda da reunião"
     },
     "badge": {
       "candidate": "Candidato"
     },
-    "googleCalendarConnected": "Google Calendar Connected",
-    "interviewWillBeSyncedToYourCalendarAndAt": "Interview will be synced to your calendar and attendees will receive invites",
-    "googleCalendarNotConnected": "Google Calendar Not Connected",
-    "connectYourGoogleCalendarToAutomatically": "Connect your Google Calendar to automatically sync interviews and send calendar invites",
-    "titleAndDescriptionAutogeneratedWithComp": "Title and description auto-generated with company, candidate, and interviewer details",
-    "noTeamMembersAssignedToThisJob": "No team members assigned to this job",
-    "aipoweredAutofill": "AI-Powered Auto-Fill"
+    "googleCalendarConnected": "Google Calendar Conectado",
+    "interviewWillBeSyncedToYourCalendarAndAt": "A entrevista será sincronizada com o seu calendário e os participantes receberão convites",
+    "googleCalendarNotConnected": "Google Calendar Não Conectado",
+    "connectYourGoogleCalendarToAutomatically": "Conecte o seu Google Calendar para sincronizar automaticamente as entrevistas e enviar convites de calendário",
+    "titleAndDescriptionAutogeneratedWithComp": "Título e descrição gerados automaticamente com detalhes da empresa, do candidato e do entrevistador",
+    "noTeamMembersAssignedToThisJob": "Nenhum membro da equipa atribuído a este trabalho",
+    "aipoweredAutofill": "Preenchimento Automático com IA"
   },
   "createJobDialog": {
     "toast": {
-      "jobCreatedButFailedToAddSomeViewers": "Job created but failed to add some viewers"
+      "jobCreatedButFailedToAddSomeViewers": "Vaga criada, mas falha ao adicionar alguns visualizadores"
     },
-    "selectACompanyFirstToChooseFromSavedOffi": "Select a company first to choose from saved offices",
-    "compensationDetailsAreSharedOnlyWithShor": "Compensation details are shared only with shortlisted candidates unless displayed on the listing."
+    "selectACompanyFirstToChooseFromSavedOffi": "Selecione primeiro uma empresa para escolher entre os escritórios guardados",
+    "compensationDetailsAreSharedOnlyWithShor": "Os detalhes da compensação são partilhados apenas com candidatos pré-selecionados, a menos que sejam exibidos no anúncio."
   },
   "createPostDialog": {
-    "dialogTitle": "Create Post",
+    "dialogTitle": "Criar Publicação",
     "toast": {
-      "youMustBeLoggedInToCreateAPost": "You must be logged in to create a post",
-      "postCreatedSuccessfully": "Post created successfully",
-      "failedToCreatePost": "Failed to create post"
+      "youMustBeLoggedInToCreateAPost": "Tem de iniciar sessão para criar uma publicação",
+      "postCreatedSuccessfully": "Publicação criada com sucesso",
+      "failedToCreatePost": "Falha ao criar publicação"
     },
     "label": {
       "title": "Titulo",
-      "postType": "Post Type",
-      "content": "Content",
-      "tagsCommaSeparated": "Tags (comma separated)",
-      "audience": "Audience",
-      "publicPost": "Public Post",
-      "featured": "Featured",
-      "publishNow": "Publish Now"
+      "postType": "Tipo de Publicação",
+      "content": "Conteúdo",
+      "tagsCommaSeparated": "Tags (separadas por vírgulas)",
+      "audience": "Público",
+      "publicPost": "Publicação Pública",
+      "featured": "Destaque",
+      "publishNow": "Publicar Agora"
     },
     "placeholder": {
-      "excitingNewsToShareRequired": "Exciting news to share... required",
-      "shareYourStory": "Share your story..."
+      "excitingNewsToShareRequired": "Notícias emocionantes para partilhar... obrigatório",
+      "shareYourStory": "Partilhe a sua história..."
     },
-    "dialogDescription": "Share news, updates, or announcements with your followers",
+    "dialogDescription": "Partilhe notícias, atualizações ou anúncios com os seus seguidores",
     "option": {
-      "news": "News",
-      "milestone": "Milestone",
-      "event": "Event",
+      "news": "Notícias",
+      "milestone": "Marco",
+      "event": "Evento",
       "media": "Media"
     }
   },
   "duplicateCandidateDialog": {
-    "dialogTitle": "Candidate Already in Pipeline",
+    "dialogTitle": "Candidato já no Pipeline",
     "badge": {
-      "nameMatch": "Name Match",
-      "linkedinMatch": "LinkedIn Match"
+      "nameMatch": "Correspondência de Nome",
+      "linkedinMatch": "Correspondência LinkedIn"
     }
   },
   "editJobDialog": {
-    "dialogTitle": "Edit Job",
+    "dialogTitle": "Editar Vaga",
     "toast": {
-      "failedToLoadCompanies": "Failed to load companies",
-      "jobUpdatedSuccessfully": "Job updated successfully",
-      "failedToUpdateJob": "Failed to update job"
+      "failedToLoadCompanies": "Falha ao carregar empresas",
+      "jobUpdatedSuccessfully": "Vaga atualizada com sucesso",
+      "failedToUpdateJob": "Falha ao atualizar vaga"
     },
     "label": {
-      "company": "Company *",
-      "jobTitle": "Job Title *",
+      "company": "Empresa *",
+      "jobTitle": "Título da Vaga *",
       "description": "Descricao",
       "location": "Localizacao",
-      "employmentType": "Employment Type",
+      "employmentType": "Tipo de Emprego",
       "currency": "Moeda",
-      "minSalary": "Min Salary",
-      "maxSalary": "Max Salary",
-      "addSupportingDocuments": "Add Supporting Documents",
-      "nicetohaveTools": "Nice-to-Have Tools"
+      "minSalary": "Salário Mínimo",
+      "maxSalary": "Salário Máximo",
+      "addSupportingDocuments": "Adicionar Documentos de Apoio",
+      "nicetohaveTools": "Ferramentas Desejáveis"
     },
     "placeholder": {
-      "selectACompany": "Select a company",
-      "searchToolsEgNotionFigmaPython": "Search tools (e.g., Notion, Figma, Python)...",
-      "searchAdditionalTools": "Search additional tools..."
+      "selectACompany": "Selecione uma empresa",
+      "searchToolsEgNotionFigmaPython": "Pesquisar ferramentas (ex: Notion, Figma, Python)...",
+      "searchAdditionalTools": "Pesquisar ferramentas adicionais..."
     },
-    "currentDocumentUploadedUploadANewFileToR": "Current document uploaded. Upload a new file to replace it.",
-    "selectToolsCandidatesMustBeProficientWit": "Select tools candidates must be proficient with",
-    "bonusSkillsThatWouldBeBeneficial": "Bonus skills that would be beneficial",
+    "currentDocumentUploadedUploadANewFileToR": "Documento atual carregado. Carregue um novo ficheiro para o substituir.",
+    "selectToolsCandidatesMustBeProficientWit": "Selecione as ferramentas com que os candidatos devem ser proficientes",
+    "bonusSkillsThatWouldBeBeneficial": "Competências bónus que seriam benéficas",
     "option": {
-      "fulltime": "Full-time",
-      "parttime": "Part-time",
+      "fulltime": "Tempo inteiro",
+      "parttime": "Tempo parcial",
       "contract": "Contrato",
       "freelance": "Freelance"
     }
   },
   "editJobSheet": {
-    "title": "Job Details",
+    "title": "Detalhes da Vaga",
     "toast": {
-      "failedToLoadCompanies": "Failed to load companies",
-      "documentWillBeRemovedWhenYouSave": "Document will be removed when you save",
-      "failedToRemoveDocument": "Failed to remove document",
-      "failedToDownloadDocument": "Failed to download document",
-      "jobUpdatedSuccessfully": "Job updated successfully",
-      "failedToUpdateJob": "Failed to update job",
-      "youHaveUnsavedChanges": "You have unsaved changes"
+      "failedToLoadCompanies": "Falha ao carregar empresas",
+      "documentWillBeRemovedWhenYouSave": "O documento será removido quando guardar",
+      "failedToRemoveDocument": "Falha ao remover documento",
+      "failedToDownloadDocument": "Falha ao transferir o documento",
+      "jobUpdatedSuccessfully": "Emprego atualizado com sucesso",
+      "failedToUpdateJob": "Falha ao atualizar o emprego",
+      "youHaveUnsavedChanges": "Tem alterações não guardadas"
     },
     "label": {
-      "company": "Company *",
-      "jobTitle": "Job Title *",
+      "company": "Empresa *",
+      "jobTitle": "Título do Emprego *",
       "description": "Descricao",
       "location": "Localizacao",
-      "employmentType": "Employment Type",
+      "employmentType": "Tipo de Emprego",
       "currency": "Moeda",
-      "minSalaryAnnual": "Min Salary (Annual)",
-      "maxSalaryAnnual": "Max Salary (Annual)",
-      "existingDocuments": "Existing Documents",
-      "newDocumentsWillBeUploadedOnSave": "New Documents (will be uploaded on save)"
+      "minSalaryAnnual": "Salário Mínimo (Anual)",
+      "maxSalaryAnnual": "Salário Máximo (Anual)",
+      "existingDocuments": "Documentos Existentes",
+      "newDocumentsWillBeUploadedOnSave": "Novos Documentos (serão carregados ao guardar)"
     },
     "placeholder": {
-      "selectACompany": "Select a company",
-      "briefOverviewOfTheRole": "Brief overview of the role...",
-      "searchRequiredToolsEgFigmaReactPython": "Search required tools (e.g., Figma, React, Python)...",
-      "searchNicetohaveTools": "Search nice-to-have tools..."
+      "selectACompany": "Selecione uma empresa",
+      "briefOverviewOfTheRole": "Breve descrição da função...",
+      "searchRequiredToolsEgFigmaReactPython": "Pesquise as ferramentas necessárias (por exemplo, Figma, React, Python)...",
+      "searchNicetohaveTools": "Pesquise as ferramentas desejáveis..."
     },
     "badge": {
       "active": "Ativo"
     },
-    "linkToWhereThisJobIsPostedOnlineLinkedin": "Link to where this job is posted online (LinkedIn, company website, etc.)",
-    "noRequiredToolsSelectedAddToolsThatAreEs": "No required tools selected. Add tools that are essential for this role.",
-    "noNicetohaveToolsSelectedAddToolsThatWou": "No nice-to-have tools selected. Add tools that would be a plus.",
-    "currentDocumentUploaded": "Current document uploaded",
-    "uploadANewFileToReplaceIt": "Upload a new file to replace it",
-    "dragDropOrClickToUpload": "Drag & drop or click to upload",
-    "uploadMultipleFilesAtOnce": "Upload multiple files at once",
-    "description": "Update the core information about this position",
+    "linkToWhereThisJobIsPostedOnlineLinkedin": "Link para onde este emprego está publicado online (LinkedIn, site da empresa, etc.)",
+    "noRequiredToolsSelectedAddToolsThatAreEs": "Nenhuma ferramenta necessária selecionada. Adicione as ferramentas essenciais para esta função.",
+    "noNicetohaveToolsSelectedAddToolsThatWou": "Nenhuma ferramenta desejável selecionada. Adicione as ferramentas que seriam uma mais-valia.",
+    "currentDocumentUploaded": "Documento atual carregado",
+    "uploadANewFileToReplaceIt": "Carregue um novo ficheiro para o substituir",
+    "dragDropOrClickToUpload": "Arraste e solte ou clique para carregar",
+    "uploadMultipleFilesAtOnce": "Carregue vários ficheiros de uma só vez",
+    "description": "Atualize as informações principais sobre esta posição",
     "option": {
-      "fulltime": "Full-time",
-      "parttime": "Part-time",
+      "fulltime": "Tempo inteiro",
+      "parttime": "Tempo parcial",
       "contract": "Contrato",
       "freelance": "Freelance",
-      "internship": "Internship"
+      "internship": "Estágio"
     }
   },
   "enhancedAnalytics": {
-    "title": "Total Applications",
-    "enhancedAnalytics": "Enhanced Analytics"
+    "title": "Candidaturas Totais",
+    "enhancedAnalytics": "Análises Avançadas"
   },
   "internalReviewPanel": {
     "toast": {
-      "selectAtLeastOneCandidate": "Select at least one candidate.",
-      "rejectionNoteIsRequired": "Rejection note is required.",
-      "undoIsNotYetAvailableForThisAction": "Undo is not yet available for this action."
+      "selectAtLeastOneCandidate": "Selecione pelo menos um candidato.",
+      "rejectionNoteIsRequired": "É necessária uma nota de rejeição.",
+      "undoIsNotYetAvailableForThisAction": "A funcionalidade de desfazer ainda não está disponível para esta ação."
     },
     "placeholder": {
-      "searchByNameTitleOrSkill": "Search by name, title, or skill...",
-      "rejectionReason": "Rejection reason..."
+      "searchByNameTitleOrSkill": "Pesquise por nome, título ou competência...",
+      "rejectionReason": "Motivo da rejeição..."
     },
-    "allClear": "All clear",
-    "noCandidatesAwaitingInternalReview": "No candidates awaiting internal review.",
-    "dialogDescription": "Provide a reason for rejecting this candidate from the pipeline."
+    "allClear": "Tudo certo",
+    "noCandidatesAwaitingInternalReview": "Nenhum candidato aguarda revisão interna.",
+    "dialogDescription": "Forneça um motivo para rejeitar este candidato do pipeline."
   },
   "interviewFeedbackDialog": {
-    "dialogTitle": "Interview Feedback",
+    "dialogTitle": "Feedback da Entrevista",
     "toast": {
-      "pleaseSelectARecommendation": "Please select a recommendation",
-      "feedbackSubmittedSuccessfully": "Feedback submitted successfully"
+      "pleaseSelectARecommendation": "Selecione uma recomendação",
+      "feedbackSubmittedSuccessfully": "Feedback submetido com sucesso"
     },
     "label": {
-      "recommendation": "Recommendation *",
-      "keyStrengths": "Key Strengths",
-      "concernsAreasForImprovement": "Concerns / Areas for Improvement",
-      "keyObservations": "Key Observations",
-      "detailedNotes": "Detailed Notes"
+      "recommendation": "Recomendação *",
+      "keyStrengths": "Principais Pontos Fortes",
+      "concernsAreasForImprovement": "Preocupações / Áreas a Melhorar",
+      "keyObservations": "Principais Observações",
+      "detailedNotes": "Notas Detalhadas"
     },
     "placeholder": {
-      "egStrongProblemsolvingSkills": "E.g., Strong problem-solving skills",
-      "egLimitedExperienceWithXTechnology": "E.g., Limited experience with X technology",
-      "egHandledPressureWellDuringTechnicalChal": "E.g., Handled pressure well during technical challenge",
-      "provideComprehensiveNotesAboutTheIntervi": "Provide comprehensive notes about the interview..."
+      "egStrongProblemsolvingSkills": "Ex: Fortes capacidades de resolução de problemas",
+      "egLimitedExperienceWithXTechnology": "Ex: Experiência limitada com a tecnologia X",
+      "egHandledPressureWellDuringTechnicalChal": "Ex: Lidar bem com a pressão durante um desafio técnico",
+      "provideComprehensiveNotesAboutTheIntervi": "Forneça notas detalhadas sobre a entrevista..."
     },
-    "strongYesExceptionalCandidate": "Strong Yes - Exceptional candidate",
-    "yesGoodFitRecommendToProceed": "Yes - Good fit, recommend to proceed",
-    "maybeHasPotentialButConcernsExist": "Maybe - Has potential but concerns exist",
-    "noNotTheRightFit": "No - Not the right fit",
-    "strongNoDefinitelyNotSuitable": "Strong No - Definitely not suitable"
+    "strongYesExceptionalCandidate": "Sim Forte - Candidato excecional",
+    "yesGoodFitRecommendToProceed": "Sim - Bom ajuste, recomenda-se prosseguir",
+    "maybeHasPotentialButConcernsExist": "Talvez - Tem potencial, mas existem preocupações",
+    "noNotTheRightFit": "Não - Não é o ajuste certo",
+    "strongNoDefinitelyNotSuitable": "Não Forte - Definitivamente não adequado"
   },
   "jobAnalytics": {
-    "title": "Stage Conversion Rates",
-    "noAnalyticsDataAvailable": "No analytics data available",
-    "totalApplications": "Total Applications",
+    "title": "Taxas de Conversão de Etapas",
+    "noAnalyticsDataAvailable": "Não existem dados analíticos disponíveis",
+    "totalApplications": "Candidaturas Totais",
     "active": "Ativo",
-    "hires": "Hires",
-    "avgTimeToHire": "Avg Time to Hire",
-    "fastestHire": "Fastest Hire",
-    "average": "Average",
-    "slowestHire": "Slowest Hire",
-    "avgFitScore": "Avg Fit Score",
-    "engagementRate": "Engagement Rate",
-    "interviewPass": "Interview Pass",
-    "offerAcceptance": "Offer Acceptance",
-    "clubSync": "Club Sync",
-    "directApply": "Direct Apply",
-    "referrals": "Referrals",
-    "description": "Where candidates are coming from"
+    "hires": "Contratações",
+    "avgTimeToHire": "Tempo Médio para Contratação",
+    "fastestHire": "Contratação Mais Rápida",
+    "average": "Média",
+    "slowestHire": "Contratação Mais Lenta",
+    "avgFitScore": "Pontuação Média de Adequação",
+    "engagementRate": "Taxa de Engagement",
+    "interviewPass": "Aprovação na Entrevista",
+    "offerAcceptance": "Aceitação da Oferta",
+    "clubSync": "ClubSync",
+    "directApply": "Candidatura Direta",
+    "referrals": "Referências",
+    "description": "De onde vêm os candidatos"
   },
   "jobCard": {
     "toast": {
-      "headhunterAgentActivatedAnalyzingJobRequ": "Headhunter Agent activated... analyzing job requirements.",
-      "agentFinishedSearchButFoundNoNewStrongMa": "Agent finished search but found no new strong matches."
+      "headhunterAgentActivatedAnalyzingJobRequ": "Agente Headhunter ativado... a analisar os requisitos da vaga.",
+      "agentFinishedSearchButFoundNoNewStrongMa": "Agente terminou a pesquisa, mas não encontrou novas correspondências fortes."
     },
-    "viewOriginalPosting": "View original posting"
+    "viewOriginalPosting": "Ver publicação original"
   },
   "jobDashboardCandidates": {
-    "noApplicationsYet": "No applications yet",
+    "noApplicationsYet": "Ainda não há candidaturas",
     "toast": {
-      "failedToLoadCandidates": "Failed to load candidates"
+      "failedToLoadCandidates": "Falha ao carregar candidatos"
     },
-    "applicationsWillAppearHereOnceCandidates": "Applications will appear here once candidates start applying",
-    "reviewAndAdvancePremiumCandidatesFasterW": "Review and advance premium candidates faster with our exclusive vetting",
-    "noCandidatesInThisStage": "No candidates in this stage"
+    "applicationsWillAppearHereOnceCandidates": "As candidaturas aparecerão aqui assim que os candidatos começarem a candidatar-se",
+    "reviewAndAdvancePremiumCandidatesFasterW": "Reveja e avance candidatos premium mais rapidamente com a nossa avaliação exclusiva",
+    "noCandidatesInThisStage": "Não há candidatos nesta etapa"
   },
   "jobDocuments": {
     "toast": {
-      "failedToLoadDocuments": "Failed to load documents",
-      "jobDescriptionUploadedSuccessfully": "Job description uploaded successfully",
-      "documentRemovedSuccessfully": "Document removed successfully",
-      "failedToRemoveDocument": "Failed to remove document",
-      "downloadStarted": "Download started",
-      "failedToDownloadDocument": "Failed to download document",
-      "failedToOpenDocumentViewer": "Failed to open document viewer"
+      "failedToLoadDocuments": "Falha ao carregar documentos",
+      "jobDescriptionUploadedSuccessfully": "Descrição da vaga carregada com sucesso",
+      "documentRemovedSuccessfully": "Documento removido com sucesso",
+      "failedToRemoveDocument": "Falha ao remover o documento",
+      "downloadStarted": "Download iniciado",
+      "failedToDownloadDocument": "Falha ao fazer download do documento",
+      "failedToOpenDocumentViewer": "Falha ao abrir o visualizador de documentos"
     },
     "label": {
-      "existingDocuments": "Existing Documents",
-      "addMoreDocuments": "Add More Documents"
+      "existingDocuments": "Documentos Existentes",
+      "addMoreDocuments": "Adicionar Mais Documentos"
     },
-    "currentJobDescription": "Current Job Description",
-    "uploadedDocumentReadyToView": "Uploaded document ready to view",
-    "noJobDescriptionUploadedYet": "No job description uploaded yet",
-    "fileWillBeUploadedAutomaticallyWhenSelec": "File will be uploaded automatically when selected",
-    "noSupportingDocumentsUploadedYet": "No supporting documents uploaded yet",
-    "filesWillBeUploadedAutomaticallyWhenSele": "Files will be uploaded automatically when selected",
-    "poweredByGoogleDocsViewer": "Powered by Google Docs Viewer",
-    "previewNotAvailableForThisFileType": "Preview not available for this file type",
-    "uploadInProgress": "Upload in progress"
+    "currentJobDescription": "Descrição Atual da Vaga",
+    "uploadedDocumentReadyToView": "Documento carregado pronto para visualização",
+    "noJobDescriptionUploadedYet": "Nenhuma descrição de vaga carregada ainda",
+    "fileWillBeUploadedAutomaticallyWhenSelec": "O ficheiro será carregado automaticamente quando selecionado",
+    "noSupportingDocumentsUploadedYet": "Nenhum documento de suporte carregado ainda",
+    "filesWillBeUploadedAutomaticallyWhenSele": "Os ficheiros serão carregados automaticamente quando selecionados",
+    "poweredByGoogleDocsViewer": "Desenvolvido por Google Docs Viewer",
+    "previewNotAvailableForThisFileType": "Pré-visualização não disponível para este tipo de ficheiro",
+    "uploadInProgress": "Carregamento em progresso"
   },
   "jobManagement": {
-    "jobPostings": "Job Postings",
-    "noJobsYet": "No jobs yet",
+    "jobPostings": "Anúncios de Emprego",
+    "noJobsYet": "Ainda não há empregos",
     "toast": {
-      "failedToLoadJobs": "Failed to load jobs",
-      "jobArchived": "Job archived",
-      "jobDeleted": "Job deleted",
-      "failedToUpdateJobStatus": "Failed to update job status"
+      "failedToLoadJobs": "Falha ao carregar empregos",
+      "jobArchived": "Emprego arquivado",
+      "jobDeleted": "Emprego eliminado",
+      "failedToUpdateJobStatus": "Falha ao atualizar o estado do emprego"
     },
-    "createYourFirstJobPostingToStartReceivin": "Create your first job posting to start receiving applications"
+    "createYourFirstJobPostingToStartReceivin": "Crie o seu primeiro anúncio de emprego para começar a receber candidaturas"
   },
   "jobTeamPanel": {
     "toast": {
-      "failedToLoadTeamMembers": "Failed to load team members",
-      "teamMemberRemoved": "Team member removed",
-      "failedToRemoveTeamMember": "Failed to remove team member"
+      "failedToLoadTeamMembers": "Falha ao carregar membros da equipa",
+      "teamMemberRemoved": "Membro da equipa removido",
+      "failedToRemoveTeamMember": "Falha ao remover membro da equipa"
     },
     "badge": {
-      "primary": "Primary"
+      "primary": "Principal"
     },
-    "noTeamMembersYet": "No team members yet",
+    "noTeamMembersYet": "Ainda não há membros da equipa",
     "menu": {
-      "removeFromTeam": "Remove from team"
+      "removeFromTeam": "Remover da equipa"
     },
-    "teamMemberOptions": "Team Member Options"
+    "teamMemberOptions": "Opções do Membro da Equipa"
   },
   "offerPipelineWidget": {
     "badge": {
-      "urgent": "Urgent"
+      "urgent": "Urgente"
     }
   },
   "partnerAnalytics": {
-    "title": "Total Candidates",
+    "title": "Total de Candidatos",
     "tab": {
-      "pipelineHealth": "Pipeline Health",
-      "conversionRates": "Conversion Rates"
+      "pipelineHealth": "Saúde do Pipeline",
+      "conversionRates": "Taxas de Conversão"
     },
-    "description": "Current distribution across pipeline stages"
+    "description": "Distribuição atual pelas etapas do pipeline"
   },
   "partnerConciergeCard": {
     "badge": {
       "inProgress": "Em Curso"
     },
-    "yourDedicatedConcierge": "Your Dedicated Concierge",
-    "directContact": "Direct Contact"
+    "yourDedicatedConcierge": "O Seu Concierge Dedicado",
+    "directContact": "Contacto Direto"
   },
   "partnerDomainSettings": {
     "toast": {
-      "pleaseEnterAValidDomainEgExamplecom": "Please enter a valid domain (e.g., example.com)",
-      "thisDomainIsAlreadyConfigured": "This domain is already configured",
-      "domainRequestSubmittedForAdminApproval": "Domain request submitted for admin approval",
-      "failedToSubmitDomainRequest": "Failed to submit domain request"
+      "pleaseEnterAValidDomainEgExamplecom": "Por favor, introduza um domínio válido (ex: exemplo.com)",
+      "thisDomainIsAlreadyConfigured": "Este domínio já está configurado",
+      "domainRequestSubmittedForAdminApproval": "Pedido de domínio submetido para aprovação do administrador",
+      "failedToSubmitDomainRequest": "Falha ao submeter o pedido de domínio"
     },
     "label": {
-      "requestNewDomain": "Request New Domain"
+      "requestNewDomain": "Solicitar Novo Domínio"
     },
-    "noDomainsConfiguredYet": "No domains configured yet",
-    "contactYourAdministratorToSetUpAuthorize": "Contact your administrator to set up authorized domains",
-    "domainRequestsRequireAdminApprovalBefore": "Domain requests require admin approval before they become active",
-    "description": "Team members can only be invited from these email domains",
-    "loadingDomainSettings": "Loading domain settings..."
+    "noDomainsConfiguredYet": "Nenhum domínio configurado ainda",
+    "contactYourAdministratorToSetUpAuthorize": "Contacte o seu administrador para configurar domínios autorizados",
+    "domainRequestsRequireAdminApprovalBefore": "Os pedidos de domínio requerem aprovação do administrador antes de ficarem ativos",
+    "description": "Os membros da equipa só podem ser convidados a partir destes domínios de email",
+    "loadingDomainSettings": "A carregar as definições de domínio..."
   },
   "partnerFirstReviewPanel": {
     "toast": {
-      "selectARejectionReason": "Select a rejection reason.",
-      "rejectionNotesAreRequired": "Rejection notes are required."
+      "selectARejectionReason": "Selecione um motivo de rejeição.",
+      "rejectionNotesAreRequired": "As notas de rejeição são obrigatórias."
     }
   },
   "partnerJobsHome": {
-    "noJobsFound": "No jobs found",
+    "noJobsFound": "Nenhuma vaga encontrada",
     "toast": {
-      "failedToLoadJobs": "Failed to load jobs",
-      "noDraftJobsSelectedToPublish": "No draft jobs selected to publish",
-      "failedToPublishSelectedJobs": "Failed to publish selected jobs",
-      "noPublishedJobsSelectedToClose": "No published jobs selected to close",
-      "failedToCloseSelectedJobs": "Failed to close selected jobs",
-      "noJobsSelectedToArchive": "No jobs selected to archive",
-      "failedToArchiveSelectedJobs": "Failed to archive selected jobs",
-      "failedToPublishJob": "Failed to publish job",
-      "failedToUnpublishJob": "Failed to unpublish job",
-      "failedToCloseJob": "Failed to close job",
-      "failedToReopenJob": "Failed to reopen job",
-      "failedToArchiveJob": "Failed to archive job",
-      "failedToRestoreJob": "Failed to restore job"
+      "failedToLoadJobs": "Falha ao carregar vagas",
+      "noDraftJobsSelectedToPublish": "Nenhuma vaga em rascunho selecionada para publicar",
+      "failedToPublishSelectedJobs": "Falha ao publicar as vagas selecionadas",
+      "noPublishedJobsSelectedToClose": "Nenhuma vaga publicada selecionada para fechar",
+      "failedToCloseSelectedJobs": "Falha ao fechar as vagas selecionadas",
+      "noJobsSelectedToArchive": "Nenhuma vaga selecionada para arquivar",
+      "failedToArchiveSelectedJobs": "Falha ao arquivar as vagas selecionadas",
+      "failedToPublishJob": "Falha ao publicar a vaga",
+      "failedToUnpublishJob": "Falha ao retirar a publicação da vaga",
+      "failedToCloseJob": "Falha ao fechar a vaga",
+      "failedToReopenJob": "Falha ao reabrir a vaga",
+      "failedToArchiveJob": "Falha ao arquivar a vaga",
+      "failedToRestoreJob": "Falha ao restaurar a vaga"
     },
-    "yourPremiumHiringAccelerator": "Your premium hiring accelerator.",
-    "getVettedCandidatesInDaysNotWeeks": "Get vetted candidates in days, not weeks",
-    "prevettedTalent": "Pre-Vetted Talent",
-    "everyCandidateIsClubverifiedForQuality": "Every candidate is Club-verified for quality",
-    "dedicatedSupport": "Dedicated Support",
-    "personalRecruiterAssistanceIncluded": "Personal recruiter assistance included",
-    "liveUpdatesEnabled": "Live updates enabled",
+    "yourPremiumHiringAccelerator": "O seu acelerador de contratação premium.",
+    "getVettedCandidatesInDaysNotWeeks": "Obtenha candidatos avaliados em dias, não em semanas",
+    "prevettedTalent": "Talento Pré-Avaliado",
+    "everyCandidateIsClubverifiedForQuality": "Cada candidato é verificado pelo Club para garantir a qualidade",
+    "dedicatedSupport": "Suporte Dedicado",
+    "personalRecruiterAssistanceIncluded": "Assistência pessoal de recrutador incluída",
+    "liveUpdatesEnabled": "Atualizações em direto ativadas",
     "desc": {
-      "candidatesCanNowSeeAndApplyToThisJob": "Candidates can now see and apply to this job"
+      "candidatesCanNowSeeAndApplyToThisJob": "Os candidatos agora podem ver e candidatar-se a esta vaga"
     }
   },
   "pipelineAuditLog": {
-    "title": "Job Audit Log",
+    "title": "Registo de Auditoria da Vaga",
     "badge": {
-      "overrideDuplicate": "Override Duplicate"
+      "overrideDuplicate": "Substituir Duplicado"
     },
-    "description": "Comprehensive tracking of all job interactions and modifications"
+    "description": "Rastreamento abrangente de todas as interações e modificações da vaga"
   },
   "pipelineCustomizer": {
-    "title": "Premium Pipeline Editor",
+    "title": "Editor de Pipeline Premium",
     "toast": {
-      "stageRemoved": "Stage removed",
-      "selectAReviewerFirst": "Select a reviewer first.",
-      "reviewerAssigned": "Reviewer assigned",
-      "failedToAssignReviewer": "Failed to assign reviewer",
-      "failedToRemoveReviewer": "Failed to remove reviewer",
-      "reviewerRemoved": "Reviewer removed",
-      "pipelineSaved": "Pipeline saved",
-      "signatureSecure": "Signature Secure ✓"
+      "stageRemoved": "Etapa removida",
+      "selectAReviewerFirst": "Selecione primeiro um revisor.",
+      "reviewerAssigned": "Revisor atribuído",
+      "failedToAssignReviewer": "Falha ao atribuir revisor",
+      "failedToRemoveReviewer": "Falha ao remover revisor",
+      "reviewerRemoved": "Revisor removido",
+      "pipelineSaved": "Pipeline guardado",
+      "signatureSecure": "Assinatura Segura ✓"
     },
     "label": {
-      "stageOwner": "Stage Owner",
-      "format": "Format",
+      "stageOwner": "Responsável pela Etapa",
+      "format": "Formato",
       "description": "Descricao",
-      "primary": "Primary"
+      "primary": "Primário"
     },
     "placeholder": {
-      "describeWhatHappensInThisStage": "Describe what happens in this stage..."
+      "describeWhatHappensInThisStage": "Descreva o que acontece nesta etapa..."
     },
-    "reviewGateAssignments": "Review Gate Assignments",
-    "onlyAdminAndStrategistRolesCanChangeRevi": "Only admin and strategist roles can change reviewer assignments.",
-    "primary": "Primary",
-    "description": "Customize your exclusive hiring pipeline stages",
+    "reviewGateAssignments": "Atribuições de Portão de Revisão",
+    "onlyAdminAndStrategistRolesCanChangeRevi": "Apenas as funções de administrador e estratega podem alterar as atribuições de revisores.",
+    "primary": "Primário",
+    "description": "Personalize as etapas do seu pipeline de contratação exclusivo",
     "option": {
       "online": "Online",
-      "inperson": "In-Person",
-      "hybrid": "Hybrid",
-      "noReviewersAvailable": "No reviewers available"
+      "inperson": "Presencial",
+      "hybrid": "Híbrido",
+      "noReviewersAvailable": "Nenhum revisor disponível"
     }
   },
   "pipelineDisplaySettings": {
     "label": {
-      "showOwnershipIcons": "Show Ownership Icons",
-      "showFormatDetails": "Show Format Details",
-      "showTeamAssignments": "Show Team Assignments",
-      "showLocationmeetingInfo": "Show Location/Meeting Info",
-      "showEvaluationSetup": "Show Evaluation Setup",
-      "showSchedulingDetails": "Show Scheduling Details",
-      "showAdvancedMetadata": "Show Advanced Metadata"
+      "showOwnershipIcons": "Mostrar Ícones de Propriedade",
+      "showFormatDetails": "Mostrar Detalhes do Formato",
+      "showTeamAssignments": "Mostrar Atribuições de Equipa",
+      "showLocationmeetingInfo": "Mostrar Informações de Localização/Reunião",
+      "showEvaluationSetup": "Mostrar Configuração de Avaliação",
+      "showSchedulingDetails": "Mostrar Detalhes de Agendamento",
+      "showAdvancedMetadata": "Mostrar Metadados Avançados"
     },
-    "customizeWhatInformationIsShownInThePipe": "Customize what information is shown in the pipeline breakdown"
+    "customizeWhatInformationIsShownInThePipe": "Personalize as informações exibidas na análise do pipeline"
   },
   "pipelineMeetingCard": {
     "badge": {
-      "scheduled": "Scheduled"
+      "scheduled": "Agendado"
     },
-    "prepSent": "Prep sent",
-    "prepPending": "Prep pending"
+    "prepSent": "Preparação enviada",
+    "prepPending": "Preparação pendente"
   },
   "scheduleInterviewButton": {
     "toast": {
-      "interviewScheduledSuccessfully": "Interview scheduled successfully"
+      "interviewScheduledSuccessfully": "Entrevista agendada com sucesso"
     }
   },
   "smartSchedulingPanel": {
     "badge": {
-      "excellent": "Excellent",
-      "good": "Good",
-      "fair": "Fair",
-      "limited": "Limited",
-      "googleCalendar": "Google Calendar",
-      "bestMatch": "Best Match"
+      "excellent": "Excelente",
+      "good": "Bom",
+      "fair": "Razoável",
+      "limited": "Limitado",
+      "googleCalendar": "Calendário Google",
+      "bestMatch": "Melhor Correspondência"
     },
-    "noAvailableSlotsFound": "No available slots found",
-    "tryAdjustingTheDurationOrSelectingDiffer": "Try adjusting the duration or selecting different interviewers"
+    "noAvailableSlotsFound": "Nenhum horário disponível encontrado",
+    "tryAdjustingTheDurationOrSelectingDiffer": "Tente ajustar a duração ou selecionar entrevistadores diferentes"
   },
   "teamActivityCard": {
-    "title": "Team Activity",
-    "noTeamActivityYet": "No team activity yet"
+    "title": "Atividade da Equipa",
+    "noTeamActivityYet": "Ainda não há atividade da equipa"
   },
   "teamInviteWidget": {
     "label": {
-      "recentInvitations": "Recent Invitations",
-      "allInvitations": "All Invitations"
+      "recentInvitations": "Convites Recentes",
+      "allInvitations": "Todos os Convites"
     },
-    "dialogDescription": "Send an invitation to join your organization"
+    "dialogDescription": "Envie um convite para se juntar à sua organização"
   },
   "teamManagement": {
-    "teamMembers": "Team Members",
-    "noTeamMembersYet": "No team members yet",
+    "teamMembers": "Membros da Equipa",
+    "noTeamMembersYet": "Ainda não há membros da equipa",
     "toast": {
-      "failedToLoadTeamMembers": "Failed to load team members",
-      "teamMemberRemoved": "Team member removed",
-      "failedToRemoveTeamMember": "Failed to remove team member"
+      "failedToLoadTeamMembers": "Falha ao carregar os membros da equipa",
+      "teamMemberRemoved": "Membro da equipa removido",
+      "failedToRemoveTeamMember": "Falha ao remover o membro da equipa"
     },
-    "inviteTeamMembersToCollaborateOnJobPosti": "Invite team members to collaborate on job postings"
+    "inviteTeamMembersToCollaborateOnJobPosti": "Convide membros da equipa para colaborar em anúncios de emprego"
   },
   "textDocumentCreator": {
     "toast": {
-      "pleaseEnterSomeContent": "Please enter some content",
-      "pleaseEnterADocumentTitle": "Please enter a document title"
+      "pleaseEnterSomeContent": "Por favor, introduza algum conteúdo",
+      "pleaseEnterADocumentTitle": "Por favor, introduza um título para o documento"
     },
     "label": {
-      "documentTitle": "Document Title *",
-      "documentContent": "Document Content *"
+      "documentTitle": "Título do Documento *",
+      "documentContent": "Conteúdo do Documento *"
     },
     "placeholder": {
-      "typeOrPasteYourContentHere1010youCanIncl": "Type or paste your content here...&#10;&#10;You can include:&#10;• Interview questions&#10;• Company information&#10;• Benefits details&#10;• Technical requirements&#10;• Any other relevant text"
+      "typeOrPasteYourContentHere1010youCanIncl": "Escreva ou cole o seu conteúdo aqui...&#10;&#10;Pode incluir:&#10;• Perguntas da entrevista&#10;• Informações da empresa&#10;• Detalhes dos benefícios&#10;• Requisitos técnicos&#10;• Qualquer outro texto relevante"
     },
-    "giveYourDocumentADescriptiveName": "Give your document a descriptive name",
-    "plainTextFormatPerfectForQuickReferenceD": "Plain text format - perfect for quick reference documents"
+    "giveYourDocumentADescriptiveName": "Dê ao seu documento um nome descritivo",
+    "plainTextFormatPerfectForQuickReferenceD": "Formato de texto simples - perfeito para documentos de referência rápida"
   },
   "upcomingInterviewsWidget": {
-    "dialogTitle": "Interview Prep Document",
+    "dialogTitle": "Documento de Preparação da Entrevista",
     "today": "Hoje",
     "thisWeek": "Esta Semana",
-    "upcoming": "Upcoming",
+    "upcoming": "Próximas",
     "toast": {
-      "pleaseEnterFeedback": "Please enter feedback",
-      "feedbackSubmittedSuccessfully": "Feedback submitted successfully"
+      "pleaseEnterFeedback": "Por favor, introduza feedback",
+      "feedbackSubmittedSuccessfully": "Feedback submetido com sucesso"
     },
     "label": {
-      "currentDocument": "Current Document",
+      "currentDocument": "Documento Atual",
       "feedback": "Feedback"
     },
     "placeholder": {
-      "enterYourFeedbackAboutTheCandidateAndInt": "Enter your feedback about the candidate and interview..."
+      "enterYourFeedbackAboutTheCandidateAndInt": "Introduza o seu feedback sobre o candidato e a entrevista..."
     },
-    "loadingInterviews": "Loading interviews...",
-    "pleaseSubmitFeedbackToKeepThePipelineMov": "Please submit feedback to keep the pipeline moving",
-    "noPrepDocumentUploadedYetUseTheManualEnt": "No prep document uploaded yet. Use the manual entry or calendar linker to add one."
+    "loadingInterviews": "A carregar entrevistas...",
+    "pleaseSubmitFeedbackToKeepThePipelineMov": "Por favor, submeta feedback para manter o pipeline em movimento",
+    "noPrepDocumentUploadedYetUseTheManualEnt": "Nenhum documento de preparação carregado. Use a entrada manual ou o linker de calendário para adicionar um."
   },
   "bulkEmailDialog": {
-    "dialogDescription": "Send an email to all selected candidates"
+    "dialogDescription": "Enviar um email para todos os candidatos selecionados"
   },
   "candidateReviewCard": {
-    "internalReviewNotes": "Internal Review Notes"
+    "internalReviewNotes": "Notas de Revisão Interna"
   },
   "candidateShortlistWidget": {
-    "starCandidatesFromApplicationsToAccessTh": "Star candidates from applications to access them quickly"
+    "starCandidatesFromApplicationsToAccessTh": "Marque candidatos das candidaturas para aceder rapidamente"
   },
   "candidateWorkAuthCard": {
-    "noWorkAuthorizationDataAvailable": "No work authorization data available",
-    "requiresSponsorship": "Requires sponsorship",
-    "noSponsorshipRequired": "No sponsorship required"
+    "noWorkAuthorizationDataAvailable": "Não há dados de autorização de trabalho disponíveis",
+    "requiresSponsorship": "Requer patrocínio",
+    "noSponsorshipRequired": "Não requer patrocínio"
   },
   "changeOrdersPanel": {
-    "noChangeOrdersYet": "No change orders yet",
-    "noProcessedChangeOrdersYet": "No processed change orders yet"
+    "noChangeOrdersYet": "Ainda não há ordens de alteração",
+    "noProcessedChangeOrdersYet": "Ainda não há ordens de alteração processadas"
   },
   "contractBudgetDashboard": {
-    "awaitingYourApproval": "Awaiting your approval",
-    "activeMilestoneWork": "Active milestone work"
+    "awaitingYourApproval": "A aguardar a sua aprovação",
+    "activeMilestoneWork": "Trabalho de marco ativo"
   },
   "dailyBriefing": {
-    "letQuinAnalyzeYourHiringActivity": "Let QUIN analyze your hiring activity"
+    "letQuinAnalyzeYourHiringActivity": "Deixe o QUIN analisar a sua atividade de contratação"
   },
   "dossierActivityWidget": {
-    "browseCandidatesToSeeTheirProfilesHere": "Browse candidates to see their profiles here"
+    "browseCandidatesToSeeTheirProfilesHere": "Navegue pelos candidatos para ver os seus perfis aqui"
   },
   "editCandidateDialog": {
-    "dialogDescription": "Update candidate information. All changes will be logged."
+    "dialogDescription": "Atualize as informações do candidato. Todas as alterações serão registadas."
   },
   "enhancedCandidateActionDialog": {
-    "selectWhichStageToMoveThisCandidateTo": "Select which stage to move this candidate to",
-    "selectWhichPreviousStageToMoveThisCandid": "Select which previous stage to move this candidate to",
-    "aReasonIsRequiredForAccountability": "A reason is required for accountability"
+    "selectWhichStageToMoveThisCandidateTo": "Selecione para que fase pretende mover este candidato",
+    "selectWhichPreviousStageToMoveThisCandid": "Selecione para que fase anterior pretende mover este candidato",
+    "aReasonIsRequiredForAccountability": "É necessário um motivo para fins de responsabilização"
   },
   "enhancedCandidateDetails": {
     "alert": {
-      "limitedCandidateInformationAvailableFullDesc": "Limited candidate information available. Full details visible when candidate applies to your jobs."
+      "limitedCandidateInformationAvailableFullDesc": "Informações limitadas do candidato disponíveis. Detalhes completos visíveis quando o candidato se candidata aos seus empregos."
     }
   },
   "interviewSuccessWidget": {
-    "noApplicationsYetPostAJobToStartHiring": "No applications yet. Post a job to start hiring."
+    "noApplicationsYetPostAJobToStartHiring": "Ainda não há candidaturas. Publique um anúncio de emprego para começar a contratar."
   },
   "linkedInJobImport": {
-    "byConnectingYouAuthorizeTheQuantumClubTo": "By connecting, you authorize The Quantum Club to access your company's \n              job postings on LinkedIn.",
-    "dialogDescription": "Connect your LinkedIn account to automatically import your company's job postings.",
+    "byConnectingYouAuthorizeTheQuantumClubTo": "Ao conectar, autoriza The Quantum Club a aceder aos anúncios de emprego da sua empresa no LinkedIn.",
+    "dialogDescription": "Conecte a sua conta LinkedIn para importar automaticamente os anúncios de emprego da sua empresa.",
     "alert": {
-      "thisWillImportAllActiveJobPostingsFromYoDesc": "This will import all active job postings from your LinkedIn company page. \n              Make sure you have admin access to your company's LinkedIn page."
+      "thisWillImportAllActiveJobPostingsFromYoDesc": "Isto irá importar todos os anúncios de emprego ativos da página da sua empresa no LinkedIn. \n              Certifique-se de que tem acesso de administrador à página da sua empresa no LinkedIn."
     }
   },
   "manualInterviewEntryDialog": {
-    "dialogDescription": "Add an interview that's already scheduled but not yet in the system"
+    "dialogDescription": "Adicione uma entrevista que já esteja agendada, mas ainda não esteja no sistema"
   },
   "partnerInterviewHub": {
-    "noUpcomingInterviewsScheduled": "No upcoming interviews scheduled",
-    "noCompletedInterviewsYet": "No completed interviews yet",
-    "noCandidatesReadyForDecision": "No candidates ready for decision",
-    "interviewsNeedScorecardsBeforeDecisions": "Interviews need scorecards before decisions",
-    "description": "Track interviews, review insights, and make hiring decisions",
-    "allEvaluatorsHaveSubmittedScorecards": "All evaluators have submitted scorecards"
+    "noUpcomingInterviewsScheduled": "Nenhuma entrevista agendada para breve",
+    "noCompletedInterviewsYet": "Nenhuma entrevista concluída ainda",
+    "noCandidatesReadyForDecision": "Nenhum candidato pronto para decisão",
+    "interviewsNeedScorecardsBeforeDecisions": "As entrevistas precisam de scorecards antes das decisões",
+    "description": "Acompanhe as entrevistas, reveja as informações e tome decisões de contratação",
+    "allEvaluatorsHaveSubmittedScorecards": "Todos os avaliadores enviaram os scorecards"
   },
   "positionFillCountdown": {
-    "allPositionsFilledGreatWork": "All positions filled! Great work."
+    "allPositionsFilledGreatWork": "Todas as posições preenchidas! Ótimo trabalho."
   },
   "reviewShortcutOverlay": {
-    "dialogDescription": "Speed up your review workflow with these shortcuts."
+    "dialogDescription": "Acelere o seu fluxo de trabalho de revisão com estes atalhos."
   },
   "targetCompanies": {
-    "beheerBedrijvenVoorHeadhuntingKandidaten": "Beheer bedrijven voor headhunting kandidaten"
+    "beheerBedrijvenVoorHeadhuntingKandidaten": "Gerir empresas para candidatos de headhunting"
   },
   "targetCompanyDetailDialog": {
-    "nogGeenComments": "Nog geen comments"
+    "nogGeenComments": "Ainda sem comentários"
   },
   "targetCompanyDialog": {
-    "zoekBestaandeBedrijvenNaamEnWebsiteWorde": "Zoek bestaande bedrijven - naam en website worden automatisch ingevuld",
-    "selecteerDeJobWaarvoorDitBedrijfGetarget": "Selecteer de job waarvoor dit bedrijf getarget wordt, of laat leeg voor alle jobs"
+    "zoekBestaandeBedrijvenNaamEnWebsiteWorde": "Pesquisar empresas existentes - nome e website são preenchidos automaticamente",
+    "selecteerDeJobWaarvoorDitBedrijfGetarget": "Selecione o trabalho para o qual esta empresa é direcionada ou deixe em branco para todos os trabalhos"
   },
   "targetCompanyTable": {
-    "laden": "Laden...",
-    "geenBedrijvenGevonden": "Geen bedrijven gevonden"
+    "laden": "A carregar...",
+    "geenBedrijvenGevonden": "Nenhuma empresa encontrada"
   },
   "executiveDashboard": {
-    "noCandidatesInFinalStageYet": "No candidates in final stage yet"
+    "noCandidatesInFinalStageYet": "Ainda não há candidatos na fase final"
   },
   "hiringManagerDashboard": {
-    "feedbackManagementComingSoon": "Feedback management coming soon"
+    "feedbackManagementComingSoon": "Gestão de feedback em breve"
   },
   "observerDashboard": {
-    "youHaveObserverAccessToThisRoleViewPipel": "You have observer access to this role. View pipeline in the Pipeline tab above."
+    "youHaveObserverAccessToThisRoleViewPipel": "Tem acesso de observador a esta função. Veja o pipeline no separador Pipeline acima."
   },
   "adminNotesEditor": {
-    "theseNotesAreForInternalUseOnlyAndWillNo": "These notes are for internal use only and will not be shared with the candidate or partners."
+    "theseNotesAreForInternalUseOnlyAndWillNo": "Estas notas são apenas para uso interno e não serão partilhadas com o candidato ou parceiros."
   },
   "jobBulkActionBar": {
     "menu": {
-      "bulkActions": "Bulk Actions"
+      "bulkActions": "Ações em massa"
     },
-    "publish": "Publish"
+    "publish": "Publicar"
   },
   "jobTableView": {
     "menu": {
-      "visibleColumns": "Visible Columns"
+      "visibleColumns": "Colunas Visíveis"
     },
     "tooltip": {
-      "confidential": "Confidential"
+      "confidential": "Confidencial"
     },
-    "noJobsFound": "No jobs found"
+    "noJobsFound": "Nenhum trabalho encontrado"
   },
   "jobsAIInsightsWidget": {
     "title": "QUIN Insights",
-    "noInsightsAvailableYet": "No insights available yet",
-    "addMoreJobsToGenerateAiPredictions": "Add more jobs to generate AI predictions",
-    "quinInsightsTemporarilyUnavailable": "QUIN Insights temporarily unavailable",
-    "hiringForecast": "Hiring Forecast",
-    "strategicRecommendations": "Strategic Recommendations"
+    "noInsightsAvailableYet": "Ainda não há informações disponíveis",
+    "addMoreJobsToGenerateAiPredictions": "Adicione mais trabalhos para gerar previsões de IA",
+    "quinInsightsTemporarilyUnavailable": "QUIN Insights temporariamente indisponível",
+    "hiringForecast": "Previsão de Contratação",
+    "strategicRecommendations": "Recomendações Estratégicas"
   },
   "keyboardShortcutsDialog": {
-    "dialogTitle": "Keyboard Shortcuts",
-    "dialogDescription": "Navigate and manage jobs efficiently with these shortcuts"
+    "dialogTitle": "Atalhos de Teclado",
+    "dialogDescription": "Navegue e gerencie trabalhos de forma eficiente com estes atalhos"
   },
   "savedFilterPresets": {
-    "dialogTitle": "Save Filter Preset",
+    "dialogTitle": "Guardar Predefinição de Filtro",
     "toast": {
-      "pleaseEnterANameForYourPreset": "Please enter a name for your preset"
+      "pleaseEnterANameForYourPreset": "Por favor, introduza um nome para a sua predefinição"
     },
-    "noSavedPresets": "No saved presets",
-    "saveYourCurrentFiltersForQuickAccess": "Save your current filters for quick access",
-    "presets": "Presets",
-    "savedViews": "Saved Views",
-    "dialogDescription": "Save your current filters for quick access later."
+    "noSavedPresets": "Nenhuma predefinição guardada",
+    "saveYourCurrentFiltersForQuickAccess": "Guarde os seus filtros atuais para acesso rápido",
+    "presets": "Predefinições",
+    "savedViews": "Vistas Guardadas",
+    "dialogDescription": "Guarde os seus filtros atuais para acesso rápido mais tarde."
   },
   "jobsCompactHeader": {
     "placeholder": {
-      "searchJobs": "Search jobs..."
+      "searchJobs": "Pesquisar empregos..."
     },
     "menu": {
-      "navigation": "Navigation",
-      "adminTools": "Admin Tools"
+      "navigation": "Navegação",
+      "adminTools": "Ferramentas de Administração"
     },
-    "newJob": "New Job",
+    "newJob": "Novo Emprego",
     "jobs": "Vagas"
   },
   "jobsUnifiedFilterBar": {
     "menu": {
       "company": "Empresa",
-      "createdDate": "Created Date",
+      "createdDate": "Data de Criação",
       "layout": "Layout",
-      "savedViews": "Saved Views"
+      "savedViews": "Vistas Guardadas"
     },
-    "advancedFilters": "Advanced Filters",
-    "views": "Views"
+    "advancedFilters": "Filtros Avançados",
+    "views": "Vistas"
   },
   "jobListView": {
-    "noActivity": "No activity",
+    "noActivity": "Sem atividade",
     "dashboard": "Dashboard",
     "tooltip": {
-      "confidential": "Confidential"
+      "confidential": "Confidencial"
     },
-    "noJobsFound": "No jobs found"
+    "noJobsFound": "Nenhum emprego encontrado"
   },
   "jobStatusSummaryBar": {
-    "publishedJobsWillAppearInSearchResultsAn": "Published jobs will appear in search results and candidates can apply to them."
+    "publishedJobsWillAppearInSearchResultsAn": "Os empregos publicados aparecerão nos resultados de pesquisa e os candidatos podem candidatar-se a eles."
   },
   "jobsAnalyticsWidget": {
-    "openJobs": "Open Jobs",
-    "avgDaysOpen": "Avg Days Open",
-    "fillRate": "Fill Rate",
-    "activePipeline": "Active Pipeline"
+    "openJobs": "Empregos Abertos",
+    "avgDaysOpen": "Média de Dias Abertos",
+    "fillRate": "Taxa de Preenchimento",
+    "activePipeline": "Pipeline Ativo"
   },
   "jobCardHeader": {
-    "viewOriginalPosting": "View original posting",
-    "thisJobIsOnlyVisibleToSelectedUsers": "This job is only visible to selected users"
+    "viewOriginalPosting": "Ver publicação original",
+    "thisJobIsOnlyVisibleToSelectedUsers": "Este emprego só é visível para utilizadores selecionados"
   },
   "jobCardLastActivity": {
-    "lastActivity": "Last Activity"
+    "lastActivity": "Última Atividade"
   },
   "jobCardMetrics": {
-    "hiringProgress": "Hiring Progress",
-    "conversion": "Conversion",
+    "hiringProgress": "Progresso da Contratação",
+    "conversion": "Conversão",
     "interviews": "Entrevistas"
   },
   "compactJobCard": {
     "tooltip": {
-      "confidential": "Confidential"
+      "confidential": "Confidencial"
     }
   },
   "jobsInlineStats": {
@@ -1628,18 +1628,18 @@
   },
   "liveInterview": {
     "title": "Interview Sentinel",
-    "subtitle": "Real-time Fact Checking & Copilot",
-    "micDenied": "Microphone access denied.",
-    "noSpeechSupport": "Browser does not support Speech Recognition.",
-    "listening": "Sentinel is listening...",
-    "stop": "Stop",
+    "subtitle": "Verificação de Factos em Tempo Real & Copiloto",
+    "micDenied": "Acesso ao microfone negado.",
+    "noSpeechSupport": "O navegador não suporta o Reconhecimento de Voz.",
+    "listening": "O Sentinel está a ouvir...",
+    "stop": "Parar",
     "start": "Iniciar",
-    "liveTranscript": "Live Transcript",
-    "speechToText": "Real-time speech-to-text stream",
-    "waitingForSpeech": "Waiting for speech...",
+    "liveTranscript": "Transcrição em Direto",
+    "speechToText": "Stream de voz para texto em tempo real",
+    "waitingForSpeech": "A aguardar voz...",
     "sentinelHud": "Sentinel HUD",
-    "liveAiInsights": "Live AI Insights",
-    "noAlerts": "No alerts yet. System is monitoring..."
+    "liveAiInsights": "Insights de IA em Direto",
+    "noAlerts": "Ainda não há alertas. O sistema está a monitorizar..."
   },
   "billing": {
     "title": "Billing & Invoices",
@@ -1714,214 +1714,214 @@
   "45_minutes": "45_minutes",
   "a": "A",
   "aanvullende_opmerkingen_strategie_etc": "Aanvullende_opmerkingen_strategie_etc",
-  "accepted": "Accepted",
-  "across_all_pipeline_stages": "Across_all_pipeline_stages",
-  "acties": "Acties",
-  "active_candidates": "Active_candidates",
-  "add_a_concern": "Add_a_concern",
-  "add_a_strength": "Add_a_strength",
-  "add_any_additional_notes": "Add_any_additional_notes",
-  "add_internal_notes_about": "Add_internal_notes_about",
-  "add_interview_from_calendar": "Add_interview_from_calendar",
-  "add_interview_manually": "Add_interview_manually",
+  "accepted": "Aceite",
+  "across_all_pipeline_stages": "Em todas as fases do pipeline",
+  "acties": "Ações",
+  "active_candidates": "Candidatos ativos",
+  "add_a_concern": "Adicionar uma preocupação",
+  "add_a_strength": "Adicionar uma força",
+  "add_any_additional_notes": "Adicionar notas adicionais",
+  "add_internal_notes_about": "Adicionar notas internas sobre",
+  "add_interview_from_calendar": "Adicionar entrevista do calendário",
+  "add_interview_manually": "Adicionar entrevista manualmente",
   "addCandidate": {
-    "addedButAuditFailed": "Added But Audit Failed",
-    "addedButLogFailed": "Added But Log Failed",
-    "addedSuccessfully": "Added Successfully",
-    "addedToPipeline": "Added To Pipeline",
-    "adding": "Adding",
-    "addToPipeline": "Add To Pipeline",
-    "adminNotes": "Admin Notes",
-    "aiFillDetails": "Ai Fill Details",
-    "alreadyInPipeline": "Already In Pipeline",
-    "contactRequired": "Contact Required",
-    "contactRequiredDesc": "Contact Required Desc",
-    "creditAssignment": "Credit Assignment",
-    "creditDescription": "Credit Description",
-    "currentCompany": "Current Company",
-    "currentTitle": "Current Title",
-    "duplicateCheckFailed": "Duplicate Check Failed",
-    "emailOptional": "Email Optional",
-    "enterDetailsManually": "Enter Details Manually",
-    "enterLinkedInUrl": "Enter Linked In Url",
-    "existing": "Existing",
-    "existingProfileLinked": "Existing Profile Linked",
-    "failedImportLinkedIn": "Failed Import Linked In",
-    "failedToAdd": "Failed To Add",
-    "fullName": "Full Name",
-    "fullNameRequired": "Full Name Required",
-    "importing": "Importing",
-    "importProfile": "Import Profile",
-    "linkedinImporter": "Linkedin Importer",
-    "linkedinImporterDesc": "Linkedin Importer Desc",
-    "linkedinProfileImported": "Linkedin Profile Imported",
-    "linkedinProfileRecommended": "Linkedin Profile Recommended",
-    "linkedinProfileUrl": "Linkedin Profile Url",
-    "linkedinRecommended": "Linkedin Recommended",
-    "linkedinRecommendedDesc": "Linkedin Recommended Desc",
-    "linkedinTimedOut": "Linkedin Timed Out",
-    "linkedinUrlFormat": "Linkedin Url Format",
-    "linkExisting": "Link Existing",
-    "linkExistingDesc": "Link Existing Desc",
-    "nameAndPhotoExtracted": "Name And Photo Extracted",
-    "nameExtractedManual": "Name Extracted Manual",
-    "nameExtractedVerify": "Name Extracted Verify",
-    "nameFromLinkedIn": "Name From Linked In",
-    "noCandidatesFound": "No Candidates Found",
-    "noTeamMemberFound": "No Team Member Found",
-    "notesOptional": "Notes Optional",
-    "phoneOptional": "Phone Optional",
-    "profileImported": "Profile Imported",
-    "resumeCV": "Resume C V",
-    "searchPlaceholder": "Search Placeholder",
-    "searchTeamMembers": "Search Team Members",
-    "selectedCount": "Selected Count",
-    "selectTeamMembers": "Select Team Members",
-    "startingPipelineStage": "Starting Pipeline Stage",
-    "startTypingToSearch": "Start Typing To Search",
-    "step1Description": "Step1 Description",
-    "step1Title": "Step1 Title",
+    "addedButAuditFailed": "Adicionado, mas a auditoria falhou",
+    "addedButLogFailed": "Adicionado, mas o registo falhou",
+    "addedSuccessfully": "Adicionado com sucesso",
+    "addedToPipeline": "Adicionado ao pipeline",
+    "adding": "A adicionar",
+    "addToPipeline": "Adicionar ao pipeline",
+    "adminNotes": "Notas de administrador",
+    "aiFillDetails": "Preenchimento automático com IA",
+    "alreadyInPipeline": "Já está no pipeline",
+    "contactRequired": "Contacto obrigatório",
+    "contactRequiredDesc": "Descrição de contacto obrigatório",
+    "creditAssignment": "Atribuição de crédito",
+    "creditDescription": "Descrição do crédito",
+    "currentCompany": "Empresa atual",
+    "currentTitle": "Cargo atual",
+    "duplicateCheckFailed": "A verificação de duplicados falhou",
+    "emailOptional": "Email opcional",
+    "enterDetailsManually": "Introduzir detalhes manualmente",
+    "enterLinkedInUrl": "Introduzir URL do LinkedIn",
+    "existing": "Existente",
+    "existingProfileLinked": "Perfil Existente Associado",
+    "failedImportLinkedIn": "Falha ao Importar do LinkedIn",
+    "failedToAdd": "Falha ao Adicionar",
+    "fullName": "Nome Completo",
+    "fullNameRequired": "Nome Completo Obrigatório",
+    "importing": "A Importar",
+    "importProfile": "Importar Perfil",
+    "linkedinImporter": "Importador do LinkedIn",
+    "linkedinImporterDesc": "Descrição do Importador do LinkedIn",
+    "linkedinProfileImported": "Perfil do LinkedIn Importado",
+    "linkedinProfileRecommended": "Perfil do LinkedIn Recomendado",
+    "linkedinProfileUrl": "URL do Perfil do LinkedIn",
+    "linkedinRecommended": "LinkedIn Recomendado",
+    "linkedinRecommendedDesc": "Descrição do LinkedIn Recomendado",
+    "linkedinTimedOut": "Tempo Limite do LinkedIn Excedido",
+    "linkedinUrlFormat": "Formato do URL do LinkedIn",
+    "linkExisting": "Associar Existente",
+    "linkExistingDesc": "Descrição de Associar Existente",
+    "nameAndPhotoExtracted": "Nome e Foto Extraídos",
+    "nameExtractedManual": "Nome Extraído Manualmente",
+    "nameExtractedVerify": "Nome Extraído Verificar",
+    "nameFromLinkedIn": "Nome do LinkedIn",
+    "noCandidatesFound": "Nenhum Candidato Encontrado",
+    "noTeamMemberFound": "Nenhum Membro da Equipa Encontrado",
+    "notesOptional": "Notas Opcionais",
+    "phoneOptional": "Telefone Opcional",
+    "profileImported": "Perfil Importado",
+    "resumeCV": "Currículo V C",
+    "searchPlaceholder": "Placeholder de Pesquisa",
+    "searchTeamMembers": "Pesquisar Membros da Equipa",
+    "selectedCount": "Contagem Selecionada",
+    "selectTeamMembers": "Selecionar Membros da Equipa",
+    "startingPipelineStage": "Fase Inicial do Pipeline",
+    "startTypingToSearch": "Comece a Escrever para Pesquisar",
+    "step1Description": "Descrição do Passo 1",
+    "step1Title": "Título do Passo 1",
     "title": "Titulo",
     "toast": {
-      "failedToAdd": "Failed to Add Candidate",
-      "unexpectedError": "An unexpected error occurred. Please try again or contact support."
+      "failedToAdd": "Falha ao Adicionar Candidato",
+      "unexpectedError": "Ocorreu um erro inesperado. Por favor, tente novamente ou contacte o suporte."
     },
-    "tryAgainOrManual": "Try Again Or Manual",
-    "validEmailRequired": "Valid Email Required",
-    "verifyManually": "Verify Manually",
-    "whyAddingCandidate": "Why Adding Candidate"
+    "tryAgainOrManual": "Tentar Novamente ou Manualmente",
+    "validEmailRequired": "Email Válido Obrigatório",
+    "verifyManually": "Verificar Manualmente",
+    "whyAddingCandidate": "Porquê Adicionar Candidato"
   },
-  "added": "Added",
-  "additional_details": "Additional_details",
-  "additional_locations": "Additional_locations",
-  "additional_work_authorization_details": "Additional_work_authorization_details",
+  "added": "Adicionado",
+  "additional_details": "Detalhes Adicionais",
+  "additional_locations": "Localizações Adicionais",
+  "additional_work_authorization_details": "Detalhes Adicionais de Autorização de Trabalho",
   "admin": "Administrador",
-  "advance_to_stage": "Advance_to_stage",
-  "ai_summary": "Ai_summary",
-  "aigenerated_summary": "Aigenerated_summary",
-  "all_clear": "All_clear",
-  "all_slas_met": "All_slas_met",
-  "all_stages": "All_stages",
+  "advance_to_stage": "Avançar para a Etapa",
+  "ai_summary": "Resumo de IA",
+  "aigenerated_summary": "Resumo Gerado por IA",
+  "all_clear": "Tudo Limpo",
+  "all_slas_met": "Todos os SLAs Cumpridos",
+  "all_stages": "Todas as Etapas",
   "alle_bedrijven": "Alle_bedrijven",
   "alle_jobs": "Alle_jobs",
-  "allowed": "Allowed",
-  "allowed_domains": "Allowed_domains",
+  "allowed": "Permitido",
+  "allowed_domains": "Domínios Permitidos",
   "andere_rol": "Andere_rol",
-  "annual_revenue_goal": "Annual_revenue_goal",
-  "any_additional_details_about": "Any_additional_details_about",
-  "applied": "Applied",
-  "assessment": "Assessment",
-  "assessment_type": "Assessment_type",
-  "attach_files_links_or": "Attach_files_links_or",
-  "average_rejection_stage": "Average_rejection_stage",
-  "avg_days": "Avg_days",
-  "avg_feedback_time": "Avg_feedback_time",
-  "avg_time_in_stage": "Avg_time_in_stage",
-  "avg_time_to_hire": "Avg_time_to_hire",
-  "basic_information": "Basic_information",
-  "be_specific_about_what": "Be_specific_about_what",
+  "annual_revenue_goal": "Meta de Receita Anual",
+  "any_additional_details_about": "Algum detalhe adicional sobre",
+  "applied": "Candidatou-se",
+  "assessment": "Avaliação",
+  "assessment_type": "Tipo de Avaliação",
+  "attach_files_links_or": "Anexar ficheiros, links ou",
+  "average_rejection_stage": "Etapa Média de Rejeição",
+  "avg_days": "Média de Dias",
+  "avg_feedback_time": "Tempo Médio de Feedback",
+  "avg_time_in_stage": "Tempo Médio na Etapa",
+  "avg_time_to_hire": "Tempo Médio para Contratar",
+  "basic_information": "Informação Básica",
+  "be_specific_about_what": "Seja específico sobre o que",
   "bedrijf_bijgewerkt": "Bedrijf_bijgewerkt",
   "bedrijf_toegevoegd": "Bedrijf_toegevoegd",
   "bedrijf_verwijderd": "Bedrijf_verwijderd",
   "bedrijfsnaam": "Bedrijfsnaam",
-  "behavioral": "Behavioral",
-  "behavioral_interview": "Behavioral_interview",
+  "behavioral": "Comportamental",
+  "behavioral_interview": "Entrevista Comportamental",
   "bijv_amsterdam_nederland": "Bijv_amsterdam_nederland",
-  "bonus_tools": "Bonus_tools",
-  "brief_summary_of_candidates": "Brief_summary_of_candidates",
-  "browse_applications": "Browse_applications",
-  "cad": "Cad",
-  "calculating_skill_match_scores": "Calculating_skill_match_scores",
-  "calendar_event": "Calendar_event",
+  "bonus_tools": "Ferramentas de Bónus",
+  "brief_summary_of_candidates": "Breve resumo dos candidatos",
+  "browse_applications": "Procurar Candidaturas",
+  "cad": "CAD",
+  "calculating_skill_match_scores": "A calcular as pontuações de correspondência de competências",
+  "calendar_event": "Evento de calendário",
   "candidate": "Candidato",
-  "candidate_contacted": "Candidate_contacted",
-  "candidate_expectations_align_with": "Candidate_expectations_align_with",
-  "candidate_id": "Candidate_id",
+  "candidate_contacted": "Candidato contactado",
+  "candidate_expectations_align_with": "As expectativas do candidato estão alinhadas com",
+  "candidate_id": "ID do candidato",
   "candidate_id, candidate_email, candidate_full_name": "Candidate_id, candidate_email, candidate_full_name",
-  "candidate_moved_back_to": "Candidate_moved_back_to",
-  "candidate_profile_link_copied": "Candidate_profile_link_copied",
-  "candidate_profile_updated_successfully": "Candidate_profile_updated_successfully",
-  "candidate_shortlisted": "Candidate_shortlisted",
-  "candidates_exported_successfully": "Candidates_exported_successfully",
-  "candidates_ready_for_your": "Candidates_ready_for_your",
-  "candidates_will_appear_here": "Candidates_will_appear_here",
-  "candidates_worldwide_will_be": "Candidates_worldwide_will_be",
-  "case_study": "Case_study",
+  "candidate_moved_back_to": "Candidato movido de volta para",
+  "candidate_profile_link_copied": "Link do perfil do candidato copiado",
+  "candidate_profile_updated_successfully": "Perfil do candidato atualizado com sucesso",
+  "candidate_shortlisted": "Candidato pré-selecionado",
+  "candidates_exported_successfully": "Candidatos exportados com sucesso",
+  "candidates_ready_for_your": "Candidatos prontos para a sua",
+  "candidates_will_appear_here": "Os candidatos aparecerão aqui",
+  "candidates_worldwide_will_be": "Candidatos em todo o mundo estarão",
+  "case_study": "Estudo de caso",
   "category": "Categoria",
-  "change_order_history": "Change_order_history",
-  "channel": "Channel",
-  "chatmessaging": "Chatmessaging",
-  "choose_a_candidate": "Choose_a_candidate",
-  "choose_a_clear_descriptive": "Choose_a_clear_descriptive",
-  "choose_how_this_stage": "Choose_how_this_stage",
-  "clear_schedule": "Clear_schedule",
-  "click_scan_calendar_to": "Click_scan_calendar_to",
-  "coding_challenge": "Coding_challenge",
-  "comment_toegevoegd": "Comment_toegevoegd",
+  "change_order_history": "Histórico de alterações de encomendas",
+  "channel": "Canal",
+  "chatmessaging": "Mensagens de chat",
+  "choose_a_candidate": "Escolha um candidato",
+  "choose_a_clear_descriptive": "Escolha um descritivo claro",
+  "choose_how_this_stage": "Escolha como esta etapa",
+  "clear_schedule": "Limpar agendamento",
+  "click_scan_calendar_to": "Clique em verificar calendário para",
+  "coding_challenge": "Desafio de programação",
+  "comment_toegevoegd": "Comentário adicionado",
   "comments": "Comentarios",
-  "committed": "Committed",
-  "company_actions": "Company_actions",
-  "company_id": "Company_id",
+  "committed": "Comprometido",
+  "company_actions": "Ações da empresa",
+  "company_id": "ID da empresa",
   "company_id, companies(id, name)": "Company_id, companies(id, name)",
-  "company_insiders": "Company_insiders",
+  "company_insiders": "Informações privilegiadas da empresa",
   "company_member_id, external_user_id": "Company_member_id, external_user_id",
-  "compensation": "Compensation",
-  "compensation_expectations": "Compensation_expectations",
-  "complete_interviews_and_submit": "Complete_interviews_and_submit",
-  "confirmed": "Confirmed",
-  "consider": "Consider",
-  "contact_information": "Contact_information",
-  "contact_toegevoegd": "Contact_toegevoegd",
-  "contact_verwijderd": "Contact_verwijderd",
-  "continue_where_you_left": "Continue_where_you_left",
-  "contract_breakdown": "Contract_breakdown",
-  "convert": "Convert",
-  "coordinates_captured_for_map": "Coordinates_captured_for_map",
-  "create_new_role": "Create_new_role",
-  "created": "Created",
+  "compensation": "Remuneração",
+  "compensation_expectations": "Expectativas de remuneração",
+  "complete_interviews_and_submit": "Conclua as entrevistas e submeta",
+  "confirmed": "Confirmado",
+  "consider": "Considerar",
+  "contact_information": "Informação de contacto",
+  "contact_toegevoegd": "Contacto adicionado",
+  "contact_verwijderd": "Contacto removido",
+  "continue_where_you_left": "Continue de onde parou",
+  "contract_breakdown": "Detalhe do contrato",
+  "convert": "Converter",
+  "coordinates_captured_for_map": "Coordenadas capturadas para o mapa",
+  "create_new_role": "Criar nova função",
+  "created": "Criado",
   "created_at, source_channel, created_by": "Created_at, source_channel, created_by",
   "created_at, submitted_at, meeting_id": "Created_at, submitted_at, meeting_id",
-  "csv_exported_successfully": "Csv_exported_successfully",
-  "culture_fit": "Culture_fit",
+  "csv_exported_successfully": "CSV exportado com sucesso",
+  "culture_fit": "Ajuste cultural",
   "currency": "Moeda",
-  "current_company": "Current_company",
-  "current_position": "Current_position",
-  "current_salary": "Current_salary",
-  "current_schedule": "Current_schedule",
-  "current_stage": "Current_stage",
-  "current_title": "Current_title",
-  "daily_briefing_generated": "Daily_briefing_generated",
+  "current_company": "Empresa atual",
+  "current_position": "Cargo atual",
+  "current_salary": "Salário atual",
+  "current_schedule": "Horário atual",
+  "current_stage": "Etapa atual",
+  "current_title": "Título atual",
+  "daily_briefing_generated": "Resumo diário gerado",
   "date": "Data",
-  "days_in_pipeline": "Days_in_pipeline",
-  "define_scoring_criteria_rubric": "Define_scoring_criteria_rubric",
-  "define_scoring_feedback_requirements": "Define_scoring_feedback_requirements",
-  "department": "Department",
+  "days_in_pipeline": "Dias no pipeline",
+  "define_scoring_criteria_rubric": "Definir critérios de pontuação",
+  "define_scoring_feedback_requirements": "Definir requisitos de feedback de pontuação",
+  "department": "Departamento",
   "description": "Descricao",
-  "desired_locations_commaseparated": "Desired_locations_commaseparated",
-  "desired_salary": "Desired_salary",
-  "detailed_feedback": "Detailed_feedback",
-  "detected_at": "Detected_at",
-  "difficulty": "Difficulty",
+  "desired_locations_commaseparated": "Locais desejados (separados por vírgulas)",
+  "desired_salary": "Salário desejado",
+  "detailed_feedback": "Feedback detalhado",
+  "detected_at": "Detetado em",
+  "difficulty": "Dificuldade",
   "documents": "Documentos",
-  "draft_restored": "Draft_restored",
-  "duration_min": "Duration_min",
-  "duration_minutes": "Duration_minutes",
-  "easy": "Easy",
-  "edit_candidate_profile": "Edit_candidate_profile",
-  "eg_1_234_567": "Eg_1_234_567",
-  "eg_1_month_2": "Eg_1_month_2",
-  "eg_100000": "Eg_100000",
-  "eg_120000": "Eg_120000",
-  "eg_150000": "Eg_150000",
-  "eg_5": "Eg_5",
-  "eg_5_years_typescript": "Eg_5_years_typescript",
-  "eg_80000": "Eg_80000",
-  "eg_acme_corp": "Eg_acme_corp",
-  "eg_amsterdam_berlin_london": "Eg_amsterdam_berlin_london",
-  "eg_candidate_requested_different": "Eg_candidate_requested_different",
-  "eg_english_dutch_german": "Eg_english_dutch_german",
-  "eg_english_native_spanish": "Eg_english_native_spanish",
-  "eg_experience_with_figma": "Eg_experience_with_figma",
+  "draft_restored": "Rascunho restaurado",
+  "duration_min": "Duração (min)",
+  "duration_minutes": "Duração (minutos)",
+  "easy": "Fácil",
+  "edit_candidate_profile": "Editar perfil do candidato",
+  "eg_1_234_567": "Ex: 1 234 567",
+  "eg_1_month_2": "Ex: 1 mês 2",
+  "eg_100000": "Ex: 100000",
+  "eg_120000": "Ex: 120000",
+  "eg_150000": "Ex: 150000",
+  "eg_5": "Ex: 5",
+  "eg_5_years_typescript": "Ex: 5 anos de TypeScript",
+  "eg_80000": "Ex: 80000",
+  "eg_acme_corp": "Ex: Acme Corp",
+  "eg_amsterdam_berlin_london": "Ex: Amesterdão, Berlim, Londres",
+  "eg_candidate_requested_different": "Ex: Candidato solicitou diferente",
+  "eg_english_dutch_german": "Ex: Inglês, Holandês, Alemão",
+  "eg_english_native_spanish": "Ex: Inglês (nativo), Espanhol",
+  "eg_experience_with_figma": "Ex: Experiência com Figma",
   "eg_fintech_saas": "Eg_fintech_saas",
   "eg_h1b_green_card": "Eg_h1b_green_card",
   "eg_hackerrank_leetcode_custom": "Eg_hackerrank_leetcode_custom",
@@ -1958,54 +1958,54 @@
   "external_job_url_optional": "External_job_url_optional",
   "external_user_id": "External_user_id",
   "extra_informatie_over_contact": "Extra_informatie_over_contact",
-  "failed_to_confirm_interview": "Failed_to_confirm_interview",
-  "failed_to_dismiss_interview": "Failed_to_dismiss_interview",
-  "failed_to_export_candidates": "Failed_to_export_candidates",
-  "failed_to_generate_briefing": "Failed_to_generate_briefing",
-  "failed_to_generate_report": "Failed_to_generate_report",
-  "failed_to_link_interview": "Failed_to_link_interview",
-  "failed_to_load_calendar": "Failed_to_load_calendar",
-  "failed_to_load_companies": "Failed_to_load_companies",
-  "failed_to_load_pipeline": "Failed_to_load_pipeline",
-  "failed_to_load_rejected": "Failed_to_load_rejected",
-  "failed_to_load_your": "Failed_to_load_your",
-  "failed_to_reconsider_candidate": "Failed_to_reconsider_candidate",
-  "failed_to_reschedule_interview": "Failed_to_reschedule_interview",
-  "failed_to_revoke_invitation": "Failed_to_revoke_invitation",
-  "failed_to_scan_calendar": "Failed_to_scan_calendar",
-  "failed_to_send_bulk": "Failed_to_send_bulk",
-  "failed_to_send_invitation": "Failed_to_send_invitation",
-  "failed_to_update_candidate": "Failed_to_update_candidate",
-  "fee_amount": "Fee_amount",
-  "fee_override": "Fee_override",
+  "failed_to_confirm_interview": "Falha ao confirmar a entrevista",
+  "failed_to_dismiss_interview": "Falha ao rejeitar a entrevista",
+  "failed_to_export_candidates": "Falha ao exportar candidatos",
+  "failed_to_generate_briefing": "Falha ao gerar briefing",
+  "failed_to_generate_report": "Falha ao gerar relatório",
+  "failed_to_link_interview": "Falha ao associar a entrevista",
+  "failed_to_load_calendar": "Falha ao carregar o calendário",
+  "failed_to_load_companies": "Falha ao carregar as empresas",
+  "failed_to_load_pipeline": "Falha ao carregar o pipeline",
+  "failed_to_load_rejected": "Falha ao carregar os rejeitados",
+  "failed_to_load_your": "Falha ao carregar os seus",
+  "failed_to_reconsider_candidate": "Falha ao reconsiderar o candidato",
+  "failed_to_reschedule_interview": "Falha ao reagendar a entrevista",
+  "failed_to_revoke_invitation": "Falha ao revogar o convite",
+  "failed_to_scan_calendar": "Falha ao analisar o calendário",
+  "failed_to_send_bulk": "Falha ao enviar em massa",
+  "failed_to_send_invitation": "Falha ao enviar o convite",
+  "failed_to_update_candidate": "Falha ao atualizar o candidato",
+  "fee_amount": "Valor da taxa",
+  "fee_override": "Substituição da taxa",
   "feedback": "Feedback",
-  "final_interview": "Final_interview",
-  "flexible": "Flexible",
-  "for_internal_use_only": "For_internal_use_only",
-  "format": "Format",
-  "fout_bij_laden_van": "Fout_bij_laden_van",
-  "fout_bij_opslaan_van": "Fout_bij_opslaan_van",
-  "fout_bij_stemmen": "Fout_bij_stemmen",
-  "fout_bij_toevoegen_comment": "Fout_bij_toevoegen_comment",
-  "fout_bij_toevoegen_contact": "Fout_bij_toevoegen_contact",
-  "fout_bij_verwijderen_contact": "Fout_bij_verwijderen_contact",
-  "fout_bij_verwijderen_van": "Fout_bij_verwijderen_van",
-  "freelance_rate": "Freelance_rate",
-  "full_name": "Full_name",
+  "final_interview": "Entrevista final",
+  "flexible": "Flexível",
+  "for_internal_use_only": "Apenas para uso interno",
+  "format": "Formato",
+  "fout_bij_laden_van": "Erro ao carregar",
+  "fout_bij_opslaan_van": "Erro ao guardar",
+  "fout_bij_stemmen": "Erro ao votar",
+  "fout_bij_toevoegen_comment": "Erro ao adicionar comentário",
+  "fout_bij_toevoegen_contact": "Erro ao adicionar contacto",
+  "fout_bij_verwijderen_contact": "Erro ao remover contacto",
+  "fout_bij_verwijderen_van": "Erro ao remover",
+  "freelance_rate": "Taxa de freelancer",
+  "full_name": "Nome completo",
   "full_name, avatar_url": "Full_name, avatar_url",
   "full_name, email, current_title, current_company": "Full_name, email, current_title, current_company",
-  "functie_specificaties": "Functie_specificaties",
-  "functies": "Functies",
-  "gbp": "Gbp",
-  "geen_votes": "Geen_votes",
-  "github_url": "Github_url",
-  "good": "Good",
-  "handmatig_toevoegen": "Handmatig_toevoegen",
-  "hard": "Hard",
-  "hire_rate": "Hire_rate",
-  "hires_this_month": "Hires_this_month",
-  "hoog_10": "Hoog_10",
-  "hybrid": "Hybrid",
+  "functie_specificaties": "Especificações da função",
+  "functies": "Funções",
+  "gbp": "GBP",
+  "geen_votes": "Sem votos",
+  "github_url": "URL do GitHub",
+  "good": "Bom",
+  "handmatig_toevoegen": "Adicionar manualmente",
+  "hard": "Difícil",
+  "hire_rate": "Taxa de contratação",
+  "hires_this_month": "Contratações este mês",
+  "hoog_10": "Alto_10",
+  "hybrid": "Híbrido",
   "id": "Id",
   "id, candidate_full_name, candidate_email, current_stage_index": "Id, candidate_full_name, candidate_email, current_stage_index",
   "id, content, created_at, sender_id": "Id, content, created_at, sender_id",
@@ -2022,7 +2022,7 @@
   "id, job_title, user_id": "Id, job_title, user_id",
   "id, name": "Id, name",
   "id, reviewer_id, is_primary, assigned_at": "Id, reviewer_id, is_primary, assigned_at",
-  "id, role, profiles:user_id (full_name, avatar_url)": "Id, role, profiles:user_id (full_name, avatar_url)",
+  "id, role, profiles:user_id (full_name, avatar_url)": "Id, função, perfis:user_id (full_name, avatar_url)",
   "id, status": "Id, status",
   "id, status, scheduled_start": "Id, status, scheduled_start",
   "id, status, updated_at": "Id, status, updated_at",
@@ -2034,317 +2034,317 @@
   "id, user_id, full_name, title, bio, email, availability, photo_url": "Id, user_id, full_name, title, bio, email, availability, photo_url",
   "id, user_id, granted_by, granted_at": "Id, user_id, granted_by, granted_at",
   "id, user_id, job_title": "Id, user_id, job_title",
-  "immediate": "Immediate",
-  "import_jobs_from_linkedin": "Import_jobs_from_linkedin",
-  "in_person": "In_person",
-  "in_progress": "In_progress",
+  "immediate": "Imediato",
+  "import_jobs_from_linkedin": "Importar_vagas_do_linkedin",
+  "in_person": "Presencial",
+  "in_progress": "Em_progresso",
   "inbox_zero": "Inbox_zero",
-  "incomplete": "Incomplete",
+  "incomplete": "Incompleto",
   "industrie": "Industrie",
-  "industry_preferences": "Industry_preferences",
-  "initial_note": "Initial_note",
-  "internal_notes_for_the": "Internal_notes_for_the",
-  "interview_added_successfully": "Interview_added_successfully",
-  "interview_confirmed": "Interview_confirmed",
-  "interview_dismissed": "Interview_dismissed",
-  "interview_linked_successfully": "Interview_linked_successfully",
-  "interview_rescheduled_successfully": "Interview_rescheduled_successfully",
-  "interview_type": "Interview_type",
-  "interviewers": "Interviewers",
-  "interviews_conducted": "Interviews_conducted",
-  "interviews_this_week": "Interviews_this_week",
-  "invalid_target_stage": "Invalid_target_stage",
-  "invitation_revoked": "Invitation_revoked",
-  "invite": "Invite",
-  "invite_colleagues_to_collaborate": "Invite_colleagues_to_collaborate",
-  "jd_file": "Jd_file",
+  "industry_preferences": "Preferências_de_indústria",
+  "initial_note": "Nota_inicial",
+  "internal_notes_for_the": "Notas_internas_para_o",
+  "interview_added_successfully": "Entrevista_adicionada_com_sucesso",
+  "interview_confirmed": "Entrevista_confirmada",
+  "interview_dismissed": "Entrevista_rejeitada",
+  "interview_linked_successfully": "Entrevista_associada_com_sucesso",
+  "interview_rescheduled_successfully": "Entrevista_remarcada_com_sucesso",
+  "interview_type": "Tipo_de_entrevista",
+  "interviewers": "Entrevistadores",
+  "interviews_conducted": "Entrevistas_realizadas",
+  "interviews_this_week": "Entrevistas_esta_semana",
+  "invalid_target_stage": "Fase_de_destino_inválida",
+  "invitation_revoked": "Convite_revogado",
+  "invite": "Convidar",
+  "invite_colleagues_to_collaborate": "Convidar_colegas_para_colaborar",
+  "jd_file": "Ficheiro_JD",
   "job": "Vaga",
-  "job_description_file_optional": "Job_description_file_optional",
+  "job_description_file_optional": "Ficheiro_de_descrição_de_vaga_opcional",
   "job_description_url, supporting_documents": "Job_description_url, supporting_documents",
-  "job_id": "Job_id",
-  "job_link_copied_to": "Job_link_copied_to",
-  "job_not_found_it": "Job_not_found_it",
-  "justification": "Justification",
-  "key_strengths": "Key_strengths",
+  "job_id": "Id_da_vaga",
+  "job_link_copied_to": "Link_da_vaga_copiado_para",
+  "job_not_found_it": "Vaga_não_encontrada",
+  "justification": "Justificação",
+  "key_strengths": "Principais_qualidades",
   "laag_1": "Laag_1",
-  "languages_commaseparated": "Languages_commaseparated",
-  "latestage_rejections": "Latestage_rejections",
-  "link_copied_to_clipboard": "Link_copied_to_clipboard",
-  "link_interview_to_job": "Link_interview_to_job",
-  "linked": "Linked",
-  "linked_to_user_account": "Linked_to_user_account",
-  "linkedin": "Linkedin",
-  "linkedin_url": "Linkedin_url",
+  "languages_commaseparated": "Línguas_separadas_por_vírgulas",
+  "latestage_rejections": "Rejeições_na_fase_final",
+  "link_copied_to_clipboard": "Link_copiado_para_a_área_de_transferência",
+  "link_interview_to_job": "Associar_entrevista_à_vaga",
+  "linked": "Associado",
+  "linked_to_user_account": "Associado_à_conta_de_utilizador",
+  "linkedin": "LinkedIn",
+  "linkedin_url": "LinkedIn_url",
   "links": "Links",
-  "locatie": "Locatie",
+  "locatie": "Localização",
   "location": "Localizacao",
-  "location_fit": "Location_fit",
-  "location_mismatch": "Location_mismatch",
-  "location_not_aligned_with": "Location_not_aligned_with",
-  "location_or_remote_work": "Location_or_remote_work",
+  "location_fit": "Adequação da localização",
+  "location_mismatch": "Incompatibilidade da localização",
+  "location_not_aligned_with": "Localização não alinhada com",
+  "location_or_remote_work": "Localização ou trabalho remoto",
   "logo_url, website_url, headquarters_location": "Logo_url, website_url, headquarters_location",
   "manage": "Gerir",
-  "max": "Max",
-  "max_salary": "Max_salary",
-  "medium": "Medium",
-  "meeting_link": "Meeting_link",
-  "meeting_type": "Meeting_type",
+  "max": "Máx.",
+  "max_salary": "Salário máx.",
+  "medium": "Médio",
+  "meeting_link": "Link da reunião",
+  "meeting_type": "Tipo de reunião",
   "member": "Membro",
-  "metadata": "Metadata",
+  "metadata": "Metadados",
   "mijn_bedrijven": "Mijn_bedrijven",
-  "min": "Min",
-  "min_salary": "Min_salary",
-  "mismatch_analysis": "Mismatch_analysis",
-  "monitor_probation_periods_and": "Monitor_probation_periods_and",
-  "move_back_to_stage": "Move_back_to_stage",
-  "my_calendar": "My_calendar",
+  "min": "Mín.",
+  "min_salary": "Salário mín.",
+  "mismatch_analysis": "Análise de incompatibilidade",
+  "monitor_probation_periods_and": "Monitorizar períodos de experiência e",
+  "move_back_to_stage": "Mover de volta para a fase",
+  "my_calendar": "O meu calendário",
   "naam": "Naam",
   "naam_contact": "Naam_contact",
   "naam_van_het_bedrijf": "Naam_van_het_bedrijf",
   "name": "Nome",
   "new_date": "New_date",
-  "nicetohave": "Nicetohave",
-  "nicetohave_tools": "Nicetohave_tools",
-  "nl-NL": "Nl- N L",
-  "no_authorized_to_work": "No_authorized_to_work",
-  "no_candidates_for_report": "No_candidates_for_report",
-  "no_candidates_in_pipeline": "No_candidates_in_pipeline",
-  "no_candidates_in_this": "No_candidates_in_this",
-  "no_candidates_to_export": "No_candidates_to_export",
-  "no_companies_found": "No_companies_found",
-  "no_interview_data": "No_interview_data",
-  "no_interview_recordings_yet": "No_interview_recordings_yet",
-  "no_jobs": "No_jobs",
-  "no_linked_interviews_yet": "No_linked_interviews_yet",
-  "no_new_interviews_detected": "No_new_interviews_detected",
-  "no_pending_commitments": "No_pending_commitments",
-  "no_pending_interviews_detected": "No_pending_interviews_detected",
-  "no_pending_offers": "No_pending_offers",
-  "no_pending_reviews": "No_pending_reviews",
-  "no_recent_activity": "No_recent_activity",
-  "no_rejected_candidates_match": "No_rejected_candidates_match",
-  "no_talent_matches_yet": "No_talent_matches_yet",
-  "no_team_members_available": "No_team_members_available",
-  "no_team_members_yet": "No_team_members_yet",
-  "no_unread_messages": "No_unread_messages",
-  "no_upcoming_calendar_events": "No_upcoming_calendar_events",
-  "no_urgent_actions_required": "No_urgent_actions_required",
-  "no_urgent_deadlines_this": "No_urgent_deadlines_this",
+  "nicetohave": "Preferível",
+  "nicetohave_tools": "Ferramentas preferíveis",
+  "nl-NL": "Nl-NL",
+  "no_authorized_to_work": "Não autorizado a trabalhar",
+  "no_candidates_for_report": "Sem candidatos para o relatório",
+  "no_candidates_in_pipeline": "Sem candidatos no pipeline",
+  "no_candidates_in_this": "Sem candidatos nisto",
+  "no_candidates_to_export": "Sem candidatos para exportar",
+  "no_companies_found": "Nenhuma empresa encontrada",
+  "no_interview_data": "Sem dados de entrevista",
+  "no_interview_recordings_yet": "Ainda não há gravações de entrevistas",
+  "no_jobs": "Sem empregos",
+  "no_linked_interviews_yet": "Ainda não há entrevistas vinculadas",
+  "no_new_interviews_detected": "Nenhuma nova entrevista detetada",
+  "no_pending_commitments": "Sem compromissos pendentes",
+  "no_pending_interviews_detected": "Nenhuma entrevista pendente detetada",
+  "no_pending_offers": "Sem ofertas pendentes",
+  "no_pending_reviews": "Sem revisões pendentes",
+  "no_recent_activity": "Sem atividade recente",
+  "no_rejected_candidates_match": "Nenhum candidato rejeitado corresponde",
+  "no_talent_matches_yet": "Ainda não há correspondências de talento",
+  "no_team_members_available": "Nenhum membro da equipa disponível",
+  "no_team_members_yet": "Ainda não há membros da equipa",
+  "no_unread_messages": "Sem mensagens não lidas",
+  "no_upcoming_calendar_events": "Sem eventos de calendário futuros",
+  "no_urgent_actions_required": "Não são necessárias ações urgentes",
+  "no_urgent_deadlines_this": "Sem prazos urgentes este",
   "none": "Nenhum",
-  "not_now_but_in": "Not_now_but_in",
+  "not_now_but_in": "Não agora, mas em",
   "notes": "Notas",
-  "notes_optional": "Notes_optional",
-  "notice_period": "Notice_period",
-  "notities": "Notities",
-  "of_custom_rol": "Of_custom_rol",
-  "offer_acceptance": "Offer_acceptance",
-  "offers_extended_to_candidates": "Offers_extended_to_candidates",
+  "notes_optional": "Notas opcionais",
+  "notice_period": "Período de aviso prévio",
+  "notities": "Notas",
+  "of_custom_rol": "De função personalizada",
+  "offer_acceptance": "Aceitação da oferta",
+  "offers_extended_to_candidates": "Ofertas estendidas aos candidatos",
   "online": "Online",
-  "onsite": "Onsite",
-  "optional_if_you_upload": "Optional_if_you_upload",
-  "overall_spend": "Overall_spend",
+  "onsite": "No local",
+  "optional_if_you_upload": "Opcional se carregar",
+  "overall_spend": "Gasto total",
   "overview": "Visao Geral",
-  "paid": "Paid",
-  "paid_out": "Paid_out",
-  "panel_interview": "Panel_interview",
-  "partner_interview": "Partner_interview",
-  "partner_preference_pattern": "Partner_preference_pattern",
+  "paid": "Pago",
+  "paid_out": "Pago",
+  "panel_interview": "Entrevista em painel",
+  "partner_interview": "Entrevista com parceiro",
+  "partner_preference_pattern": "Padrão de preferência do parceiro",
   "partnersthequantumclubcom": "Partnersthequantumclubcom",
-  "pass": "Pass",
+  "pass": "Aprovar",
   "pending": "Pendente",
-  "pending_actions": "Pending_actions",
-  "pending_offers": "Pending_offers",
-  "pending_release": "Pending_release",
-  "per_industrie": "Per_industrie",
-  "per_status": "Per_status",
-  "personality_assessment": "Personality_assessment",
+  "pending_actions": "Ações pendentes",
+  "pending_offers": "Ofertas pendentes",
+  "pending_release": "Liberação pendente",
+  "per_industrie": "Por indústria",
+  "per_status": "Por estado",
+  "personality_assessment": "Avaliação de personalidade",
   "phone": "Telefone",
-  "phone_call": "Phone_call",
-  "pipeline_display_options": "Pipeline_display_options",
-  "pipeline_journey": "Pipeline_journey",
-  "pipeline_settings_opening": "Pipeline_settings_opening",
-  "pipeline_stage_added_successfully": "Pipeline_stage_added_successfully",
-  "pipeline_stages": "Pipeline_stages",
-  "platform": "Platform",
-  "please_enter_an_email": "Please_enter_an_email",
-  "please_fill_in_all": "Please_fill_in_all",
-  "please_fill_in_both": "Please_fill_in_both",
-  "please_fix_the_form": "Please_fix_the_form",
-  "please_provide_a_reason": "Please_provide_a_reason",
-  "please_select_a_date": "Please_select_a_date",
-  "please_select_a_rejection": "Please_select_a_rejection",
-  "please_select_a_target": "Please_select_a_target",
-  "please_use_an_email": "Please_use_an_email",
-  "portfolio_review": "Portfolio_review",
-  "portfolio_url": "Portfolio_url",
-  "potential_concerns": "Potential_concerns",
+  "phone_call": "Chamada telefónica",
+  "pipeline_display_options": "Opções de visualização do pipeline",
+  "pipeline_journey": "Jornada do pipeline",
+  "pipeline_settings_opening": "Abertura das configurações do pipeline",
+  "pipeline_stage_added_successfully": "Etapa do pipeline adicionada com sucesso",
+  "pipeline_stages": "Etapas do pipeline",
+  "platform": "Plataforma",
+  "please_enter_an_email": "Por favor, introduza um email",
+  "please_fill_in_all": "Por favor, preencha todos os campos",
+  "please_fill_in_both": "Por favor, preencha ambos",
+  "please_fix_the_form": "Por favor, corrija o formulário",
+  "please_provide_a_reason": "Por favor, forneça uma razão",
+  "please_select_a_date": "Por favor, selecione uma data",
+  "please_select_a_rejection": "Por favor, selecione uma rejeição",
+  "please_select_a_target": "Por favor, selecione um alvo",
+  "please_use_an_email": "Por favor, utilize um email",
+  "portfolio_review": "Análise de portfólio",
+  "portfolio_url": "URL do portfólio",
+  "potential_concerns": "Potenciais preocupações",
   "preferences": "Preferencias",
-  "preferred_currency": "Preferred_currency",
-  "preferred_locations": "Preferred_locations",
-  "premium_vetting_candidate_management": "Premium_vetting_candidate_management",
-  "preparation_instructions": "Preparation_instructions",
-  "primary_rejection_reason": "Primary_rejection_reason",
-  "prioriteit": "Prioriteit",
-  "proceed": "Proceed",
-  "provide_specific_reasons_for": "Provide_specific_reasons_for",
-  "publish_your_jobs_to": "Publish_your_jobs_to",
-  "published_at": "Published_at",
-  "quality_score": "Quality_score",
-  "quantum_club_elite_offers": "Quantum_club_elite_offers",
-  "quick_actions": "Quick_actions",
-  "quin_daily_briefing": "Quin_daily_briefing",
-  "readonly_view_for_stakeholders": "Readonly_view_for_stakeholders",
-  "reason_for_moving_back": "Reason_for_moving_back",
-  "reason_for_rejection": "Reason_for_rejection",
-  "reason_for_rescheduling_optional": "Reason_for_rescheduling_optional",
-  "recent_views": "Recent_views",
-  "recommendation": "Recommendation",
-  "recordings_will_appear_here": "Recordings_will_appear_here",
-  "recruiter": "Recruiter",
+  "preferred_currency": "Moeda preferencial",
+  "preferred_locations": "Localizações preferenciais",
+  "premium_vetting_candidate_management": "Gestão de candidatos com avaliação premium",
+  "preparation_instructions": "Instruções de preparação",
+  "primary_rejection_reason": "Motivo principal da rejeição",
+  "prioriteit": "Prioridade",
+  "proceed": "Avançar",
+  "provide_specific_reasons_for": "Forneça razões específicas para",
+  "publish_your_jobs_to": "Publique as suas vagas em",
+  "published_at": "Publicado em",
+  "quality_score": "Pontuação de qualidade",
+  "quantum_club_elite_offers": "Ofertas de elite do The Quantum Club",
+  "quick_actions": "Ações rápidas",
+  "quin_daily_briefing": "Resumo diário Quin",
+  "readonly_view_for_stakeholders": "Visualização de leitura apenas para stakeholders",
+  "reason_for_moving_back": "Motivo para retroceder",
+  "reason_for_rejection": "Motivo da rejeição",
+  "reason_for_rescheduling_optional": "Motivo para reagendar (opcional)",
+  "recent_views": "Visualizações recentes",
+  "recommendation": "Recomendação",
+  "recordings_will_appear_here": "As gravações aparecerão aqui",
+  "recruiter": "Recrutador",
   "reject": "Rejeitar",
-  "reject_change_order": "Reject_change_order",
+  "reject_change_order": "Rejeitar ordem de alteração",
   "rejected": "Rejeitado",
-  "rejected_by": "Rejected_by",
-  "rejected_candidates": "Rejected_candidates",
-  "rejection_reason": "Rejection_reason",
-  "rejection_stage": "Rejection_stage",
-  "remaining": "Remaining",
-  "remote_only": "Remote_only",
-  "remote_preference": "Remote_preference",
-  "report_generated_successfully": "Report_generated_successfully",
-  "required_tools": "Required_tools",
-  "required_tools_and_technologies": "Required_tools_and_technologies",
-  "requirements": "Requirements",
-  "reschedule_interview": "Reschedule_interview",
-  "response_sla": "Response_sla",
-  "resume_available": "Resume_available",
-  "resumes/": "Resumes/",
-  "review_summary": "Review_summary",
-  "reviewed_by": "Reviewed_by",
-  "right_to_work_details": "Right_to_work_details",
-  "rol": "Rol",
+  "rejected_by": "Rejeitado por",
+  "rejected_candidates": "Candidatos rejeitados",
+  "rejection_reason": "Motivo de rejeição",
+  "rejection_stage": "Etapa de rejeição",
+  "remaining": "Restante",
+  "remote_only": "Apenas remoto",
+  "remote_preference": "Preferência remota",
+  "report_generated_successfully": "Relatório gerado com sucesso",
+  "required_tools": "Ferramentas necessárias",
+  "required_tools_and_technologies": "Ferramentas e tecnologias necessárias",
+  "requirements": "Requisitos",
+  "reschedule_interview": "Remarcar entrevista",
+  "response_sla": "SLA de resposta",
+  "resume_available": "Currículo disponível",
+  "resumes/": "Currículos/",
+  "review_summary": "Resumo da avaliação",
+  "reviewed_by": "Avaliado por",
+  "right_to_work_details": "Detalhes do direito ao trabalho",
+  "rol": "Função",
   "role": "Funcao",
-  "salary": "Salary",
-  "salary_compatible": "Salary_compatible",
-  "salary_expectations_too_high": "Salary_expectations_too_high",
-  "salary_mismatch": "Salary_mismatch",
-  "salary_range_optional": "Salary_range_optional",
+  "salary": "Salário",
+  "salary_compatible": "Salário compatível",
+  "salary_expectations_too_high": "Expectativas salariais muito elevadas",
+  "salary_mismatch": "Incompatibilidade salarial",
+  "salary_range_optional": "Intervalo salarial (opcional)",
   "scaleup_50500": "Scaleup_50500",
   "scheduled_start, scheduled_end, user_id": "Scheduled_start, scheduled_end, user_id",
-  "scheduling": "Scheduling",
-  "scope_change": "Scope_change",
-  "search_companies": "Search_companies",
-  "search_roles": "Search_roles",
+  "scheduling": "Agendamento",
+  "scope_change": "Alteração de âmbito",
+  "search_companies": "Pesquisar empresas",
+  "search_roles": "Pesquisar funções",
   "select": "Selecionar",
-  "select_a_candidate": "Select_a_candidate",
-  "select_a_company": "Select_a_company",
-  "select_a_job": "Select_a_job",
-  "select_a_role_to": "Select_a_role_to",
-  "select_assessment_type": "Select_assessment_type",
-  "select_candidate": "Select_candidate",
-  "select_category": "Select_category",
-  "select_company_size": "Select_company_size",
-  "select_department": "Select_department",
-  "select_existing_link_or": "Select_existing_link_or",
-  "select_from_your_company": "Select_from_your_company",
-  "select_interview_type": "Select_interview_type",
-  "select_notice_period": "Select_notice_period",
-  "select_remote_preference": "Select_remote_preference",
-  "select_sponsorship_requirement": "Select_sponsorship_requirement",
-  "select_target_stage": "Select_target_stage",
-  "select_team_members": "Select_team_members",
-  "select_urgency": "Select_urgency",
+  "select_a_candidate": "Selecionar um candidato",
+  "select_a_company": "Selecionar uma empresa",
+  "select_a_job": "Selecionar um trabalho",
+  "select_a_role_to": "Selecionar uma função para",
+  "select_assessment_type": "Selecionar tipo de avaliação",
+  "select_candidate": "Selecionar candidato",
+  "select_category": "Selecionar categoria",
+  "select_company_size": "Selecionar dimensão da empresa",
+  "select_department": "Selecionar departamento",
+  "select_existing_link_or": "Selecionar link existente ou",
+  "select_from_your_company": "Selecionar da sua empresa",
+  "select_interview_type": "Selecionar tipo de entrevista",
+  "select_notice_period": "Selecionar período de aviso prévio",
+  "select_remote_preference": "Selecionar preferência remota",
+  "select_sponsorship_requirement": "Selecionar requisito de patrocínio",
+  "select_target_stage": "Selecionar fase de destino",
+  "select_team_members": "Selecionar membros da equipa",
+  "select_urgency": "Selecionar urgência",
   "selecteer_een_open_job": "Selecteer_een_open_job",
   "selecteer_rol": "Selecteer_rol",
-  "sending_to": "Sending_to",
-  "seniority": "Seniority",
-  "seniority_level": "Seniority_level",
-  "setting_expectations_upfront_reduces": "Setting_expectations_upfront_reduces",
+  "sending_to": "A enviar para",
+  "seniority": "Senioridade",
+  "seniority_level": "Nível de senioridade",
+  "setting_expectations_upfront_reduces": "Definir expectativas antecipadamente reduz",
   "share": "Partilhar",
-  "skills_commaseparated": "Skills_commaseparated",
-  "skills_gap": "Skills_gap",
-  "skills_languages": "Skills_languages",
-  "smart_filters": "Smart_filters",
-  "source": "Source",
-  "source_information": "Source_information",
-  "sourced_by": "Sourced_by",
+  "skills_commaseparated": "Competências (separadas por vírgulas)",
+  "skills_gap": "Lacuna de competências",
+  "skills_languages": "Competências (línguas)",
+  "smart_filters": "Filtros inteligentes",
+  "source": "Fonte",
+  "source_information": "Informação da fonte",
+  "sourced_by": "Obtido por",
   "sourced_by, source_context, created_at": "Sourced_by, source_context, created_at",
-  "specific_gaps_select_all": "Specific_gaps_select_all",
-  "sponsorship_needed": "Sponsorship_needed",
-  "stage_description": "Stage_description",
-  "stage_name": "Stage_name",
-  "stage_weight_for_analytics": "Stage_weight_for_analytics",
-  "start_date": "Start_date",
-  "start_time": "Start_time",
-  "start_with_the_fundamentals": "Start_with_the_fundamentals",
-  "startup_lt50": "Startup_lt50",
-  "stealth": "Stealth",
-  "strong": "Strong",
-  "strong_hire": "Strong_hire",
-  "strong_skills_alignment_with": "Strong_skills_alignment_with",
-  "subject": "Subject",
-  "submitted_at": "Submitted_at",
-  "submitting": "Submitting",
-  "supporting_documents": "Supporting_documents",
-  "supporting_documents_optional": "Supporting_documents_optional",
-  "sync": "Sync",
-  "sync_failed": "Sync_failed",
+  "specific_gaps_select_all": "Lacunas específicas (selecionar todas)",
+  "sponsorship_needed": "Patrocínio necessário",
+  "stage_description": "Descrição da fase",
+  "stage_name": "Nome da fase",
+  "stage_weight_for_analytics": "Peso da fase para análise",
+  "start_date": "Data de início",
+  "start_time": "Hora de início",
+  "start_with_the_fundamentals": "Comece com o básico",
+  "startup_lt50": "Startup (<50)",
+  "stealth": "Sigilo",
+  "strong": "Forte",
+  "strong_hire": "Contratação forte",
+  "strong_skills_alignment_with": "Forte alinhamento de competências com",
+  "subject": "Assunto",
+  "submitted_at": "Submetido em",
+  "submitting": "A submeter",
+  "supporting_documents": "Documentos de apoio",
+  "supporting_documents_optional": "Documentos de apoio (opcional)",
+  "sync": "Sincronizar",
+  "sync_failed": "Falha na sincronização",
   "T": "T",
   "target_bedrijven": "Target_bedrijven",
   "target_voor_specifieke_job": "Target_voor_specifieke_job",
-  "technical": "Technical",
-  "technical_interview": "Technical_interview",
-  "technical_test": "Technical_test",
-  "telefoon": "Telefoon",
-  "this_week": "This_week",
-  "this_will_be_shown": "This_will_be_shown",
+  "technical": "Técnico",
+  "technical_interview": "Entrevista técnica",
+  "technical_test": "Teste Técnico",
+  "telefoon": "Telefone",
+  "this_week": "Esta semana",
+  "this_will_be_shown": "Isto será mostrado",
   "time": "Hora",
-  "time_limit_minutes": "Time_limit_minutes",
-  "time_period": "Time_period",
-  "timetohire_forecast": "Timetohire_forecast",
+  "time_limit_minutes": "Limite de tempo (minutos)",
+  "time_period": "Período de tempo",
+  "timetohire_forecast": "Previsão de tempo de contratação",
   "title, bio, availability": "Title, bio, availability",
   "title, created_at": "Title, created_at",
   "today": "Hoje",
   "tomorrow": "Amanha",
-  "top_match_factors": "Top_match_factors",
-  "top_skills": "Top_skills",
-  "total_budget": "Total_budget",
-  "total_rejections": "Total_rejections",
-  "tqc_introduction": "Tqc_introduction",
-  "type": "Type",
-  "typical_duration_for_this": "Typical_duration_for_this",
-  "updated": "Updated",
-  "upvoted_by": "Upvoted_by",
-  "urgency": "Urgency",
-  "usd": "Usd",
-  "user_id": "User_id",
+  "top_match_factors": "Principais fatores de correspondência",
+  "top_skills": "Principais competências",
+  "total_budget": "Orçamento total",
+  "total_rejections": "Rejeições totais",
+  "tqc_introduction": "Introdução Tqc",
+  "type": "Tipo",
+  "typical_duration_for_this": "Duração típica para isto",
+  "updated": "Atualizado",
+  "upvoted_by": "Votado por",
+  "urgency": "Urgência",
+  "usd": "USD",
+  "user_id": "ID do utilizador",
   "user_id, role": "User_id, role",
-  "video_call": "Video_call",
+  "video_call": "Videochamada",
   "view": "Ver",
-  "visa_status": "Visa_status",
-  "visibility": "Visibility",
-  "voeg_een_comment_toe": "Voeg_een_comment_toe",
-  "voltooid": "Voltooid",
-  "vote_toegevoegd": "Vote_toegevoegd",
-  "vote_verwijderd": "Vote_verwijderd",
-  "votes": "Votes",
-  "vs_last_month": "Vs_last_month",
-  "vul_minimaal_een_naam": "Vul_minimaal_een_naam",
-  "website_url": "Website_url",
-  "what_should_candidates_prepare": "What_should_candidates_prepare",
-  "what_will_this_person": "What_will_this_person",
-  "where_will_this_person": "Where_will_this_person",
-  "why_are_you_advancing": "Why_are_you_advancing",
-  "work_model": "Work_model",
-  "write_a_brief_executive": "Write_a_brief_executive",
-  "write_your_email_here": "Write_your_email_here",
-  "years_of_experience": "Years_of_experience",
-  "yes_requires_sponsorship": "Yes_requires_sponsorship",
-  "youll_receive_a_digest": "Youll_receive_a_digest",
-  "your_briefing_awaits": "Your_briefing_awaits",
-  "your_concierge_is_being": "Your_concierge_is_being",
-  "your_draft_has_been": "Your_draft_has_been",
-  "your_progress_is_saved": "Your_progress_is_saved",
+  "visa_status": "Situação do visto",
+  "visibility": "Visibilidade",
+  "voeg_een_comment_toe": "Adicionar um comentário",
+  "voltooid": "Concluído",
+  "vote_toegevoegd": "Voto adicionado",
+  "vote_verwijderd": "Voto removido",
+  "votes": "Votos",
+  "vs_last_month": "Vs. mês passado",
+  "vul_minimaal_een_naam": "Introduza pelo menos um nome",
+  "website_url": "URL do site",
+  "what_should_candidates_prepare": "O que devem os candidatos preparar",
+  "what_will_this_person": "O que fará esta pessoa",
+  "where_will_this_person": "Onde estará esta pessoa",
+  "why_are_you_advancing": "Por que está a avançar",
+  "work_model": "Modelo de trabalho",
+  "write_a_brief_executive": "Escreva um breve resumo executivo",
+  "write_your_email_here": "Escreva o seu email aqui",
+  "years_of_experience": "Anos de experiência",
+  "yes_requires_sponsorship": "Sim, requer patrocínio",
+  "youll_receive_a_digest": "Receberá um resumo",
+  "your_briefing_awaits": "O seu briefing aguarda",
+  "your_concierge_is_being": "O seu concierge está a ser",
+  "your_draft_has_been": "O seu rascunho foi",
+  "your_progress_is_saved": "O seu progresso foi guardado",
   "zoek_bedrijf": "Zoek_bedrijf",
   "zoek_in_repository": "Zoek_in_repository",
   "دإ_aed": "دإ_aed"

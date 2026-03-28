@@ -283,7 +283,7 @@
       "reasonForBlocking": "Motif du blocage..."
     },
     "edgeFunctionsCard": {
-      "edgeFunctions": "Edge Functions",
+      "edgeFunctions": "Fonctions Edge",
       "apiEndpointSecurity": "API endpoint Sécurité",
       "securityScore": "Sécurité Score",
       "publicEndpointsWithRateLimiting": "Points d'accès publics avec limitation de débit :"
@@ -369,7 +369,7 @@
       "countries": "Pays"
     },
     "storageBucketsCard": {
-      "storageBuckets": "Storage Buckets",
+      "storageBuckets": "Buckets de stockage",
       "fileStorageSecurity": "File storage Sécurité",
       "publicBuckets": "Buckets publics",
       "securityControls": "Sécurité Controls",
@@ -4465,7 +4465,7 @@
       "dryRunComplete": "Simulation terminée.",
       "importComplete": "Importation terminée.",
       "loading": "Chargement...",
-      "loadGreenhouseJobs": "Load Greenhouse Jobs",
+      "loadGreenhouseJobs": "Charger les offres d'emploi Greenhouse",
       "previewImport": "Aperçu de l'importation",
       "runImport": "Lancer l'importation",
       "preview": "Aperçu",

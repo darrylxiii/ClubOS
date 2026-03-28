@@ -12,7 +12,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useConfirmDialog } from "@/components/ui/ConfirmActionDialog";
-import { Mail, Plus, Eye, Code, Smartphone, Monitor, Copy, Trash2, Send, Tag } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Mail, Plus, Eye, Code, Smartphone, Monitor, Copy, Trash2, Send, Tag, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
 import { formatDistanceToNow, format } from "date-fns";
 import { useTranslation } from 'react-i18next';
@@ -339,6 +340,14 @@ export default function EmailTemplateBuilder() {
                           <Textarea ref={textareaRef} value={form.body_html} onChange={e => setForm(p => ({...p, body_html: e.target.value}))} rows={12} placeholder={t("htmlhtml", "<html>...</html>")} className="font-mono text-sm" />
                         </TabsContent>
                       </Tabs>
+
+                      {/* CAN-SPAM / GDPR Compliance Note */}
+                      <Alert>
+                        <AlertTriangle className="h-4 w-4" />
+                        <AlertDescription className="text-xs">
+                          {t('emailCompliance.canSpamNote', 'CAN-SPAM / GDPR required: All marketing emails are automatically wrapped in the base template which includes a physical mailing address, an unsubscribe/email preferences link, and RFC 8058 List-Unsubscribe headers. Do not remove these elements. Transactional emails (security alerts, password resets) are exempt but must still identify the sender.')}
+                        </AlertDescription>
+                      </Alert>
 
                       {/* Preview */}
                       <div>

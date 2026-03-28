@@ -29,7 +29,6 @@ interface NotificationCardProps {
 
 
 const getCategoryStyles = (category: string | null) => {
-  const { t } = useTranslation('common');
   switch (category) {
     case 'success':
       return 'bg-green-500/10 text-green-500 border-green-500/20 shadow-[0_0_15px_rgba(34,197,94,0.15)]';
@@ -63,6 +62,7 @@ export function NotificationCard({
   onDelete,
   onClick
 }: NotificationCardProps) {
+  const { t } = useTranslation('common');
   return (
     <motion.div
       layout
@@ -115,7 +115,7 @@ export function NotificationCard({
                   e.stopPropagation();
                   onMarkAsRead(notification.id);
                 }}
-                title="Mark as read"
+                title={t('notifications.markAsRead', 'Mark as read')}
               >
                 <CheckCircle className="w-3.5 h-3.5" />
                 <span className="sr-only">Mark read</span>
@@ -131,7 +131,7 @@ export function NotificationCard({
                   e.stopPropagation();
                   onClick();
                 }}
-                title="Open link"
+                title={t('notifications.openLink', 'Open link')}
               >
                 <ExternalLink className="w-3.5 h-3.5" />
                 <span className="sr-only">Open</span>
@@ -146,7 +146,7 @@ export function NotificationCard({
                 e.stopPropagation();
                 onArchive(notification.id);
               }}
-              title="Archive"
+              title={t('notifications.archive', 'Archive')}
             >
               <Archive className="w-3.5 h-3.5" />
               <span className="sr-only">Archive</span>
@@ -160,7 +160,7 @@ export function NotificationCard({
                 e.stopPropagation();
                 onDelete(notification.id);
               }}
-              title="Delete"
+              title={t('notifications.delete', 'Delete')}
             >
               <Trash2 className="w-3.5 h-3.5" />
               <span className="sr-only">Delete</span>

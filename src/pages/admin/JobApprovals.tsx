@@ -221,7 +221,7 @@ const JobApprovals = () => {
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogCancel>{t('common:cancel', 'Cancel')}</AlertDialogCancel>
               <AlertDialogAction
                 onClick={() => declineJobId && declineMutation.mutate(declineJobId)}
               >

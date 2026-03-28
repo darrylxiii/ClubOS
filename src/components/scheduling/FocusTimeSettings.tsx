@@ -26,11 +26,11 @@ import {
 import { cn } from '@/lib/utils';
 
 const BLOCK_TYPES = [
-  { value: 'focus', label: t('scheduling.focustimesettings.focusTime', 'Focus Time'), icon: Zap, color: 'bg-blue-500' },
-  { value: 'deep_work', label: t('scheduling.focustimesettings.deepWork', 'Deep Work'), icon: Brain, color: 'bg-purple-500' },
-  { value: 'lunch', label: t('scheduling.focustimesettings.lunch', 'Lunch'), icon: Coffee, color: 'bg-orange-500' },
-  { value: 'personal', label: t('scheduling.focustimesettings.personal', 'Personal'), icon: Calendar, color: 'bg-green-500' },
-  { value: 'no_meetings', label: t('scheduling.focustimesettings.noMeetings', 'No Meetings'), icon: Shield, color: 'bg-red-500' },
+  { value: 'focus', label: 'Focus Time', icon: Zap, color: 'bg-blue-500' },
+  { value: 'deep_work', label: 'Deep Work', icon: Brain, color: 'bg-purple-500' },
+  { value: 'lunch', label: 'Lunch', icon: Coffee, color: 'bg-orange-500' },
+  { value: 'personal', label: 'Personal', icon: Calendar, color: 'bg-green-500' },
+  { value: 'no_meetings', label: 'No Meetings', icon: Shield, color: 'bg-red-500' },
 ];
 
 const TIME_SLOTS = Array.from({ length: 24 }, (_, i) => {

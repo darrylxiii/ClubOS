@@ -4,7 +4,7 @@
 
 This document outlines the security measures, compliance requirements, and incident response procedures for The Quantum Club platform.
 
-**Last Updated**: 2025-11-28  
+**Last Updated**: 2026-03-28  
 **Document Owner**: Engineering & Security Team  
 **Review Frequency**: Quarterly
 
@@ -141,7 +141,7 @@ This document outlines the security measures, compliance requirements, and incid
 - **Privacy**: GDPR/CCPA compliance, consent management
 
 **Annual Audit**:
-- Type II SOC 2 report (planned Q2 2026)
+- Type II SOC 2 report (in progress Q2 2026)
 - Independent auditor engagement
 - Control effectiveness testing
 - Remediation tracking
@@ -507,5 +507,6 @@ Contact: security@thequantumclub.com
 | Version | Date | Changes | Author |
 |---------|------|---------|--------|
 | 1.0 | 2025-11-28 | Initial documentation | Engineering Team |
+| 1.1 | 2026-03-28 | Quarterly review: updated SOC 2 status, review date | Engineering Team |
 
-**Next Review**: 2026-02-28
+**Next Review**: 2026-06-28

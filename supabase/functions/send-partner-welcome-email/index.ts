@@ -11,28 +11,24 @@ import {
 } from "../_shared/email-templates/components.ts";
 import { EMAIL_SENDERS, EMAIL_COLORS, getEmailAppUrl } from "../_shared/email-config.ts";
 import { sendEmail } from '../_shared/resend-client.ts';
+import { z, parseBody, emailSchema, nameSchema, optionalNameSchema } from '../_shared/validation.ts';
+import { sanitizeForEmail } from '../_shared/sanitize.ts';
 
-interface PartnerWelcomeRequest {
-  email: string;
-  fullName: string;
-  companyName?: string;
-  magicLink?: string;
-  inviteCode?: string;
-  welcomeMessage?: string;
-  assignedStrategistName?: string;
-  provisionMethod?: 'magic_link' | 'password' | 'oauth_only';
-}
+const bodySchema = z.object({
+  email: emailSchema,
+  fullName: nameSchema,
+  companyName: optionalNameSchema,
+  magicLink: z.string().url().optional(),
+  inviteCode: z.string().optional(),
+  welcomeMessage: z.string().max(1000).optional(),
+  assignedStrategistName: optionalNameSchema,
+  provisionMethod: z.enum(['magic_link', 'password', 'oauth_only']).optional(),
+});
 
 Deno.serve(createHandler(async (req, ctx) => {
-  const body: PartnerWelcomeRequest = await req.json();
-  const { email, fullName, companyName, magicLink, inviteCode, welcomeMessage, assignedStrategistName, provisionMethod } = body;
-
-  if (!email || !fullName) {
-    return new Response(
-      JSON.stringify({ error: 'email and fullName are required' }),
-      { status: 400, headers: { ...ctx.corsHeaders, 'Content-Type': 'application/json' } }
-    );
-  }
+  const parsed = await parseBody(req, bodySchema, ctx.corsHeaders);
+  if ('error' in parsed) return parsed.error;
+  const { email, fullName, companyName, magicLink, inviteCode, welcomeMessage, assignedStrategistName, provisionMethod } = parsed.data;
 
   console.log(`[send-partner-welcome-email] Sending to ${email} for ${companyName || 'unknown company'}`);
 
@@ -57,18 +53,16 @@ Deno.serve(createHandler(async (req, ctx) => {
     ${StatusBadge({ status: 'confirmed', text: 'PARTNER ACCESS GRANTED' })}
     ${Heading({ text: 'Welcome to The Quantum Club', level: 1, align: 'center' })}
     ${Spacer(24)}
-    ${Paragraph(`Dear ${fullName},`, 'primary')}
+    ${Paragraph(`Dear ${sanitizeForEmail(fullName)},`, 'primary')}
     ${Spacer(8)}
-    ${Paragraph(`Congratulations${companyName ? ` — <strong>${companyName}</strong> is` : ', you are'} now part of The Quantum Club's exclusive partner network. We connect you with pre-vetted, top-tier talent to accelerate your hiring.`, 'secondary')}
+    ${Paragraph(`Congratulations${companyName ? ` — <strong>${sanitizeForEmail(companyName)}</strong> is` : ', you are'} now part of The Quantum Club's exclusive partner network. We connect you with pre-vetted, top-tier talent to accelerate your hiring.`, 'secondary')}
     ${welcomeMessage ? `
       ${Spacer(16)}
       ${Card({
         variant: 'highlight',
         content: `
-          <p style="margin: 0; font-size: 14px; font-style: italic; color: ${EMAIL_COLORS.textSecondary}; line-height: 1.6;">
-            "${welcomeMessage}"
-          </p>
-          ${assignedStrategistName ? `<p style="margin: 8px 0 0 0; font-size: 13px; color: ${EMAIL_COLORS.textMuted};">— ${assignedStrategistName}, Your Strategist</p>` : ''}
+          ${Paragraph(`<em>"${sanitizeForEmail(welcomeMessage)}"</em>`, 'secondary')}
+          ${assignedStrategistName ? Paragraph(`— ${sanitizeForEmail(assignedStrategistName)}, Your Strategist`, 'muted') : ''}
         `,
       })}
     ` : ''}
@@ -78,24 +72,11 @@ Deno.serve(createHandler(async (req, ctx) => {
       content: `
         ${Heading({ text: 'Your Onboarding Checklist', level: 3 })}
         ${Spacer(12)}
-        ${onboardingSteps.map(step => `
-          <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin-bottom: 10px;">
-            <tr>
-              <td width="28" style="font-size: 16px; vertical-align: top; padding-top: 2px;">${step.icon}</td>
-              <td style="font-size: 14px; color: ${EMAIL_COLORS.textSecondary}; line-height: 1.6;">${step.text}</td>
-            </tr>
-          </table>
-        `).join('')}
+        ${onboardingSteps.map(step => Paragraph(`${step.icon} ${step.text}`, 'secondary')).join(Spacer(4))}
       `,
     })}
     ${Spacer(32)}
-    <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
-      <tr>
-        <td align="center">
-          ${Button({ url: primaryCtaUrl, text: primaryCtaText, variant: 'primary' })}
-        </td>
-      </tr>
-    </table>
+    ${Button({ url: primaryCtaUrl, text: primaryCtaText, variant: 'primary' })}
     ${hasMagicLink ? `
       ${Spacer(12)}
       ${Paragraph('This link expires in 72 hours. After that, use the regular sign-in page.', 'muted')}
@@ -103,16 +84,10 @@ Deno.serve(createHandler(async (req, ctx) => {
     ${Spacer(24)}
     ${Divider({ spacing: 'medium' })}
     ${Spacer(16)}
-    <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
-      <tr>
-        <td align="center">
-          ${Button({ url: teamUrl, text: 'Invite Your Team', variant: 'secondary' })}
-        </td>
-      </tr>
-    </table>
+    ${Button({ url: teamUrl, text: 'Invite Your Team', variant: 'secondary' })}
     ${Spacer(24)}
     ${assignedStrategistName
-      ? Paragraph(`Your dedicated strategist <strong>${assignedStrategistName}</strong> will reach out shortly to discuss your hiring needs and set up your first role.`, 'secondary')
+      ? Paragraph(`Your dedicated strategist <strong>${sanitizeForEmail(assignedStrategistName)}</strong> will reach out shortly to discuss your hiring needs and set up your first role.`, 'secondary')
       : Paragraph('A strategist will be assigned to you shortly and will reach out to discuss your hiring needs.', 'secondary')
     }
     ${Spacer(16)}
@@ -120,7 +95,7 @@ Deno.serve(createHandler(async (req, ctx) => {
   `;
 
   const htmlContent = baseEmailTemplate({
-    preheader: `Welcome to The Quantum Club${companyName ? ` — ${companyName}'s` : ', your'} partner access is ready.`,
+    preheader: `Welcome to The Quantum Club${companyName ? ` — ${sanitizeForEmail(companyName)}'s` : ', your'} partner access is ready.`,
     content: emailContent,
     showHeader: true,
     showFooter: true,
@@ -129,7 +104,7 @@ Deno.serve(createHandler(async (req, ctx) => {
   const result = await sendEmail({
     from: EMAIL_SENDERS.partners,
     to: [email],
-    subject: `Welcome to The Quantum Club, ${fullName}`,
+    subject: `Welcome to The Quantum Club, ${sanitizeForEmail(fullName)}`,
     html: htmlContent,
   });
 

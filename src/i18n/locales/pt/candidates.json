@@ -11,7 +11,7 @@
     "skills": "Competencias",
     "languages": "Idiomas",
     "certifications": "Certificacoes",
-    "portfolio": "Portfolio",
+    "portfolio": "Portfólio",
     "resume": "Curriculo",
     "coverLetter": "Carta de Apresentacao"
   },
@@ -50,9 +50,9 @@
   },
   "experience": {
     "entry": "Nivel Inicial",
-    "junior": "Junior",
+    "junior": "Júnior",
     "mid": "Nivel Intermedio",
-    "senior": "Senior",
+    "senior": "Sénior",
     "lead": "Lider",
     "executive": "Executivo"
   },
@@ -122,7 +122,7 @@
     "title": "Documentos",
     "resume": "Curriculo",
     "coverLetter": "Carta de Apresentacao",
-    "portfolio": "Portfolio",
+    "portfolio": "Portfólio",
     "references": "Referencias",
     "upload": "Carregar Documento",
     "download": "Transferir",
@@ -223,7 +223,7 @@
     "text9": "Sincronizar",
     "text10": "LinkedIn",
     "text11": "GitHub",
-    "text12": "Portfolio",
+    "text12": "Portfólio",
     "text13": "Ultima atualizacao:",
     "text14": "Atualizado:",
     "text15": "Visao Geral",

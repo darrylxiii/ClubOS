@@ -32,22 +32,22 @@ interface JobClosureDialogProps {
 type ClosureType = "hired" | "not_filled" | "cancelled" | "on_hold";
 
 const CLOSURE_TYPES = [
-  { value: "hired", label: t('jobs.jobclosuredialog.hired', 'Hired'), icon: CheckCircle2, color: "text-green-500", description: t('jobs.jobclosuredialog.candidateWasSuccessfullyPlaced', 'Candidate was successfully placed') },
-  { value: "not_filled", label: t('jobs.jobclosuredialog.notFilled', 'Not Filled'), icon: XCircle, color: "text-destructive", description: t('jobs.jobclosuredialog.roleClosedWithoutAHire', 'Role closed without a hire') },
-  { value: "cancelled", label: t('jobs.jobclosuredialog.cancelled', 'Cancelled'), icon: Ban, color: "text-muted-foreground", description: t('jobs.jobclosuredialog.clientCancelledTheSearch', 'Client cancelled the search') },
-  { value: "on_hold", label: t('jobs.jobclosuredialog.onHold', 'On Hold'), icon: Pause, color: "text-amber-500", description: t('jobs.jobclosuredialog.temporarilyPaused', 'Temporarily paused') },
+  { value: "hired", label: 'Hired', icon: CheckCircle2, color: "text-green-500", description: 'Candidate was successfully placed' },
+  { value: "not_filled", label: 'Not Filled', icon: XCircle, color: "text-destructive", description: 'Role closed without a hire' },
+  { value: "cancelled", label: 'Cancelled', icon: Ban, color: "text-muted-foreground", description: 'Client cancelled the search' },
+  { value: "on_hold", label: 'On Hold', icon: Pause, color: "text-amber-500", description: 'Temporarily paused' },
 ];
 
 const LOSS_REASONS = [
-  { value: "budget_cut", label: t('jobs.jobclosuredialog.budgetCut', 'Budget Cut') },
-  { value: "role_eliminated", label: t('jobs.jobclosuredialog.roleEliminated', 'Role Eliminated') },
-  { value: "hired_internally", label: t('jobs.jobclosuredialog.hiredInternally', 'Hired Internally') },
-  { value: "hired_competitor", label: t('jobs.jobclosuredialog.hiredViaCompetitor', 'Hired via Competitor') },
-  { value: "requirements_changed", label: t('jobs.jobclosuredialog.requirementsChanged', 'Requirements Changed') },
-  { value: "no_qualified_candidates", label: t('jobs.jobclosuredialog.noQualifiedCandidates', 'No Qualified Candidates') },
-  { value: "timing_issues", label: t('jobs.jobclosuredialog.timingIssues', 'Timing Issues') },
-  { value: "client_unresponsive", label: t('jobs.jobclosuredialog.clientUnresponsive', 'Client Unresponsive') },
-  { value: "other", label: t('jobs.jobclosuredialog.other', 'Other') },
+  { value: "budget_cut", label: 'Budget Cut' },
+  { value: "role_eliminated", label: 'Role Eliminated' },
+  { value: "hired_internally", label: 'Hired Internally' },
+  { value: "hired_competitor", label: 'Hired via Competitor' },
+  { value: "requirements_changed", label: 'Requirements Changed' },
+  { value: "no_qualified_candidates", label: 'No Qualified Candidates' },
+  { value: "timing_issues", label: 'Timing Issues' },
+  { value: "client_unresponsive", label: 'Client Unresponsive' },
+  { value: "other", label: 'Other' },
 ];
 
 const KEY_LEARNINGS_OPTIONS = [

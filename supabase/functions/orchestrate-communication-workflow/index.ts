@@ -1,17 +1,24 @@
 import { createHandler } from '../_shared/handler.ts';
 import { resilientFetch } from '../_shared/resilient-fetch.ts';
 import { SupabaseClient } from 'npm:@supabase/supabase-js@2';
+import { EMAIL_SENDERS } from '../_shared/email-config.ts';
+import { baseEmailTemplate } from '../_shared/email-templates/base-template.ts';
+import { Heading, Paragraph, Spacer, Button } from '../_shared/email-templates/components.ts';
+import { z, parseBody, uuidSchema } from '../_shared/validation.ts';
+import { sanitizeForEmail } from '../_shared/sanitize.ts';
 
-interface OrchestrationRequest {
-  trigger_type: string;
-  entity_type: string;
-  entity_id: string;
-  trigger_event?: Record<string, unknown>;
-}
+const requestSchema = z.object({
+  trigger_type: z.string().min(1).max(200),
+  entity_type: z.string().min(1).max(100),
+  entity_id: uuidSchema,
+  trigger_event: z.record(z.unknown()).optional(),
+});
 
 Deno.serve(createHandler(async (req, ctx) => {
     const supabase = ctx.supabase;
-    const { trigger_type, entity_type, entity_id, trigger_event } = await req.json() as OrchestrationRequest;
+    const parsed = await parseBody(req, requestSchema, ctx.corsHeaders);
+    if ('error' in parsed) return parsed.error;
+    const { trigger_type, entity_type, entity_id, trigger_event } = parsed.data;
 
     console.log(`[orchestrate-workflow] Processing trigger ${trigger_type} for ${entity_type}:${entity_id}`);
 
@@ -287,11 +294,46 @@ async function executeAction(supabase: SupabaseClient, action: Record<string, un
       const contact = await getEntityContact(supabase, entityType, entityId);
       if (contact?.email) {
         const { sendEmail } = await import('../_shared/resend-client.ts');
+
+        const subjectText = (config.subject as string) || 'Following Up';
+        const safeName = sanitizeForEmail(contact.first_name);
+        const greeting = safeName ? `Hi ${safeName},` : 'Hi,';
+        const message = (config.message as string) || 'We wanted to follow up with you.';
+
+        let emailContent: string;
+        if (config.html) {
+          // Wrap pre-built HTML in the branded template
+          emailContent = config.html as string;
+        } else {
+          const buttonHtml = config.action_url
+            ? `${Spacer(16)}
+              <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+                <tr><td align="center">
+                  ${Button({ url: config.action_url as string, text: (config.action_label as string) || 'View Details', variant: 'primary' })}
+                </td></tr>
+              </table>`
+            : '';
+          emailContent = `
+            ${Heading({ text: subjectText, level: 1, align: 'center' })}
+            ${Spacer(16)}
+            ${Paragraph(greeting, 'secondary')}
+            ${Paragraph(message, 'secondary')}
+            ${buttonHtml}
+          `;
+        }
+
+        const emailBody = baseEmailTemplate({
+          preheader: subjectText,
+          content: emailContent,
+          showHeader: true,
+          showFooter: true,
+        });
+
         const result = await sendEmail({
-          from: 'QUIN <quin@os.thequantumclub.com>',
+          from: EMAIL_SENDERS.clubAI,
           to: [contact.email],
-          subject: config.subject || 'Following Up',
-          html: config.html || `<p>${config.message || 'We wanted to follow up with you.'}</p>`,
+          subject: subjectText,
+          html: emailBody,
         });
         return { email_sent: true, emailId: result.id };
       }

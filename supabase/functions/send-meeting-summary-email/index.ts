@@ -1,35 +1,24 @@
-import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.58.0";
+import { createHandler } from '../_shared/handler.ts';
 import { baseEmailTemplate } from "../_shared/email-templates/base-template.ts";
-import { 
-  Heading, Paragraph, Spacer, Card, Button, StatusBadge 
+import {
+  Heading, Paragraph, Spacer, Card, Button, StatusBadge, InfoRow, AlertBox
 } from "../_shared/email-templates/components.ts";
 import { EMAIL_SENDERS, EMAIL_COLORS, getEmailAppUrl } from "../_shared/email-config.ts";
 import { sendEmail } from '../_shared/resend-client.ts';
+import { z, parseBody, uuidSchema } from '../_shared/validation.ts';
+import { sanitizeForEmail } from '../_shared/sanitize.ts';
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+const summaryBodySchema = z.object({
+  recordingId: uuidSchema,
+});
 
-serve(async (req) => {
-  if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders });
-  }
-
-  try {
-    const { recordingId } = await req.json();
-    
-    if (!recordingId) {
-      throw new Error('recordingId is required');
-    }
-
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+Deno.serve(createHandler(async (req, ctx) => {
+  const parsed = await parseBody(req, summaryBodySchema, ctx.corsHeaders);
+  if ('error' in parsed) return parsed.error;
+  const { recordingId } = parsed.data;
 
     // Fetch recording with analysis
-    const { data: recording, error: recordingError } = await supabase
+    const { data: recording, error: recordingError } = await ctx.supabase
       .from('meeting_recordings_extended')
       .select('*')
       .eq('id', recordingId)
@@ -38,25 +27,25 @@ serve(async (req) => {
     if (recordingError) throw recordingError;
 
     if (!recording.ai_summary) {
-      console.log('No analysis available yet for recording:', recordingId);
+      console.log('[send-meeting-summary-email] No analysis available yet for recording:', recordingId);
       return new Response(
         JSON.stringify({ success: false, message: 'Analysis not ready' }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        { headers: { ...ctx.corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
     // Get host email
-    const { data: hostProfile } = await supabase
+    const { data: hostProfile } = await ctx.supabase
       .from('profiles')
       .select('first_name, last_name, email')
       .eq('id', recording.host_id)
       .single();
 
     if (!hostProfile?.email) {
-      console.log('No host email found for recording:', recordingId);
+      console.log('[send-meeting-summary-email] No host email found for recording:', recordingId);
       return new Response(
         JSON.stringify({ success: false, message: 'No host email' }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        { headers: { ...ctx.corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
@@ -74,33 +63,35 @@ serve(async (req) => {
 
     // Build action items HTML
     const actionItems = analysis.actionItems || [];
-    const getPriorityLabel = (priority: string) => {
-      if (priority === 'urgent') return `<span style="display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; background: #fef2f2; color: #dc2626;">urgent</span>`;
-      if (priority === 'high') return `<span style="display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; background: #fff7ed; color: #ea580c;">high</span>`;
-      return `<span style="display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; background: #f3f4f6; color: #374151;">normal</span>`;
+    const getPriorityVariant = (priority: string): 'error' | 'warning' | 'info' => {
+      if (priority === 'urgent') return 'error';
+      if (priority === 'high') return 'warning';
+      return 'info';
     };
-    
-    const actionItemsHtml = actionItems.slice(0, 5).map((item: any) => `
-      <tr>
-        <td style="padding: 8px 12px; border-bottom: 1px solid rgba(255,255,255,0.1);">
-          ${getPriorityLabel(item.priority)}
-        </td>
-        <td style="padding: 8px 12px; border-bottom: 1px solid rgba(255,255,255,0.1); color: ${EMAIL_COLORS.ivory};">${item.task}</td>
-        <td style="padding: 8px 12px; border-bottom: 1px solid rgba(255,255,255,0.1); color: ${EMAIL_COLORS.textMuted};">${item.owner}</td>
-      </tr>
-    `).join('');
+
+    const actionItemsHtml = actionItems.slice(0, 5).map((item: any) =>
+      Card({
+        variant: getPriorityVariant(item.priority) === 'error' ? 'warning' : 'default',
+        content: `
+          ${AlertBox({ type: getPriorityVariant(item.priority), message: item.priority })}
+          ${Spacer(8)}
+          ${InfoRow({ label: 'Task', value: item.task })}
+          ${InfoRow({ label: 'Owner', value: item.owner })}
+        `
+      })
+    ).join(Spacer(8));
 
     // Build key moments HTML
     const keyMoments = analysis.keyMoments?.slice(0, 3) || [];
-    const keyMomentsHtml = keyMoments.map((moment: any) => `
-      <div style="padding: 12px; background: rgba(255,255,255,0.03); border-radius: 8px; margin-bottom: 8px;">
-        <div style="margin-bottom: 4px;">
-          <span style="font-weight: 600; color: ${EMAIL_COLORS.ivory};">${moment.type.replace('_', ' ')}</span>
-          <span style="color: ${EMAIL_COLORS.textMuted}; font-size: 12px; margin-left: 8px;">@${moment.timestamp}</span>
-        </div>
-        <p style="margin: 0; color: ${EMAIL_COLORS.textSecondary}; font-size: 14px;">${moment.description}</p>
-      </div>
-    `).join('');
+    const keyMomentsHtml = keyMoments.map((moment: any) =>
+      Card({
+        variant: 'default',
+        content: `
+          ${InfoRow({ label: moment.type.replace('_', ' '), value: `@${moment.timestamp}` })}
+          ${Paragraph(moment.description, 'secondary')}
+        `
+      })
+    ).join(Spacer(8));
 
     // Build email content
     const emailContent = `
@@ -109,7 +100,7 @@ serve(async (req) => {
       ${Paragraph('Powered by Club AI', 'muted')}
       ${Spacer(24)}
       
-      ${Paragraph(`Hi ${hostProfile.first_name || 'there'},`, 'primary')}
+      ${Paragraph(`Hi ${sanitizeForEmail(hostProfile.first_name) || 'there'},`, 'primary')}
       ${Spacer(8)}
       ${Paragraph(`Your meeting recording <strong>"${recording.title || 'Meeting Recording'}"</strong> (${duration} min) has been analyzed. Here's your AI-powered summary:`, 'secondary')}
       ${Spacer(24)}
@@ -121,10 +112,8 @@ serve(async (req) => {
             ${Card({
               variant: 'default',
               content: `
-                <p style="margin: 0 0 4px 0; color: ${EMAIL_COLORS.textMuted}; font-size: 12px;">Overall Fit</p>
-                <p style="margin: 0; font-size: 20px; font-weight: bold; text-transform: capitalize; color: ${EMAIL_COLORS.gold};">
-                  ${analysis.candidateEvaluation?.overallFit || 'pending'}
-                </p>
+                ${Paragraph('Overall Fit', 'muted')}
+                ${Heading({ text: analysis.candidateEvaluation?.overallFit || 'pending', level: 2 })}
               `
             })}
           </td>
@@ -132,10 +121,8 @@ serve(async (req) => {
             ${Card({
               variant: 'default',
               content: `
-                <p style="margin: 0 0 4px 0; color: ${EMAIL_COLORS.textMuted}; font-size: 12px;">Recommendation</p>
-                <p style="margin: 0; font-size: 20px; font-weight: bold; text-transform: capitalize; color: ${EMAIL_COLORS.gold};">
-                  ${(analysis.decisionGuidance?.recommendation || 'pending').replace('_', ' ')}
-                </p>
+                ${Paragraph('Recommendation', 'muted')}
+                ${Heading({ text: (analysis.decisionGuidance?.recommendation || 'pending').replace('_', ' '), level: 2 })}
               `
             })}
           </td>
@@ -146,33 +133,20 @@ serve(async (req) => {
       ${Card({
         variant: 'highlight',
         content: `
-          <h3 style="margin: 0 0 8px 0; color: ${EMAIL_COLORS.gold}; font-size: 14px;">Executive Summary</h3>
-          <p style="margin: 0; color: ${EMAIL_COLORS.ivory}; font-size: 14px; line-height: 1.6;">
-            ${analysis.executiveSummary || 'Analysis pending'}
-          </p>
+          ${Heading({ text: 'Executive Summary', level: 3 })}
+          ${Paragraph(analysis.executiveSummary || 'Analysis pending', 'primary')}
         `
       })}
       
       ${actionItems.length > 0 ? `
         ${Spacer(24)}
-        <h3 style="margin: 0 0 12px 0; color: ${EMAIL_COLORS.ivory}; font-size: 16px;">📋 Action Items</h3>
-        <table width="100%" style="border-collapse: collapse; font-size: 14px;">
-          <thead>
-            <tr style="background: rgba(255,255,255,0.05);">
-              <th style="padding: 8px 12px; text-align: left; border-bottom: 2px solid rgba(255,255,255,0.1); color: ${EMAIL_COLORS.textSecondary};">Priority</th>
-              <th style="padding: 8px 12px; text-align: left; border-bottom: 2px solid rgba(255,255,255,0.1); color: ${EMAIL_COLORS.textSecondary};">Task</th>
-              <th style="padding: 8px 12px; text-align: left; border-bottom: 2px solid rgba(255,255,255,0.1); color: ${EMAIL_COLORS.textSecondary};">Owner</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${actionItemsHtml}
-          </tbody>
-        </table>
+        ${Heading({ text: 'Action Items', level: 3 })}
+        ${actionItemsHtml}
       ` : ''}
       
       ${keyMoments.length > 0 ? `
         ${Spacer(24)}
-        <h3 style="margin: 0 0 12px 0; color: ${EMAIL_COLORS.ivory}; font-size: 16px;">⭐ Key Moments</h3>
+        ${Heading({ text: 'Key Moments', level: 3 })}
         ${keyMomentsHtml}
       ` : ''}
       
@@ -201,10 +175,10 @@ serve(async (req) => {
       html: htmlContent,
     });
 
-    console.log('Summary email sent to:', hostProfile.email);
+    console.log('[send-meeting-summary-email] Summary email sent to:', hostProfile.email);
 
     // Log the notification
-    await supabase.from('notifications').insert({
+    await ctx.supabase.from('notifications').insert({
       user_id: recording.host_id,
       type: 'meeting_summary',
       title: 'Meeting Summary Ready',
@@ -215,14 +189,6 @@ serve(async (req) => {
 
     return new Response(
       JSON.stringify({ success: true, message: 'Email sent' }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      { headers: { ...ctx.corsHeaders, 'Content-Type': 'application/json' } }
     );
-
-  } catch (error) {
-    console.error('❌ Error sending summary email:', error);
-    return new Response(
-      JSON.stringify({ error: error instanceof Error ? error.message : 'Unknown error' }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
-  }
-});
+}));

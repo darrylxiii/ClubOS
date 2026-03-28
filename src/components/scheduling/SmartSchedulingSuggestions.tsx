@@ -35,6 +35,7 @@ export const SmartSchedulingSuggestions = memo(({
   onSelectSlot,
   className,
 }: SmartSchedulingSuggestionsProps) => {
+  const { t } = useTranslation('common');
   const { analyzeOptimalSlots, loading } = useSmartScheduling();
   const [suggestion, setSuggestion] = useState<any>(null);
   const [selectedSlot, setSelectedSlot] = useState<string | null>(null);
@@ -68,7 +69,6 @@ export const SmartSchedulingSuggestions = memo(({
   }
 
   const handleSelectSlot = (slot: any) => {
-  const { t } = useTranslation('common');
     const slotKey = `${slot.date}-${slot.slot}`;
     setSelectedSlot(slotKey);
     onSelectSlot?.(slot.date, slot.slot);
@@ -80,10 +80,10 @@ export const SmartSchedulingSuggestions = memo(({
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-2 text-base">
             <Sparkles className="h-5 w-5 text-primary" />
-            AI-Optimized Time Slots
+            {t('smartScheduling.aiOptimizedTimeSlots', 'AI-Optimized Time Slots')}
           </CardTitle>
           <Badge variant="secondary" className="text-xs">
-            {Math.round(suggestion.confidence * 100)}% confidence
+            {Math.round(suggestion.confidence * 100)}% {t('smartScheduling.confidence', 'confidence')}
           </Badge>
         </div>
       </CardHeader>
@@ -130,7 +130,7 @@ export const SmartSchedulingSuggestions = memo(({
                       <div className="flex items-center gap-2">
                         {isOptimal && (
                           <Badge variant="default" className="text-xs">
-                            Best Match
+                            {t('smartScheduling.bestMatch', 'Best Match')}
                           </Badge>
                         )}
                         <div className="flex items-center gap-1 text-xs text-muted-foreground">
@@ -142,22 +142,22 @@ export const SmartSchedulingSuggestions = memo(({
                   </TooltipTrigger>
                   <TooltipContent side="right" className="max-w-xs">
                     <div className="space-y-2 text-xs">
-                      <div className="font-medium">Scoring Factors</div>
+                      <div className="font-medium">{t('smartScheduling.scoringFactors', 'Scoring Factors')}</div>
                       <div className="space-y-1">
                         <div className="flex justify-between">
-                          <span>Historical Show Rate:</span>
+                          <span>{t('smartScheduling.historicalShowRate', 'Historical Show Rate')}:</span>
                           <span>{Math.round(slot.factors.historicalShowRate * 100)}%</span>
                         </div>
                         <div className="flex justify-between">
-                          <span>Timezone Match:</span>
+                          <span>{t('smartScheduling.timezoneMatch', 'Timezone Match')}:</span>
                           <span>{Math.round(slot.factors.timezoneCompatibility * 100)}%</span>
                         </div>
                         <div className="flex justify-between">
-                          <span>Time Preference:</span>
+                          <span>{t('smartScheduling.timePreference', 'Time Preference')}:</span>
                           <span>{Math.round(slot.factors.candidatePreference * 100)}%</span>
                         </div>
                         <div className="flex justify-between">
-                          <span>Availability:</span>
+                          <span>{t('smartScheduling.availability', 'Availability')}:</span>
                           <span>{Math.round(slot.factors.interviewerAvailability * 100)}%</span>
                         </div>
                       </div>
@@ -173,8 +173,7 @@ export const SmartSchedulingSuggestions = memo(({
         <div className="flex items-start gap-2 text-xs text-muted-foreground">
           <Info className="h-4 w-4 flex-shrink-0 mt-0.5" />
           <p>
-            These suggestions are based on historical show rates, timezone analysis, 
-            and optimal meeting times. Click to select a slot.
+            {t('smartScheduling.infoText', 'These suggestions are based on historical show rates, timezone analysis, and optimal meeting times. Click to select a slot.')}
           </p>
         </div>
       </CardContent>

@@ -1,3 +1,4 @@
+import { Helmet } from 'react-helmet-async';
 import { useTranslation } from 'react-i18next';
 import { LegalPageLayout } from "@/components/legal/LegalPageLayout";
 import { LegalSection } from "@/components/legal/LegalSection";
@@ -10,7 +11,7 @@ import quantumLogoDark from "@/assets/quantum-club-logo.png";
 
 export default function SecurityPolicy() {
   const { t } = useTranslation('common');
-  const lastUpdated = "January 15, 2025";
+  const lastUpdated = "March 28, 2026";
 
   const sections = [
     { id: "commitment", title: "Our Commitment" },
@@ -46,6 +47,10 @@ export default function SecurityPolicy() {
         </div>
       </div>
 
+      <Helmet>
+        <title>{t('legalPages.securityPolicy', 'Security Policy')} | The Quantum Club</title>
+        <meta name="description" content={t('legalPages.securityPolicyDesc', 'Legal documentation for The Quantum Club recruitment platform.')} />
+      </Helmet>
       <LegalPageLayout
         title={t('legalPages.securityPolicy', 'Security Policy')}
         lastUpdated={lastUpdated}
@@ -281,8 +286,8 @@ export default function SecurityPolicy() {
                 <h4 className="font-semibold mb-2">{"How to Report"}</h4>
                 <p className="text-muted-foreground mb-3">
                   Email security vulnerabilities to:{" "}
-                  <a href="mailto:security@thequantumclub.com" className="text-primary hover:underline font-mono">
-                    security@thequantumclub.com
+                  <a href="mailto:info@thequantumclub.com" className="text-primary hover:underline font-mono">
+                    info@thequantumclub.com
                   </a>
                 </p>
                 <p className="text-sm text-muted-foreground">
@@ -350,9 +355,9 @@ export default function SecurityPolicy() {
               </p>
             </div>
             <div className="mt-4 space-y-2">
-              <p><strong>{"Security Issues:"}</strong> <a href="mailto:security@thequantumclub.com" className="text-primary hover:underline">{"security@thequantumclub.com"}</a></p>
-              <p><strong>{"Privacy Inquiries:"}</strong> <a href="mailto:privacy@thequantumclub.com" className="text-primary hover:underline">{"privacy@thequantumclub.com"}</a></p>
-              <p><strong>{"Data Protection Officer:"}</strong> <a href="mailto:dpo@thequantumclub.com" className="text-primary hover:underline">{"dpo@thequantumclub.com"}</a></p>
+              <p><strong>{"Security Issues:"}</strong> <a href="mailto:info@thequantumclub.com" className="text-primary hover:underline">{"info@thequantumclub.com"}</a></p>
+              <p><strong>{"Privacy Inquiries:"}</strong> <a href="mailto:info@thequantumclub.com" className="text-primary hover:underline">{"info@thequantumclub.com"}</a></p>
+              <p><strong>{"Data Protection Officer:"}</strong> <a href="mailto:info@thequantumclub.com" className="text-primary hover:underline">{"info@thequantumclub.com"}</a></p>
             </div>
           </LegalSection>
         </div>

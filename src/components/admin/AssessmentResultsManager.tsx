@@ -157,11 +157,11 @@ export const AssessmentResultsManager = () => {
                 <SelectValue placeholder={t('assessmentResultsManager.filterByType')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Types</SelectItem>
-                <SelectItem value="personality">Personality</SelectItem>
-                <SelectItem value="skills">Skills</SelectItem>
-                <SelectItem value="culture">Culture</SelectItem>
-                <SelectItem value="technical">Technical</SelectItem>
+                <SelectItem value="all">{t('assessmentResultsManager.allTypes')}</SelectItem>
+                <SelectItem value="personality">{t('assessmentResultsManager.personality')}</SelectItem>
+                <SelectItem value="skills">{t('assessmentResultsManager.skills')}</SelectItem>
+                <SelectItem value="culture">{t('assessmentResultsManager.culture')}</SelectItem>
+                <SelectItem value="technical">{t('assessmentResultsManager.technical')}</SelectItem>
               </SelectContent>
             </Select>
             <Button onClick={exportToCSV} variant="outline" size="icon">
@@ -185,7 +185,7 @@ export const AssessmentResultsManager = () => {
                 {filteredResults.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
-                      No results found
+                      {t('assessmentResultsManager.noResultsFound', 'No results found')}
                     </TableCell>
                   </TableRow>
                 ) : (
@@ -230,7 +230,7 @@ export const AssessmentResultsManager = () => {
           <DialogHeader>
             <DialogTitle>{selectedResult?.assessment_name} Results</DialogTitle>
             <DialogDescription>
-              Completed by {selectedResult?.user_name || 'Unknown'} on{' '}
+              Completed by {selectedResult?.user_name || t('common:unknown', 'Unknown')} on{' '}
               {selectedResult && format(new Date(selectedResult.completed_at), 'MMMM d, yyyy')}
             </DialogDescription>
           </DialogHeader>

@@ -1299,7 +1299,7 @@ export const AdminAchievementsManager = () => {
               />
             </div>
             <div>
-              <Label>Icon</Label>
+              <Label>{t('admin:achievements.icon', 'Icon')}</Label>
               <Select
                 value={editCompanyForm.icon}
                 onValueChange={(value) => setEditCompanyForm({ ...editCompanyForm, icon: value })}
@@ -1351,7 +1351,7 @@ export const AdminAchievementsManager = () => {
               />
             </div>
             <div>
-              <Label>Icon Emoji</Label>
+              <Label>{t('admin:achievements.iconEmoji', 'Icon Emoji')}</Label>
               <Input
                 value={editQuantumForm.icon_emoji}
                 onChange={(e) => setEditQuantumForm({ ...editQuantumForm, icon_emoji: e.target.value })}

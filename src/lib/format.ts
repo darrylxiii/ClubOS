@@ -34,7 +34,10 @@ export function formatDate(date: Date | string | null | undefined, options?: Int
   if (!date) return '';
   const d = typeof date === 'string' ? new Date(date) : date;
   if (isNaN(d.getTime())) return '';
-  return d.toLocaleDateString('nl-NL', options || {
+  
+  const storedLocale = localStorage.getItem('i18nextLng') || navigator.language || 'nl-NL';
+  
+  return d.toLocaleDateString(storedLocale, options || {
     year: 'numeric',
     month: 'short',
     day: 'numeric',
@@ -82,7 +85,8 @@ export function formatRelativeTime(date: Date | string | null | undefined): stri
  * Format a number with thousand separators
  */
 export function formatNumber(value: number, options?: Intl.NumberFormatOptions): string {
-  return new Intl.NumberFormat('nl-NL', options).format(value);
+  const storedLocale = localStorage.getItem('i18nextLng') || navigator.language || 'nl-NL';
+  return new Intl.NumberFormat(storedLocale, options).format(value);
 }
 
 /**

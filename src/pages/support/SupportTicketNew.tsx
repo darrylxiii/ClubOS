@@ -19,19 +19,19 @@ import { migrateToast as toast } from "@/lib/notify";
 import { Breadcrumb } from "@/components/Breadcrumb";
 
 const getCategoryLabels = (t: (key: string) => string) => [
-  { value: 'technical', label: t('support.categories.technical') },
-  { value: 'billing', label: t('support.categories.billing') },
-  { value: 'account', label: t('support.categories.account') },
-  { value: 'feature_request', label: t('support.categories.featureRequest') },
-  { value: 'bug', label: t('support.categories.bug') },
-  { value: 'other', label: t('support.categories.other') },
+  { value: 'technical', label: 'Technical' },
+  { value: 'billing', label: 'Billing' },
+  { value: 'account', label: 'Account' },
+  { value: 'feature_request', label: 'Feature Request' },
+  { value: 'bug', label: 'Bug' },
+  { value: 'other', label: 'Other' },
 ];
 
 const getPriorityLabels = (t: (key: string) => string) => [
-  { value: 'low', label: t('support.priorities.low'), color: 'text-gray-500' },
-  { value: 'medium', label: t('support.priorities.medium'), color: 'text-blue-500' },
-  { value: 'high', label: t('support.priorities.high'), color: 'text-orange-500' },
-  { value: 'urgent', label: t('support.priorities.urgent'), color: 'text-red-500' },
+  { value: 'low', label: 'Low', color: 'text-gray-500' },
+  { value: 'medium', label: 'Medium', color: 'text-blue-500' },
+  { value: 'high', label: 'High', color: 'text-orange-500' },
+  { value: 'urgent', label: 'Urgent', color: 'text-red-500' },
 ];
 
 export default function SupportTicketNew() {

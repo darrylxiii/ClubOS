@@ -138,7 +138,7 @@ const MarketplaceAnalytics = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card className="bg-gradient-to-br from-primary/10 to-primary/5">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Gross Merchandise Value</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('marketplaceAnalytics.gmv', 'Gross Merchandise Value')}</CardTitle>
             <DollarSign className="h-4 w-4 text-primary" />
           </CardHeader>
           <CardContent>
@@ -152,7 +152,7 @@ const MarketplaceAnalytics = () => {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Platform Revenue</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('marketplaceAnalytics.platformRevenue', 'Platform Revenue')}</CardTitle>
             <TrendingUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -163,7 +163,7 @@ const MarketplaceAnalytics = () => {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Active Freelancers</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('marketplaceAnalytics.activeFreelancers', 'Active Freelancers')}</CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -174,7 +174,7 @@ const MarketplaceAnalytics = () => {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Open Projects</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('marketplaceAnalytics.openProjects', 'Open Projects')}</CardTitle>
             <Briefcase className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -187,8 +187,8 @@ const MarketplaceAnalytics = () => {
       {/* GMV Trend Chart */}
       <Card>
         <CardHeader>
-          <CardTitle>GMV & Revenue Trend</CardTitle>
-          <CardDescription>Last 30 days performance</CardDescription>
+          <CardTitle>{t('marketplaceAnalytics.gmvRevenueTrend', 'GMV & Revenue Trend')}</CardTitle>
+          <CardDescription>{t('marketplaceAnalytics.last30Days', 'Last 30 days performance')}</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="h-72">
@@ -230,8 +230,8 @@ const MarketplaceAnalytics = () => {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card>
           <CardHeader>
-            <CardTitle>Category Performance</CardTitle>
-            <CardDescription>Projects and GMV by category</CardDescription>
+            <CardTitle>{t('marketplaceAnalytics.categoryPerformance', 'Category Performance')}</CardTitle>
+            <CardDescription>{t('marketplaceAnalytics.projectsGmvByCategory', 'Projects and GMV by category')}</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="h-64">
@@ -258,7 +258,7 @@ const MarketplaceAnalytics = () => {
           <CardContent className="space-y-4">
             <div className="space-y-2">
               <div className="flex justify-between text-sm">
-                <span>Projects Posted</span>
+                <span>{t('marketplaceAnalytics.projectsPosted', 'Projects Posted')}</span>
                 <span className="font-medium">{totalProjects}</span>
               </div>
               <div className="w-full bg-muted rounded-full h-2">
@@ -268,7 +268,7 @@ const MarketplaceAnalytics = () => {
 
             <div className="space-y-2">
               <div className="flex justify-between text-sm">
-                <span>Proposals Submitted</span>
+                <span>{t('marketplaceAnalytics.proposalsSubmitted', 'Proposals Submitted')}</span>
                 <span className="font-medium">{totalProposals}</span>
               </div>
               <div className="w-full bg-muted rounded-full h-2">
@@ -278,7 +278,7 @@ const MarketplaceAnalytics = () => {
 
             <div className="space-y-2">
               <div className="flex justify-between text-sm">
-                <span>Proposals Accepted</span>
+                <span>{t('marketplaceAnalytics.proposalsAccepted', 'Proposals Accepted')}</span>
                 <span className="font-medium">{acceptedProposals}</span>
               </div>
               <div className="w-full bg-muted rounded-full h-2">
@@ -288,7 +288,7 @@ const MarketplaceAnalytics = () => {
 
             <div className="space-y-2">
               <div className="flex justify-between text-sm">
-                <span>Contracts Completed</span>
+                <span>{t('marketplaceAnalytics.contractsCompleted', 'Contracts Completed')}</span>
                 <span className="font-medium">{completedContracts.length}</span>
               </div>
               <div className="w-full bg-muted rounded-full h-2">
@@ -301,7 +301,7 @@ const MarketplaceAnalytics = () => {
 
             <div className="pt-2 border-t">
               <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Overall Conversion</span>
+                <span className="text-muted-foreground">{t('marketplaceAnalytics.overallConversion', 'Overall Conversion')}</span>
                 <span className="font-medium text-primary">{conversionRate.toFixed(1)}%</span>
               </div>
             </div>

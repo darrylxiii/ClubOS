@@ -418,7 +418,7 @@
     "fiveMinutes": "5 Minuten",
     "fifteenMinutes": "15 Minuten",
     "thirtyMinutes": "30 Minuten",
-    "testBiometric": "Test {{name}}",
+    "testBiometric": "Testen {{name}}",
     "useBiometric": "Verwenden Sie {{name}} zum Entsperren der App",
     "notAvailable": "{{name}} not Verfügbar on this device",
     "enableBiometric": "Aktivieren biometric Anmelden",

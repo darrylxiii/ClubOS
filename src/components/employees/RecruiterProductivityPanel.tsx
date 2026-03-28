@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from 'react-i18next';
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
@@ -87,6 +88,7 @@ function useRecruiterActivityData(days: number) {
 
 export function RecruiterProductivityPanel() {
   const navigate = useNavigate();
+  const { t } = useTranslation('admin');
   const [days, setDays] = useState(30);
   const [searchQuery, setSearchQuery] = useState("");
   const { data, isLoading } = useRecruiterActivityData(days);
@@ -122,7 +124,7 @@ export function RecruiterProductivityPanel() {
     <div className="space-y-6">
       {/* Controls */}
       <div className="flex items-center justify-between">
-        <p className="text-sm text-muted-foreground">Activity tracking and conversion metrics</p>
+        <p className="text-sm text-muted-foreground">{t('recruiterProductivity.subtitle', 'Activity tracking and conversion metrics')}</p>
         <div className="flex gap-2">
           <Select value={String(days)} onValueChange={v => setDays(Number(v))}>
             <SelectTrigger className="w-36 h-9"><SelectValue /></SelectTrigger>
@@ -130,7 +132,7 @@ export function RecruiterProductivityPanel() {
               <SelectItem value="7">Last 7 days</SelectItem>
               <SelectItem value="30">Last 30 days</SelectItem>
               <SelectItem value="90">Last 90 days</SelectItem>
-              <SelectItem value="365">Last year</SelectItem>
+              <SelectItem value="365">{t('recruiterProductivity.lastYear', 'Last year')}</SelectItem>
             </SelectContent>
           </Select>
           <Button variant="outline" size="sm" onClick={exportCSV} disabled={isLoading || filtered.length === 0}>
@@ -146,7 +148,7 @@ export function RecruiterProductivityPanel() {
         </div>
       ) : (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          <Card><CardContent className="pt-4"><p className="text-xs text-muted-foreground">Total Activities</p><p className="text-2xl font-bold">{totalActivities}</p></CardContent></Card>
+          <Card><CardContent className="pt-4"><p className="text-xs text-muted-foreground">{t('recruiterProductivity.totalActivities', 'Total Activities')}</p><p className="text-2xl font-bold">{totalActivities}</p></CardContent></Card>
           <Card><CardContent className="pt-4"><p className="text-xs text-muted-foreground">Placements</p><p className="text-2xl font-bold text-green-600">{totalPlacements}</p></CardContent></Card>
           <Card><CardContent className="pt-4"><p className="text-xs text-muted-foreground">Avg Conversion</p><p className="text-2xl font-bold">{avgConversion}%</p></CardContent></Card>
           <Card className="border-amber-500/30"><CardContent className="pt-4"><p className="text-xs text-muted-foreground">Top Recruiter</p><p className="text-lg font-bold flex items-center gap-1.5"><Trophy className="h-4 w-4 text-amber-500" />{topRecruiter?.recruiter_name || "\u2014"}</p></CardContent></Card>
@@ -156,8 +158,8 @@ export function RecruiterProductivityPanel() {
       {/* Leaderboard + Activity */}
       <Tabs defaultValue="leaderboard">
         <TabsList>
-          <TabsTrigger value="leaderboard">Leaderboard</TabsTrigger>
-          <TabsTrigger value="activity">Activity Feed</TabsTrigger>
+          <TabsTrigger value="leaderboard">{t('recruiterProductivity.leaderboard', 'Leaderboard')}</TabsTrigger>
+          <TabsTrigger value="activity">{t('recruiterProductivity.activityFeed', 'Activity Feed')}</TabsTrigger>
         </TabsList>
 
         <TabsContent value="leaderboard" className="space-y-4">
@@ -165,13 +167,13 @@ export function RecruiterProductivityPanel() {
             <CardHeader>
               <div className="flex items-center justify-between">
                 <div>
-                  <CardTitle className="text-base">Recruiter Leaderboard</CardTitle>
-                  <CardDescription>Ranked by total activity volume</CardDescription>
+                  <CardTitle className="text-base">{t('recruiterProductivity.recruiterLeaderboard', 'Recruiter Leaderboard')}</CardTitle>
+                  <CardDescription>{t('recruiterProductivity.rankedByVolume', 'Ranked by total activity volume')}</CardDescription>
                 </div>
                 <div className="relative w-56">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
-                    placeholder="Search by name..."
+                    placeholder={t('recruiterProductivity.searchByName', 'Search by name...')}
                     value={searchQuery}
                     onChange={e => setSearchQuery(e.target.value)}
                     className="pl-9 h-8 text-sm"
@@ -186,21 +188,21 @@ export function RecruiterProductivityPanel() {
                 </div>
               ) : filtered.length === 0 ? (
                 <p className="text-muted-foreground text-center py-12">
-                  {searchQuery.trim() ? `No recruiters matching "${searchQuery}".` : "No activity data yet."}
+                  {searchQuery.trim() ? t('recruiterProductivity.noMatch', 'No recruiters matching "{{query}}".', { query: searchQuery }) : t('recruiterProductivity.noActivityYet', 'No activity data yet.')}
                 </p>
               ) : (
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead className="w-16">Rank</TableHead>
-                      <TableHead>Recruiter</TableHead>
-                      <TableHead>Sourced</TableHead>
-                      <TableHead>Screened</TableHead>
-                      <TableHead>Interviewed</TableHead>
-                      <TableHead>Offered</TableHead>
-                      <TableHead>Placed</TableHead>
-                      <TableHead>Conversion</TableHead>
-                      <TableHead>Total</TableHead>
+                      <TableHead className="w-16">{t('recruiterProductivity.rank', 'Rank')}</TableHead>
+                      <TableHead>{t('recruiterProductivity.recruiter', 'Recruiter')}</TableHead>
+                      <TableHead>{t('recruiterProductivity.sourced', 'Sourced')}</TableHead>
+                      <TableHead>{t('recruiterProductivity.screened', 'Screened')}</TableHead>
+                      <TableHead>{t('recruiterProductivity.interviewed', 'Interviewed')}</TableHead>
+                      <TableHead>{t('recruiterProductivity.offered', 'Offered')}</TableHead>
+                      <TableHead>{t('recruiterProductivity.placed', 'Placed')}</TableHead>
+                      <TableHead>{t('recruiterProductivity.conversion', 'Conversion')}</TableHead>
+                      <TableHead>{t('recruiterProductivity.total', 'Total')}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -246,7 +248,7 @@ export function RecruiterProductivityPanel() {
           {/* Funnel */}
           {stats.length > 0 && !isLoading && (
             <Card>
-              <CardHeader><CardTitle className="text-base">Aggregate Funnel</CardTitle></CardHeader>
+              <CardHeader><CardTitle className="text-base">{t('recruiterProductivity.aggregateFunnel', 'Aggregate Funnel')}</CardTitle></CardHeader>
               <CardContent>
                 <div className="space-y-3">
                   {(["sourced", "screened", "interviewed", "offered", "placed"] as const).map(stage => {
@@ -272,8 +274,8 @@ export function RecruiterProductivityPanel() {
         <TabsContent value="activity">
           <Card>
             <CardHeader>
-              <CardTitle className="text-base">Recent Activity</CardTitle>
-              <CardDescription>Latest recruiter interactions</CardDescription>
+              <CardTitle className="text-base">{t('recruiterProductivity.recentActivity', 'Recent Activity')}</CardTitle>
+              <CardDescription>{t('recruiterProductivity.latestInteractions', 'Latest recruiter interactions')}</CardDescription>
             </CardHeader>
             <CardContent>
               {isLoading ? (
@@ -281,7 +283,7 @@ export function RecruiterProductivityPanel() {
                   {[1, 2, 3, 4, 5].map(i => <Skeleton key={i} className="h-12 w-full" />)}
                 </div>
               ) : activityLog.length === 0 ? (
-                <p className="text-muted-foreground text-center py-12">No recent activity.</p>
+                <p className="text-muted-foreground text-center py-12">{t('recruiterProductivity.noRecentActivity', 'No recent activity.')}</p>
               ) : (
                 <div className="space-y-2">
                   {activityLog.slice(0, 50).map((a: { id: string; recruiter_id: string; activity_type: string; entity_type: string; created_at: string }) => {

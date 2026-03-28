@@ -142,7 +142,7 @@ export default function ModuleManagement() {
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => navigate(`/academy/courses/${id}/edit`)}
+            onClick={() => navigate(`/courses/${id}/edit`)}
           >
             <ChevronLeft className="h-4 w-4 mr-1" />
             Back to Course
@@ -157,7 +157,7 @@ export default function ModuleManagement() {
       {/* Course Info */}
       <Card className="p-6">
         <div className="flex items-center gap-3">
-          <div className="p-2 squircle-sm bg-primary/10">
+          <div className="p-2 rounded-xl bg-primary/10">
             <BookOpen className="h-5 w-5 text-primary" />
           </div>
           <div>

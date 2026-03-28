@@ -140,7 +140,7 @@ const JobListItem = memo(({
                       <TooltipTrigger>
                         <Lock className="h-3 w-3 text-amber-500 shrink-0" />
                       </TooltipTrigger>
-                      <TooltipContent>{t('jobListView.tooltip.confidential')}</TooltipContent>
+                      <TooltipContent>{'Confidential'}</TooltipContent>
                     </Tooltip>
                   </TooltipProvider>
                 )}
@@ -211,7 +211,7 @@ const JobListItem = memo(({
                   {formatDistanceToNow(new Date(job.last_activity), { addSuffix: true })}
                 </span>
               ) : (
-                <span>{t('jobListView.noActivity')}</span>
+                <span>{'No Activity'}</span>
               )}
             </div>
           </div>
@@ -228,7 +228,7 @@ const JobListItem = memo(({
               }}
             >
               <LayoutDashboard className="h-4 w-4" />
-              <span className="hidden lg:inline">{t('jobListView.dashboard')}</span>
+              <span className="hidden lg:inline">{'Dashboard'}</span>
             </Button>
 
             <DropdownMenu>
@@ -257,7 +257,7 @@ const JobListItem = memo(({
                     </DropdownMenuItem>
                     <DropdownMenuItem onClick={onClose}>
                       <XCircle className="h-4 w-4 mr-2" />
-                      {t('common:close')}
+                      {'Common:close'}
                     </DropdownMenuItem>
                   </>
                 )}
@@ -270,7 +270,7 @@ const JobListItem = memo(({
                 {job.status !== 'archived' && (
                   <DropdownMenuItem onClick={onArchive} className="text-destructive">
                     <Archive className="h-4 w-4 mr-2" />
-                    {t('common:archive')}
+                    {'Common:archive'}
                   </DropdownMenuItem>
                 )}
                 {job.status === 'archived' && (

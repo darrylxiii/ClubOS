@@ -83,7 +83,7 @@ export const MatchScoreDialog = ({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Match Score Breakdown</DialogTitle>
+          <DialogTitle>{t('common:matchScoreBreakdown', 'Match Score Breakdown')}</DialogTitle>
           <DialogDescription>
             {jobTitle} at {company}
           </DialogDescription>

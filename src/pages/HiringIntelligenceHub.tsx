@@ -37,8 +37,8 @@ const { t } = useTranslation('common');
           <EmptyState
             icon={Target}
             title={t("no_predictions_available", "No Predictions Available")}
-            description="AI predictions will appear once you have active jobs with candidates in the pipeline."
-            action={{ label: "Create Job", onClick: () => navigate('/jobs/new') }}
+            description={t("no_predictions_desc", "AI predictions will appear once you have active jobs with candidates in the pipeline.")}
+            action={{ label: t('create_job', 'Create Job'), onClick: () => navigate('/jobs/new') }}
           />
         </CardContent>
       </Card>
@@ -62,6 +62,7 @@ const { t } = useTranslation('common');
 }
 
 export default function HiringIntelligenceHub({ embedded = false }: { embedded?: boolean }) {
+  const { t } = useTranslation('common');
   const navigate = useNavigate();
   const { data, isLoading: loading, error } = useHiringIntelligenceData();
 
@@ -78,7 +79,7 @@ export default function HiringIntelligenceHub({ embedded = false }: { embedded?:
     return (
       <Wrapper>
         <div className="container mx-auto py-6">
-          <p className="text-center text-muted-foreground">{t("loading_intelligence_hub", "Loading intelligence hub...")}</p>
+          <p className="text-center text-muted-foreground">{t('hiringIntelligenceHub.loading', 'Loading intelligence hub...')}</p>
         </div>
       </Wrapper>
     );
@@ -113,15 +114,15 @@ export default function HiringIntelligenceHub({ embedded = false }: { embedded?:
           <div>
             <h1 className="text-4xl font-bold flex items-center gap-3">
               <Brain className="h-10 w-10 text-primary" />
-              Hiring Intelligence Hub
+              {t('hiringIntelligenceHub.title', 'Hiring Intelligence Hub')}
             </h1>
             <p className="text-muted-foreground mt-2">
-              AI-powered insights across all your hiring activities
+              {t('hiringIntelligenceHub.subtitle', 'AI-powered insights across all your hiring activities')}
             </p>
           </div>
           <Button onClick={() => navigate('/ml-dashboard')}>
             <Sparkles className="h-4 w-4 mr-2" />
-            View ML Engine
+            {t('hiringIntelligenceHub.viewMlEngine', 'View ML Engine')}
           </Button>
         </div>
 
@@ -135,7 +136,7 @@ export default function HiringIntelligenceHub({ embedded = false }: { embedded?:
               <div className="text-3xl font-bold">{stats.activeJobs}</div>
               <p className="text-xs text-muted-foreground">
                 {stats.totalJobs > stats.activeJobs && `${stats.totalJobs - stats.activeJobs} drafts • `}
-                {stats.jobsWithCandidates} with candidates
+                {t('hiringIntelligenceHub.withCandidates', '{{count}} with candidates', { count: stats.jobsWithCandidates })}
               </p>
             </CardContent>
           </Card>
@@ -169,7 +170,7 @@ export default function HiringIntelligenceHub({ embedded = false }: { embedded?:
                 {stats.avgMatchScore > 0 ? `${stats.avgMatchScore}%` : '—'}
               </div>
               <p className="text-xs text-muted-foreground">
-                {stats.avgMatchScore > 0 ? 'ML matching accuracy' : 'No scores yet'}
+                {stats.avgMatchScore > 0 ? t('hiringIntelligenceHub.mlMatchingAccuracy', 'ML matching accuracy') : t('hiringIntelligenceHub.noScoresYet', 'No scores yet')}
               </p>
             </CardContent>
           </Card>
@@ -192,7 +193,7 @@ export default function HiringIntelligenceHub({ embedded = false }: { embedded?:
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <AlertCircle className="h-5 w-5 text-amber-500" />
-                  Jobs Requiring Attention
+                  {t('hiringIntelligenceHub.jobsRequiringAttention', 'Jobs Requiring Attention')}
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -200,8 +201,8 @@ export default function HiringIntelligenceHub({ embedded = false }: { embedded?:
                   <EmptyState
                     icon={Briefcase}
                     title={t("no_jobs_yet", "No Jobs Yet")}
-                    description="Create and publish jobs to start tracking hiring intelligence and candidate pipelines."
-                    action={{ label: "Create Job", onClick: () => navigate('/jobs/new') }}
+                    description={t('hiringIntelligenceHub.noJobsDesc', 'Create and publish jobs to start tracking hiring intelligence and candidate pipelines.')}
+                    action={{ label: t('create_job', 'Create Job'), onClick: () => navigate('/jobs/new') }}
                   />
                 ) : jobsNeedingAttention.length === 0 ? (
                   <div className="text-center py-8">
@@ -220,10 +221,10 @@ export default function HiringIntelligenceHub({ embedded = false }: { embedded?:
                         </div>
                         <div className="flex items-center gap-4">
                           <Badge variant="outline" className="text-amber-600 border-amber-600">
-                            {job.candidatesInPipeline === 0 ? 'No candidates' : `${job.candidatesInPipeline} candidates`}
+                            {job.candidatesInPipeline === 0 ? t('hiringIntelligenceHub.noCandidates', 'No candidates') : t('hiringIntelligenceHub.candidateCount', '{{count}} candidates', { count: job.candidatesInPipeline })}
                           </Badge>
                           <Button onClick={() => navigate(`/jobs/${job.id}/dashboard`)}>
-                            View Dashboard
+                            {t('hiringIntelligenceHub.viewDashboard', 'View Dashboard')}
                           </Button>
                         </div>
                       </div>
@@ -274,7 +275,7 @@ export default function HiringIntelligenceHub({ embedded = false }: { embedded?:
                             </div>
                             <Progress value={job.healthScore} />
                             <div className="text-xs text-muted-foreground">
-                              {job.candidatesInPipeline} candidate{job.candidatesInPipeline !== 1 ? 's' : ''}
+                              {t('hiringIntelligenceHub.candidateCount', '{{count}} candidates', { count: job.candidatesInPipeline })}
                             </div>
                           </div>
                         </CardContent>
@@ -294,8 +295,8 @@ export default function HiringIntelligenceHub({ embedded = false }: { embedded?:
                   <EmptyState
                     icon={Users}
                     title={t("no_candidates_yet", "No Candidates Yet")}
-                    description="When candidates apply to your jobs, the top performers will appear here with AI-generated insights."
-                    action={{ label: "View Jobs", onClick: () => navigate('/jobs') }}
+                    description={t('hiringIntelligenceHub.noCandidatesDesc', 'When candidates apply to your jobs, the top performers will appear here with AI-generated insights.')}
+                    action={{ label: t('view_jobs', 'View Jobs'), onClick: () => navigate('/jobs') }}
                   />
                 </CardContent>
               </Card>
@@ -318,7 +319,7 @@ export default function HiringIntelligenceHub({ embedded = false }: { embedded?:
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Calendar className="h-5 w-5" />
-                  Upcoming Interviews (All Jobs)
+                  {t('hiringIntelligenceHub.upcomingInterviews', 'Upcoming Interviews (All Jobs)')}
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -326,8 +327,8 @@ export default function HiringIntelligenceHub({ embedded = false }: { embedded?:
                   <EmptyState
                     icon={Calendar}
                     title={t("no_upcoming_interviews", "No Upcoming Interviews")}
-                    description="Schedule interviews with candidates from the job dashboard. Interviews will appear here automatically."
-                    action={{ label: "View Jobs", onClick: () => navigate('/jobs') }}
+                    description={t('hiringIntelligenceHub.noInterviewsDesc', 'Schedule interviews with candidates from the job dashboard. Interviews will appear here automatically.')}
+                    action={{ label: t('view_jobs', 'View Jobs'), onClick: () => navigate('/jobs') }}
                   />
                 ) : (
                   <div className="space-y-3">
@@ -404,16 +405,16 @@ export default function HiringIntelligenceHub({ embedded = false }: { embedded?:
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Brain className="h-5 w-5" />
-                  Machine Learning Insights
+                  {t('hiringIntelligenceHub.mlInsights', 'Machine Learning Insights')}
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="text-sm text-muted-foreground mb-4">
-                  View detailed ML model performance and matching engine metrics
+                  {t('hiringIntelligenceHub.mlInsightsDesc', 'View detailed ML model performance and matching engine metrics')}
                 </p>
                 <Button onClick={() => navigate('/ml-dashboard')} variant="outline">
                   <BarChart3 className="h-4 w-4 mr-2" />
-                  View Full ML Dashboard
+                  {t('hiringIntelligenceHub.viewFullMlDashboard', 'View Full ML Dashboard')}
                 </Button>
               </CardContent>
             </Card>

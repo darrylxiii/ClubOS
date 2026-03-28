@@ -166,7 +166,7 @@ export function PartnerConciergeCard({ companyId }: PartnerConciergeCardProps) {
             <div className="bg-muted/50 rounded-lg p-4 flex items-center gap-3 border border-border/50">
               <Clock className="w-5 h-5 text-primary" />
               <p className="text-sm text-muted-foreground">
-                Need immediate assistance? Contact us at <a href="mailto:partners@thequantumclub.com" className="text-primary hover:underline">{t("partnersthequantumclubcom", "partners@thequantumclub.com")}</a>
+                Need immediate assistance? Contact us at <a href="mailto:info@thequantumclub.com" className="text-primary hover:underline">{t("partnersthequantumclubcom", "info@thequantumclub.com")}</a>
               </p>
             </div>
           </CardContent>

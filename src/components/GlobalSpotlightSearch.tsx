@@ -368,7 +368,7 @@ export function GlobalSpotlightSearch() {
               <Command className="bg-transparent text-white [&_[cmdk-input-wrapper]]:border-none [&_[cmdk-input-wrapper]]:px-6 [&_[cmdk-input-wrapper]_svg]:h-6 [&_[cmdk-input-wrapper]_svg]:w-6 [&_[cmdk-input-wrapper]_svg]:text-white/50" loop>
                 <div style={{ borderBottom: hasQuery ? '1px solid rgba(255,255,255,0.05)' : '1px solid transparent', transition: 'border-color 0.3s' }}>
                   <CommandInput 
-                    placeholder="Spotlight Search..." 
+                    placeholder={t('spotlightSearch.placeholder', 'Spotlight Search...')} 
                     value={query}
                     onValueChange={handleQueryChange}
                     className="h-16 text-xl font-medium text-white placeholder:text-white/30 truncate border-0 focus:ring-0" 
@@ -391,12 +391,12 @@ export function GlobalSpotlightSearch() {
                             <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center animate-pulse">
                               <Search className="h-6 w-6 text-primary" />
                             </div>
-                            <p className="text-lg">Searching...</p>
+                            <p className="text-lg">{t('spotlightSearch.searching', 'Searching...')}</p>
                           </div>
                         ) : hasQuery ? (
                           <div className="flex flex-col items-center justify-center gap-2 py-12 text-muted-foreground">
                             <Search className="h-8 w-8 opacity-20" />
-                            <p className="text-lg">No results found.</p>
+                            <p className="text-lg">{t('spotlightSearch.noResults', 'No results found.')}</p>
                           </div>
                         ) : (
                           <div className="flex flex-col items-center justify-center gap-2 py-12 text-muted-foreground/50">

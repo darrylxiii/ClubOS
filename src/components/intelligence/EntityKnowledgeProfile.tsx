@@ -104,11 +104,11 @@ export const EntityKnowledgeProfile = ({
 
             if (error) throw error;
 
-            toast.success(t('intelligence.entityknowledgeprofile.knowledgeProfileUpdatedSuccessfully', 'Knowledge Profile updated successfully!'));
+            toast.success('Knowledge Profile updated successfully!');
             loadProfile();
         } catch (error: unknown) {
             console.error("Error saving profile:", error);
-            toast.error("Failed to save profile:" + (error instanceof Error ? error.message : t('intelligence.entityknowledgeprofile.unknownError', 'Unknown error')));
+            toast.error("Failed to save profile:" + (error instanceof Error ? error.message : 'Unknown error'));
         } finally {
             setIsSaving(false);
         }

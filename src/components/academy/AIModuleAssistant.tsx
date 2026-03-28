@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Bot, Send, Loader2, Sparkles, Lock } from "lucide-react";
+import { Link } from "react-router-dom";
 import { notify } from "@/lib/notify";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -172,7 +173,7 @@ export function AIModuleAssistant({ moduleContext }: AIModuleAssistantProps) {
   };
 
   return (
-    <Card className="squircle p-6 h-[600px] flex flex-col relative">
+    <Card className="rounded-2xl p-6 h-[600px] flex flex-col relative">
       <div className="flex items-center gap-3 mb-4">
         <div className="p-2 rounded-lg bg-primary/10">
           <Bot className="h-5 w-5 text-primary" />
@@ -181,6 +182,14 @@ export function AIModuleAssistant({ moduleContext }: AIModuleAssistantProps) {
           <h3 className="font-semibold">{t("ai_learning_assistant", "AI Learning Assistant")}</h3>
           <p className="text-xs text-muted-foreground">
             {!user ? 'Try 1 free demo question' : 'Ask anything about this module'}
+          </p>
+          <p className="flex items-center gap-1 text-xs text-muted-foreground">
+            <Sparkles className="w-3 h-3" />
+            {t('ai.powered', 'AI-powered')}
+            {' · '}
+            <Link to="/legal/ai-transparency" className="text-primary hover:underline">
+              {t('ai.learnMore', 'Learn more')}
+            </Link>
           </p>
         </div>
         {!user && (

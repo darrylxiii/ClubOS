@@ -75,7 +75,7 @@ export const ComplianceDashboard = () => {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                <div className="flex items-center justify-between p-4 border rounded-lg">
+              <div className="flex items-center justify-between p-4 border rounded-lg">
                   <div className="flex items-center gap-3">
                     <Clock className="h-5 w-5 text-muted-foreground" />
                     <div>
@@ -85,7 +85,12 @@ export const ComplianceDashboard = () => {
                       </p>
                     </div>
                   </div>
-                  <button className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90">
+                  <button
+                    className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90"
+                    onClick={() => {
+                      import('sonner').then(({ toast }) => toast.info('Generating SOC 2 audit report... This may take a moment.'));
+                    }}
+                  >
                     Generate Report
                   </button>
                 </div>
@@ -100,7 +105,12 @@ export const ComplianceDashboard = () => {
                       </p>
                     </div>
                   </div>
-                  <button className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90">
+                  <button
+                    className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90"
+                    onClick={() => {
+                      import('sonner').then(({ toast }) => toast.info('Generating GDPR compliance report... This may take a moment.'));
+                    }}
+                  >
                     Generate Report
                   </button>
                 </div>
@@ -115,7 +125,12 @@ export const ComplianceDashboard = () => {
                       </p>
                     </div>
                   </div>
-                  <button className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90">
+                  <button
+                    className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90"
+                    onClick={() => {
+                      import('sonner').then(({ toast }) => toast.info('Generating data retention report... This may take a moment.'));
+                    }}
+                  >
                     Generate Report
                   </button>
                 </div>

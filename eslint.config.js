@@ -4,6 +4,7 @@ import reactHooks from "eslint-plugin-react-hooks";
 import reactRefresh from "eslint-plugin-react-refresh";
 import jsxA11y from "eslint-plugin-jsx-a11y";
 import tseslint from "typescript-eslint";
+import i18nNoRawJsxText from "./eslint-rules/no-raw-jsx-text.mjs";
 
 export default tseslint.config(
   { ignores: ["dist"] },
@@ -34,6 +35,33 @@ export default tseslint.config(
       "jsx-a11y/anchor-is-valid": "warn",
       "jsx-a11y/click-events-have-key-events": "warn",
       "jsx-a11y/no-static-element-interactions": "warn",
+    },
+  },
+  // i18n: no new raw user-visible copy in JSX — use t() / Trans (warn = visible in IDE & lint-staged without blocking legacy debt)
+  {
+    files: ["src/**/*.tsx"],
+    ignores: [
+      "src/components/ui/**",
+      "src/**/*.test.tsx",
+      "src/**/__tests__/**",
+      "tests/**",
+      "src/pages/legal/**",
+    ],
+    plugins: {
+      i18n: {
+        rules: {
+          "no-raw-jsx-text": i18nNoRawJsxText,
+        },
+      },
+    },
+    rules: {
+      "i18n/no-raw-jsx-text": [
+        "warn",
+        {
+          // Punctuation / numeric-only snippets (not prose)
+          ignorePattern: "^[+\\-*/|%$€£.,:;·\\s\\d]+$",
+        },
+      ],
     },
   },
   // Relaxed rules for test files

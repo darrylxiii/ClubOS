@@ -1,3 +1,4 @@
+import { Helmet } from 'react-helmet-async';
 import { useTranslation } from 'react-i18next';
 import { LegalPageLayout } from "@/components/legal/LegalPageLayout";
 import { LegalSection } from "@/components/legal/LegalSection";
@@ -10,7 +11,7 @@ import quantumLogoDark from "@/assets/quantum-club-logo.png";
 
 export default function AccessibilityStatement() {
   const { t } = useTranslation('common');
-  const lastUpdated = "January 15, 2025";
+  const lastUpdated = "March 28, 2026";
 
   const sections = [
     { id: "commitment", title: "Our Commitment" },
@@ -44,6 +45,10 @@ export default function AccessibilityStatement() {
         </div>
       </div>
 
+      <Helmet>
+        <title>{t('legalPages.accessibilityStatement', 'Accessibility Statement')} | The Quantum Club</title>
+        <meta name="description" content={t('legalPages.accessibilityStatementDesc', 'Legal documentation for The Quantum Club recruitment platform.')} />
+      </Helmet>
       <LegalPageLayout
         title={t('legalPages.accessibilityStatement', 'Accessibility Statement')}
         lastUpdated={lastUpdated}
@@ -231,8 +236,8 @@ export default function AccessibilityStatement() {
                 <h4 className="font-semibold mb-2">{"Report an Accessibility Issue"}</h4>
                 <p className="text-muted-foreground mb-3">
                   Email us at:{" "}
-                  <a href="mailto:accessibility@thequantumclub.com" className="text-primary hover:underline">
-                    accessibility@thequantumclub.com
+                  <a href="mailto:info@thequantumclub.com" className="text-primary hover:underline">
+                    info@thequantumclub.com
                   </a>
                 </p>
                 <p className="text-sm text-muted-foreground">{"Please include:"}</p>
@@ -271,8 +276,8 @@ export default function AccessibilityStatement() {
                 <h4 className="font-semibold mb-2">{"Step 1: Contact Us"}</h4>
                 <p className="text-muted-foreground">
                   First, please contact us directly at{" "}
-                  <a href="mailto:accessibility@thequantumclub.com" className="text-primary hover:underline">
-                    accessibility@thequantumclub.com
+                  <a href="mailto:info@thequantumclub.com" className="text-primary hover:underline">
+                    info@thequantumclub.com
                   </a>
                   . We will work to resolve your concern.
                 </p>
@@ -309,11 +314,11 @@ export default function AccessibilityStatement() {
             <div className="mt-4 space-y-2">
               <p>
                 <strong>{"Email:"}</strong>{" "}
-                <a href="mailto:accessibility@thequantumclub.com" className="text-primary hover:underline">
-                  accessibility@thequantumclub.com
+                <a href="mailto:info@thequantumclub.com" className="text-primary hover:underline">
+                  info@thequantumclub.com
                 </a>
               </p>
-              <p><strong>{"Address:"}</strong>{"The Quantum Club B.V., Amsterdam, Netherlands"}</p>
+              <p><strong>{"Address:"}</strong>{"The Quantum Club B.V., Pieter Cornelisz. Hooftstraat 41-2, 1071BM, Amsterdam, The Netherlands"}</p>
             </div>
             <p className="mt-4 text-sm text-muted-foreground">
               This statement was last reviewed on {lastUpdated} and will be updated as we 

@@ -2,10 +2,8 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
-// Import existing English translations
-import commonEn from "@/i18n/locales/en/common.json";
-import authEn from "@/i18n/locales/en/auth.json";
-import onboardingEn from "@/i18n/locales/en/onboarding.json";
+// PERF: Locale JSONs are loaded dynamically — avoids pulling 700KB+ into the index chunk
+// These are only needed when the admin explicitly seeds translations
 
 // Additional namespaces - these will be fetched from database if they exist
 // or seeded with minimal defaults if not
@@ -82,11 +80,18 @@ export const useSeedTranslations = () => {
   
   return useMutation({
     mutationFn: async () => {
+      // PERF: Dynamic imports — only loaded when admin actually clicks "Seed"
+      const [commonMod, authMod, onboardingMod] = await Promise.all([
+        import('@/i18n/locales/en/common.json'),
+        import('@/i18n/locales/en/auth.json'),
+        import('@/i18n/locales/en/onboarding.json'),
+      ]);
+
       // Core namespaces from local JSON files
       const coreTranslations = [
-        { namespace: 'common', language: 'en', translations: commonEn },
-        { namespace: 'auth', language: 'en', translations: authEn },
-        { namespace: 'onboarding', language: 'en', translations: onboardingEn },
+        { namespace: 'common', language: 'en', translations: commonMod.default || commonMod },
+        { namespace: 'auth', language: 'en', translations: authMod.default || authMod },
+        { namespace: 'onboarding', language: 'en', translations: onboardingMod.default || onboardingMod },
       ];
 
       // Check which additional namespaces need seeding

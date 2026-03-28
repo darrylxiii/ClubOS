@@ -71,9 +71,9 @@ export function EditCompanyDialog({ companyId, open, onClose, onSuccess }: EditC
     const file = e.target.files?.[0];
     if (file) {
       // Validate file type
-      const validTypes = ['image/jpeg', 'image/png', 'image/webp'];
+      const validTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
       if (!validTypes.includes(file.type)) {
-        toast.error(t("please_upload_a_jpg", "Please upload a JPG, PNG, or WEBP image"));
+        toast.error(t("please_upload_a_jpg", "Please upload a JPG, PNG, WebP, or GIF image"));
         return;
       }
       
@@ -92,9 +92,9 @@ export function EditCompanyDialog({ companyId, open, onClose, onSuccess }: EditC
     const file = e.target.files?.[0];
     if (file) {
       // Validate file type
-      const validTypes = ['image/jpeg', 'image/png', 'image/webp'];
+      const validTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
       if (!validTypes.includes(file.type)) {
-        toast.error(t("please_upload_a_jpg", "Please upload a JPG, PNG, or WEBP image"));
+        toast.error(t("please_upload_a_jpg", "Please upload a JPG, PNG, WebP, or GIF image"));
         return;
       }
       
@@ -223,7 +223,7 @@ export function EditCompanyDialog({ companyId, open, onClose, onSuccess }: EditC
                   className="cursor-pointer"
                 />
                 <p className="text-xs text-muted-foreground mt-1">
-                  JPG, PNG or WEBP. Max 5MB.
+                  {t("company_logo_upload_hint", "JPG, PNG, WebP, or GIF. Max 5MB.")}
                 </p>
               </div>
             </div>
@@ -248,7 +248,7 @@ export function EditCompanyDialog({ companyId, open, onClose, onSuccess }: EditC
                   className="cursor-pointer"
                 />
                 <p className="text-xs text-muted-foreground mt-1">
-                  JPG, PNG or WEBP. Max 10MB. Recommended: 1920x400px
+                  {t("company_cover_upload_hint", "JPG, PNG, WebP, or GIF. Max 10MB. Recommended: 1920x400px")}
                 </p>
               </div>
             </div>

@@ -3,6 +3,7 @@
 export {
   motion,
   AnimatePresence,
+  useReducedMotion,
   useMotionValue,
   useTransform,
   useDragControls,

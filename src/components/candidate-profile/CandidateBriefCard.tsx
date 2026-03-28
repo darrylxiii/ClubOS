@@ -21,7 +21,7 @@ export const CandidateBriefCard = ({ brief, skillVerification }: Props) => {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-sm text-muted-foreground">Brief not yet generated. Run Deep Enrich to create.</p>
+          <p className="text-sm text-muted-foreground">{t('brief.notGenerated', 'Brief not yet generated. Run Deep Enrich to create.')}</p>
         </CardContent>
       </Card>
     );
@@ -46,7 +46,7 @@ export const CandidateBriefCard = ({ brief, skillVerification }: Props) => {
             <span className={`text-sm font-bold tabular-nums ${confidenceColor}`}>
               {confidencePercent}%
             </span>
-            <span className="text-[10px] text-muted-foreground">confidence</span>
+            <span className="text-[10px] text-muted-foreground">{t('brief.confidence', 'confidence')}</span>
           </div>
         </div>
       </CardHeader>
@@ -63,7 +63,7 @@ export const CandidateBriefCard = ({ brief, skillVerification }: Props) => {
           <div>
             <div className="flex items-center gap-1.5 mb-2">
               <Sparkles className="w-3.5 h-3.5 text-primary" />
-              <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide">Differentiators</p>
+              <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide">{t('brief.differentiators', 'Differentiators')}</p>
             </div>
             <div className="flex flex-wrap gap-1.5">
               {brief.differentiators.map((d: string, i: number) => (
@@ -80,7 +80,7 @@ export const CandidateBriefCard = ({ brief, skillVerification }: Props) => {
           <div>
             <div className="flex items-center gap-1.5 mb-2">
               <AlertTriangle className="w-3.5 h-3.5 text-yellow-500" />
-              <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide">Risk Factors</p>
+              <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide">{t('brief.riskFactors', 'Risk Factors')}</p>
             </div>
             <div className="space-y-1">
               {brief.risk_factors.map((r: string, i: number) => (
@@ -98,7 +98,7 @@ export const CandidateBriefCard = ({ brief, skillVerification }: Props) => {
           <div>
             <div className="flex items-center gap-1.5 mb-2">
               <MessageSquare className="w-3.5 h-3.5 text-blue-500" />
-              <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide">Interview Angles</p>
+              <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide">{t('brief.interviewAngles', 'Interview Angles')}</p>
             </div>
             <div className="space-y-1">
               {brief.interview_angles.map((a: string, i: number) => (
@@ -116,7 +116,7 @@ export const CandidateBriefCard = ({ brief, skillVerification }: Props) => {
           <div>
             <div className="flex items-center gap-1.5 mb-2">
               <ShieldCheck className="w-3.5 h-3.5 text-green-500" />
-              <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide">Skill Verification</p>
+              <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide">{t('brief.skillVerification', 'Skill Verification')}</p>
             </div>
             <div className="space-y-2">
               {Object.entries(skillVerification).slice(0, 10).map(([skill, data]: [string, any]) => (
@@ -142,7 +142,7 @@ export const CandidateBriefCard = ({ brief, skillVerification }: Props) => {
           <div>
             <div className="flex items-center gap-1.5 mb-2">
               <Target className="w-3.5 h-3.5 text-emerald-500" />
-              <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide">Talent Signals</p>
+              <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide">{t('brief.talentSignals', 'Talent Signals')}</p>
             </div>
             <div className="flex flex-wrap gap-1.5">
               {brief.talent_signals.map((s: string, i: number) => (

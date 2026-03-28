@@ -165,6 +165,17 @@ export function AddCompanyDialog({ onSuccess }: AddCompanyDialogProps) {
       return;
     }
 
+    const maxLogoBytes = 5 * 1024 * 1024;
+    const maxCoverBytes = 10 * 1024 * 1024;
+    if (type === 'logo' && file.size > maxLogoBytes) {
+      toast.error(t("logo_must_be_less", "Logo must be less than 5MB"));
+      return;
+    }
+    if (type === 'cover' && file.size > maxCoverBytes) {
+      toast.error(t("cover_image_must_be", "Cover image must be less than 10MB"));
+      return;
+    }
+
     const reader = new FileReader();
     reader.onloadend = () => {
       if (type === 'logo') {
@@ -659,7 +670,7 @@ export function AddCompanyDialog({ onSuccess }: AddCompanyDialogProps) {
                             {t('common:addCompanyDialog.clickToUploadLogo', 'Click to upload logo')}
                           </p>
                           <p className="text-xs text-muted-foreground mt-1">
-                            {t('common:addCompanyDialog.pngJpgUpTo5mb', 'PNG, JPG up to 5MB')}
+                            {t('common:addCompanyDialog.pngJpgUpTo5mb', 'JPG, PNG, WebP, or GIF. Max 5MB')}
                           </p>
                         </CardContent>
                       </Card>
@@ -701,7 +712,7 @@ export function AddCompanyDialog({ onSuccess }: AddCompanyDialogProps) {
                           {t('common:addCompanyDialog.clickToUploadCoverImage', 'Click to upload cover image')}
                         </p>
                         <p className="text-xs text-muted-foreground mt-1">
-                          {t('common:addCompanyDialog.recommendedCoverSize', 'Recommended: 1200x400px, PNG or JPG')}
+                          {t('common:addCompanyDialog.recommendedCoverSize', 'Recommended: 1200x400px. JPG, PNG, WebP, or GIF. Max 10MB')}
                         </p>
                       </CardContent>
                     </Card>

@@ -52,22 +52,31 @@ const iconSizes = {
   lg: 'h-4 w-4',
 };
 
+const tierLabels: Record<TalentTier, string> = {
+  hot: 'Hot',
+  warm: 'Warm',
+  strategic: 'Strategic',
+  pool: 'Pool',
+  dormant: 'Dormant',
+  excluded: 'Excluded',
+};
+
 export function TierBadge({ tier, size = 'md', showIcon = true, className }: TierBadgeProps) {
-  const config = tierConfig[tier];
-  const Icon = config.icon;
+  const style = tierStyles[tier];
+  const Icon = style.icon;
 
   return (
     <Badge
       variant="outline"
       className={cn(
         'font-medium border transition-colors',
-        config.className,
+        style.className,
         sizeClasses[size],
         className
       )}
     >
       {showIcon && <Icon className={cn(iconSizes[size], 'mr-1')} />}
-      {config.label}
+      {tierLabels[tier]}
     </Badge>
   );
 }

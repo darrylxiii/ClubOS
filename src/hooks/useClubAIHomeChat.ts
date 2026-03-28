@@ -4,6 +4,7 @@ import { useRole } from '@/contexts/RoleContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { logger } from '@/lib/logger';
+import { quantumSoundEngine } from '@/lib/sounds/QuantumSoundEngine';
 
 interface Message {
   role: 'user' | 'assistant';
@@ -68,6 +69,7 @@ export function useClubAIHomeChat(): UseClubAIHomeChatReturn {
     setMessages(prev => [...prev, userMsg]);
     setIsLoading(true);
     setIsExpanded(true);
+    quantumSoundEngine.play('ambient.ai_thinking');
 
     // Abort any previous request
     abortRef.current?.abort();
@@ -189,6 +191,8 @@ export function useClubAIHomeChat(): UseClubAIHomeChatReturn {
       }
     } finally {
       setIsLoading(false);
+      quantumSoundEngine.stopContinuous('ambient.ai_thinking');
+      quantumSoundEngine.play('ambient.ai_ready');
     }
   }, [messages, isLoading, user]);
 

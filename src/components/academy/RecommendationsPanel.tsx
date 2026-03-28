@@ -84,7 +84,7 @@ export function RecommendationsPanel() {
   if (recommendations.length === 0) return null;
 
   return (
-    <Card className="squircle p-6">
+    <Card className="rounded-2xl p-6">
       <div className="flex items-center gap-3 mb-4">
         <div className="p-2 rounded-lg bg-primary/10">
           <Sparkles className="h-5 w-5 text-primary" />
@@ -99,14 +99,14 @@ export function RecommendationsPanel() {
 
       <div className="space-y-3">
         {recommendations.map((rec) => (
-          <Card key={rec.id} className="squircle p-4 hover-lift">
+          <Card key={rec.id} className="rounded-2xl p-4 hover-lift">
             <div className="space-y-2">
               <div className="flex items-start justify-between gap-2">
                 <h4 className="font-semibold text-sm line-clamp-1">
                   {rec.content?.title}
                 </h4>
                 {rec.content?.difficulty && (
-                  <Badge variant="outline" className="squircle-sm text-xs">
+                  <Badge variant="outline" className="rounded-xl text-xs">
                     {rec.content.difficulty}
                   </Badge>
                 )}

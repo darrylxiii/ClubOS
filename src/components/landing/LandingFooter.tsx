@@ -30,14 +30,20 @@ export const LandingFooter = () => {
           </div>
 
           <div>
-            <div className="text-sm font-black uppercase tracking-wider mb-4">Legal</div>
+            <div className="text-sm font-black uppercase tracking-wider mb-4">{t('legal')}</div>
             <div className="space-y-2 text-sm">
-              <a href="#" className="block text-muted-foreground hover:text-foreground transition-colors">
-                Privacy Policy
-              </a>
-              <a href="#" className="block text-muted-foreground hover:text-foreground transition-colors">
-                Terms of Service
-              </a>
+              <Link to="/legal/privacy" className="block text-muted-foreground hover:text-foreground transition-colors">
+                {t('privacy_policy')}
+              </Link>
+              <Link to="/legal/terms" className="block text-muted-foreground hover:text-foreground transition-colors">
+                {t('terms_of_service')}
+              </Link>
+              <Link to="/legal/cookies" className="block text-muted-foreground hover:text-foreground transition-colors">
+                {t('cookie_policy')}
+              </Link>
+              <Link to="/legal" className="block text-muted-foreground hover:text-foreground transition-colors">
+                {t('legal')}
+              </Link>
             </div>
           </div>
 
@@ -61,7 +67,7 @@ export const LandingFooter = () => {
                 <Twitter className="h-5 w-5" />
               </a>
               <a
-                href="mailto:hello@thequantumclub.com"
+                href="mailto:info@thequantumclub.com"
                 className="text-muted-foreground hover:text-foreground transition-colors"
               >
                 <Mail className="h-5 w-5" />

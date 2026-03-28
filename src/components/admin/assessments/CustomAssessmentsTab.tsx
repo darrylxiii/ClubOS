@@ -24,7 +24,7 @@ export const CustomAssessmentsTab = memo(() => {
   };
 
   const handleDelete = async (id: string) => {
-    if (confirm('Are you sure you want to delete this assessment template?')) {
+    if (confirm(t('assessments.customAssessmentsTab.confirmDelete', 'Are you sure you want to delete this assessment template?'))) {
       await deleteTemplate(id);
       loadTemplates();
     }
@@ -34,24 +34,24 @@ export const CustomAssessmentsTab = memo(() => {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h3 className="text-lg font-semibold">Custom Assessment Templates</h3>
+          <h3 className="text-lg font-semibold">{t('assessments.customAssessmentsTab.title', 'Custom Assessment Templates')}</h3>
           <p className="text-sm text-muted-foreground">
-            Create and manage custom assessments for your organization
+            {t('assessments.customAssessmentsTab.description', 'Create and manage custom assessments for your organization')}
           </p>
         </div>
         <Button>
           <Plus className="mr-2 h-4 w-4" />
-          Create Template
+          {t('assessments.customAssessmentsTab.createTemplate', 'Create Template')}
         </Button>
       </div>
 
       {templates.length === 0 ? (
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-12">
-            <p className="text-muted-foreground mb-4">No custom assessments yet</p>
+            <p className="text-muted-foreground mb-4">{t('assessments.customAssessmentsTab.emptyState', 'No custom assessments yet')}</p>
             <Button>
               <Plus className="mr-2 h-4 w-4" />
-              Create Your First Template
+              {t('assessments.customAssessmentsTab.createFirst', 'Create Your First Template')}
             </Button>
           </CardContent>
         </Card>
@@ -63,7 +63,7 @@ export const CustomAssessmentsTab = memo(() => {
                 <div className="flex items-start justify-between">
                   <div className="text-4xl">{template.icon}</div>
                   <Badge variant={template.is_active ? 'default' : 'secondary'}>
-                    {template.is_active ? 'Active' : 'Inactive'}
+                    {template.is_active ? t('assessments.customAssessmentsTab.active', 'Active') : t('assessments.customAssessmentsTab.inactive', 'Inactive')}
                   </Badge>
                 </div>
                 <CardTitle className="text-lg">{template.title}</CardTitle>
@@ -80,13 +80,13 @@ export const CustomAssessmentsTab = memo(() => {
                     {template.estimated_time} min
                   </Badge>
                   {template.is_public && (
-                    <Badge variant="outline">Public</Badge>
+                    <Badge variant="outline">{t('assessments.public', 'Public')}</Badge>
                   )}
                 </div>
                 <div className="flex gap-2">
                   <Button size="sm" variant="outline" className="flex-1">
                     <Edit className="mr-2 h-4 w-4" />
-                    Edit
+                    {t('common:actions.edit', 'Edit')}
                   </Button>
                   <Button
                     size="sm"

@@ -148,6 +148,7 @@ const getNextAction = (job: CompactJobCardProps['job']) => {
     return { text: 'High performing', urgent: false };
   }
   return null;
+  // Note: These are technical signal labels passed to NextActionBadge which handles its own rendering
 };
 
 // Metric item component for the 3x3 grid
@@ -360,7 +361,7 @@ export const CompactJobCard = memo(({
                   <>
                     <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onPublish(); }}>
                       <Flag className="h-4 w-4 mr-2 text-emerald-500" />
-                      Publish
+                      {t('compactJobCard.publish', 'Publish')}
                     </DropdownMenuItem>
                     <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onArchive(); }}>
                       <Archive className="h-4 w-4 mr-2" />
@@ -373,7 +374,7 @@ export const CompactJobCard = memo(({
                   <>
                     <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onUnpublish(); }}>
                       <EyeOff className="h-4 w-4 mr-2" />
-                      Unpublish
+                      {t('compactJobCard.unpublish', 'Unpublish')}
                     </DropdownMenuItem>
                     <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onClose(); }}>
                       <XCircle className="h-4 w-4 mr-2 text-amber-500" />
@@ -386,7 +387,7 @@ export const CompactJobCard = memo(({
                   <>
                     <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onReopen(); }}>
                       <RefreshCw className="h-4 w-4 mr-2 text-emerald-500" />
-                      Reopen
+                      {t('compactJobCard.reopen', 'Reopen')}
                     </DropdownMenuItem>
                     <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onArchive(); }}>
                       <Archive className="h-4 w-4 mr-2" />
@@ -398,7 +399,7 @@ export const CompactJobCard = memo(({
                 {job.status === 'archived' && (
                   <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onRestore(); }}>
                     <RotateCcw className="h-4 w-4 mr-2 text-emerald-500" />
-                    Restore
+                    {t('compactJobCard.restore', 'Restore')}
                   </DropdownMenuItem>
                 )}
               </DropdownMenuContent>
@@ -420,7 +421,7 @@ export const CompactJobCard = memo(({
         <div className="grid grid-cols-3 gap-4">
           {/* Row 1 */}
           {/* Candidates */}
-          <MetricItem icon={Users} value={job.candidate_count} label="Candidates">
+          <MetricItem icon={Users} value={job.candidate_count} label={t('compactJobCard.candidates', 'Candidates')}>
             <MiniSparkline data={trendData} />
           </MetricItem>
 
@@ -428,7 +429,7 @@ export const CompactJobCard = memo(({
           <MetricItem 
             icon={Clock} 
             value={`${job.days_since_opened}d`} 
-            label="Days Open"
+            label={t('compactJobCard.daysOpen', 'Days Open')}
             valueClassName={getDaysColor(job.days_since_opened)}
           />
 
@@ -436,7 +437,7 @@ export const CompactJobCard = memo(({
           <MetricItem 
             icon={Briefcase} 
             value={job.active_stage_count} 
-            label="Active"
+            label={t('compactJobCard.active', 'Active')}
           />
 
           {/* Row 2 */}
@@ -444,14 +445,14 @@ export const CompactJobCard = memo(({
           <MetricItem 
             icon={Calendar} 
             value={interviewCount} 
-            label="Interviews"
+            label={t('compactJobCard.interviews', 'Interviews')}
           />
 
           {/* Conversion */}
           <MetricItem 
             icon={TrendingUp} 
             value={job.conversion_rate !== null ? `${job.conversion_rate}%` : '—'} 
-            label="Conversion"
+            label={t('compactJobCard.conversion', 'Conversion')}
             valueClassName={getConversionColor(job.conversion_rate)}
           />
 
@@ -459,7 +460,7 @@ export const CompactJobCard = memo(({
           <MetricItem 
             icon={Target} 
             value={job.hired_count || 0} 
-            label="Hired"
+            label={t('compactJobCard.hired', 'Hired')}
             valueClassName={job.hired_count && job.hired_count > 0 ? 'text-emerald-500' : undefined}
           />
 
@@ -468,21 +469,21 @@ export const CompactJobCard = memo(({
           <MetricItem 
             icon={Target} 
             value={job.target_hire_count || '—'} 
-            label="Target"
+            label={t('compactJobCard.target', 'Target')}
           />
 
           {/* Last Activity */}
           <MetricItem 
             icon={Activity} 
             value={getLastActivityText()} 
-            label="Last Activity"
+            label={t('compactJobCard.lastActivity', 'Last Activity')}
           />
 
           {/* Open Rate (Placeholder) */}
           <MetricItem 
             icon={TrendingUp} 
             value={job.candidate_count > 0 ? `${Math.min(100, Math.round((job.active_stage_count / job.candidate_count) * 100))}%` : '—'} 
-            label="Pipeline %"
+            label={t('compactJobCard.pipelinePercent', 'Pipeline %')}
           />
         </div>
       </CardContent>

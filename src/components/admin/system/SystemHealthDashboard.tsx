@@ -20,7 +20,7 @@ export const SystemHealthDashboard = () => {
   if (isLoading || !metrics) {
     return (
       <div className="space-y-6">
-        <DashboardHeader title={t('system.systemHealthDashboard.system')} Health description="Platform health" onRefresh={handleRefresh} />
+        <DashboardHeader title={t('system.systemHealthDashboard.systemHealth')} description={t('system.systemHealthDashboard.platformHealth', 'Platform health')} onRefresh={handleRefresh} />
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           <MetricCardSkeleton />
           <MetricCardSkeleton />
@@ -35,7 +35,7 @@ export const SystemHealthDashboard = () => {
     <div className="space-y-6">
       <DashboardHeader
         title={t('system.systemHealthDashboard.systemHealth')}
-        description="Monitor platform health and data integrity"
+        description={t('system.systemHealthDashboard.description', 'Monitor platform health and data integrity')}
         onRefresh={handleRefresh}
         isRefreshing={isLoading}
       />
@@ -56,10 +56,10 @@ export const SystemHealthDashboard = () => {
               </div>
             </div>
             <p className="text-xs text-muted-foreground mt-3">
-              {metrics.uptime_percentage}% uptime (30d)
+              {metrics.uptime_percentage}% {t('system.systemHealthDashboard.uptime30d', 'uptime (30d)')}
             </p>
             <div className="mt-3 inline-flex items-center px-2 py-1 rounded-full bg-green-500/10 border border-green-500/20">
-              <span className="text-xs font-medium text-green-600 dark:text-green-400">✓ All Systems Go</span>
+              <span className="text-xs font-medium text-green-600 dark:text-green-400">✓ {t('system.systemHealthDashboard.allSystemsGo', 'All Systems Go')}</span>
             </div>
           </CardBody>
         </AnimatedCard>
@@ -80,7 +80,7 @@ export const SystemHealthDashboard = () => {
               </div>
             </div>
             <p className="text-xs text-muted-foreground mt-3">
-              Average (p95)
+              {t('system.systemHealthDashboard.avgP95', 'Average (p95)')}
             </p>
           </CardBody>
         </AnimatedCard>
@@ -100,7 +100,7 @@ export const SystemHealthDashboard = () => {
               </div>
             </div>
             <p className="text-xs text-muted-foreground mt-3">
-              {metrics.last_backup ? new Date(metrics.last_backup).toLocaleString() : "Never"}
+              {metrics.last_backup ? new Date(metrics.last_backup).toLocaleString() : t('system.systemHealthDashboard.never', 'Never')}
             </p>
           </CardBody>
         </AnimatedCard>

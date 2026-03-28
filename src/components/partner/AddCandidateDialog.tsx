@@ -67,10 +67,10 @@ interface PipelineStage {
 }
 
 const DEFAULT_STAGES: PipelineStage[] = [
-  { name: t('partner.addcandidatedialog.applied', 'Applied') },
-  { name: t('partner.addcandidatedialog.screening', 'Screening') },
-  { name: t('partner.addcandidatedialog.interview', 'Interview') },
-  { name: t('partner.addcandidatedialog.finalRound', 'Final Round') },
+  { name: 'Applied' },
+  { name: 'Screening' },
+  { name: 'Interview' },
+  { name: 'Final Round' },
 ];
 
 export const AddCandidateDialog = ({

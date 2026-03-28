@@ -190,16 +190,16 @@ export default function CandidateOnboarding() {
   return (
     <>
       <Helmet>
-        <title>{'Apply for Elite Membership'} | The Quantum Club</title>
+        <title>{'Request Access to the Syndicate'} | The Quantum Club</title>
         <meta 
           name="description" 
-          content={'Join The Quantum Club - an exclusive community for the top 3% of professionals. Complete your application in 5 minutes.'} 
+          content={'Gain access to The Quantum Club - an exclusive syndicate for the top 3% of operators. Submit your dossier.'} 
         />
         <meta property="og:type" content="website" />
-        <meta property="og:title" content={`${'Apply for Elite Membership'} | The Quantum Club`} />
+        <meta property="og:title" content={`${'Request Access to the Syndicate'} | The Quantum Club`} />
         <meta 
           property="og:description" 
-          content={'Join 2,500+ exceptional professionals in The Quantum Club. Only 3% of applicants are accepted.'} 
+          content={'Join the exclusive syndicate of exceptional operators. Only 3% of applicants are accepted.'} 
         />
         <meta property="og:image" content="https://os.thequantumclub.com/og-image.gif" />
         <meta property="og:image:width" content="432" />
@@ -207,10 +207,10 @@ export default function CandidateOnboarding() {
         <meta property="og:url" content="https://os.thequantumclub.com/onboarding" />
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:site" content="@thequantumclub" />
-        <meta name="twitter:title" content={`${'Apply for Elite Membership'} | The Quantum Club`} />
+        <meta name="twitter:title" content={`${'Request Access to the Syndicate'} | The Quantum Club`} />
         <meta 
           name="twitter:description" 
-          content={'Join 2,500+ exceptional professionals. Only 3% of applicants are accepted.'} 
+          content={'Join the exclusive syndicate of exceptional operators. Only 3% of applicants are accepted.'} 
         />
         <meta name="twitter:image" content="https://os.thequantumclub.com/og-image-twitter-v3.gif" />
         <link rel="canonical" href="https://os.thequantumclub.com/onboarding" />
@@ -250,14 +250,14 @@ export default function CandidateOnboarding() {
                 {'Only 3% of applicants are accepted'}
               </span>
             </div>
-            <h1 className="text-5xl md:text-6xl font-bold text-foreground">
-              {'Apply for Elite Membership'}
+            <h1 className="text-5xl md:text-6xl font-bold text-foreground tracking-tight">
+              {'Request Access'}
             </h1>
             <p className="text-xl text-muted-foreground mt-4">
-              {'Join 2,500+ exceptional professionals in The Quantum Club'}
+              {'Join the private syndicate of exceptional operators'}
             </p>
-            <p className="text-sm text-muted-foreground mt-2">
-              {'~5 minutes to complete • Your data is encrypted and secure'}
+            <p className="text-sm text-muted-foreground mt-3 tracking-wide">
+              {'~5 minutes to submit dossier • End-to-end encrypted'}
             </p>
           </div>
 

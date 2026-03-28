@@ -32,19 +32,19 @@ export function CourseAppleCarousel({ title, courses }: CourseAppleCarouselProps
   const courseCards: CardType[] = courses.map((course) => ({
     category: course.category || "Course",
     title: course.title,
-    src: course.course_image_url || `https://images.unsplash.com/photo-1522202176988-66273c2fd55f?q=80&w=2071&auto=format&fit=crop`,
+    src: course.course_image_url || "",
     content: (
       <div className="space-y-6">
         <div className="bg-muted p-8 md:p-14 rounded-3xl">
           <div className="space-y-4">
             <div className="flex flex-wrap gap-2">
               {course.category && (
-                <Badge variant="outline" className="squircle-sm">
+                <Badge variant="outline" className="rounded-xl">
                   {course.category}
                 </Badge>
               )}
               {course.difficulty_level && (
-                <Badge variant="secondary" className="squircle-sm">
+                <Badge variant="secondary" className="rounded-xl">
                   {course.difficulty_level}
                 </Badge>
               )}
@@ -89,10 +89,7 @@ export function CourseAppleCarousel({ title, courses }: CourseAppleCarouselProps
 
         <div className="flex gap-3">
           <Link to={`/courses/${course.slug}`} className="flex-1">
-            <Button className="w-full squircle" size="lg">{t('academy.viewCourse')}</Button>
-          </Link>
-          <Link to={`/courses/${course.slug}`}>
-            <Button variant="outline" className="squircle" size="lg">{t('academy.preview')}</Button>
+            <Button className="w-full rounded-2xl" size="lg">{t('academy.viewCourse')}</Button>
           </Link>
         </div>
 

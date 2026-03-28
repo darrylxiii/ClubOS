@@ -108,23 +108,23 @@ ArcGauge.displayName = 'ArcGauge';
 const BreakdownDisplay = memo(({ result, t }: { result: UrgencyScoreResult; t: (key: string, fallback: string) => string }) => (
   <div className="space-y-1.5 text-xs">
     <div className="flex justify-between gap-4">
-      <span className="text-muted-foreground">{t('urgencyMeter.timePressure', 'Time Pressure')}</span>
+      <span className="text-muted-foreground">{'Time Pressure'}</span>
       <span className="font-medium">{result.breakdown.timePressure}/3</span>
     </div>
     <div className="flex justify-between gap-4">
-      <span className="text-muted-foreground">{t('urgencyMeter.pipelineHealth', 'Pipeline Health')}</span>
+      <span className="text-muted-foreground">{'Pipeline Health'}</span>
       <span className="font-medium">{result.breakdown.pipelineHealth}/3</span>
     </div>
     <div className="flex justify-between gap-4">
-      <span className="text-muted-foreground">{t('urgencyMeter.activityDecay', 'Activity Decay')}</span>
+      <span className="text-muted-foreground">{'Activity Decay'}</span>
       <span className="font-medium">{result.breakdown.activityDecay}/2</span>
     </div>
     <div className="flex justify-between gap-4">
-      <span className="text-muted-foreground">{t('urgencyMeter.intelBoost', 'Intel Boost')}</span>
+      <span className="text-muted-foreground">{'Intel Boost'}</span>
       <span className="font-medium">{result.breakdown.intelligenceBoost}/2</span>
     </div>
     <div className="border-t border-border/30 pt-1.5 flex justify-between gap-4 font-semibold">
-      <span>{t('urgencyMeter.dataScore', 'Data Score')}</span>
+      <span>{'Data Score'}</span>
       <span>{result.dataScore}</span>
     </div>
   </div>

@@ -38,11 +38,11 @@ import { format } from 'date-fns';
 import { useTranslation } from 'react-i18next';
 
 const STATUS_OPTIONS = [
-  { value: 'all', label: t('blogarticlemanagertsx.blogarticlemanager.allStatuses', 'All Statuses') },
-  { value: 'draft', label: t('blogarticlemanagertsx.blogarticlemanager.draft', 'Draft') },
-  { value: 'published', label: t('blogarticlemanagertsx.blogarticlemanager.published', 'Published') },
-  { value: 'scheduled', label: t('blogarticlemanagertsx.blogarticlemanager.scheduled', 'Scheduled') },
-  { value: 'archived', label: t('blogarticlemanagertsx.blogarticlemanager.archived', 'Archived') },
+  { value: 'all', label: 'All Statuses' },
+  { value: 'draft', label: 'Draft' },
+  { value: 'published', label: 'Published' },
+  { value: 'scheduled', label: 'Scheduled' },
+  { value: 'archived', label: 'Archived' },
 ];
 
 const delay = (ms: number) => new Promise(r => setTimeout(r, ms));

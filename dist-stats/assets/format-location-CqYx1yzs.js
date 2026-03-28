@@ -1,0 +1,1 @@
+function n(r){if(!r)return"";if(typeof r=="string"){if(r.startsWith("{"))try{return f(JSON.parse(r))}catch{return r}return r}return typeof r=="object"?f(r):String(r)}function f(r){const t=(r.city||"").trim(),e=(r.country||"").trim();return t&&e?`${t}, ${e}`:r.full?String(r.full):t||e||r.region||""||""}export{n as f};

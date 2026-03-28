@@ -1,0 +1,1 @@
+import{r}from"./vendor-react-CuFUCoS-.js";function o(t,u){const e=r.useRef(null),c=r.useRef(t);return r.useEffect(()=>{c.current=t},[t]),r.useEffect(()=>()=>{e.current&&clearTimeout(e.current)},[]),r.useCallback((...n)=>{e.current&&clearTimeout(e.current),e.current=setTimeout(()=>{c.current(...n)},u)},[u])}export{o as u};

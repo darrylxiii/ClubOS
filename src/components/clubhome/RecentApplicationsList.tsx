@@ -193,7 +193,7 @@ export const RecentApplicationsList = ({ companyId }: RecentApplicationsListProp
           ))}
         </div>
         <Button className="w-full mt-4" variant="outline" asChild>
-          <Link to="/company-applications">View All Applications</Link>
+          <Link to="/company-applications">{t('common:viewAllApplications', 'View All Applications')}</Link>
         </Button>
       </CardContent>
     </Card>

@@ -100,8 +100,8 @@ export default function EmployeeManagement() {
 
         <div className="grid gap-3 grid-cols-2 md:grid-cols-3 lg:grid-cols-6">
           <StatCard icon={Users} color="text-primary bg-primary/10" value={employees?.length || 0} label={t('employeeManagement.text3')} />
-          <StatCard icon={TrendingUp} color="text-emerald-500 bg-emerald-500/10" value={formatCurrency(totalTeamRevenue)} label="Team Revenue YTD" />
-          <StatCard icon={Trophy} color="text-cyan-500 bg-cyan-500/10" value={totalDeals} label="Total Placements" />
+          <StatCard icon={TrendingUp} color="text-emerald-500 bg-emerald-500/10" value={formatCurrency(totalTeamRevenue)} label={t('employeeManagement.teamRevenueYtd', 'Team Revenue YTD')} />
+          <StatCard icon={Trophy} color="text-cyan-500 bg-cyan-500/10" value={totalDeals} label={t('employeeManagement.totalPlacements', 'Total Placements')} />
           <StatCard icon={DollarSign} color="text-amber-500 bg-amber-500/10" value={formatCurrency(stats?.pending || 0)} label={t('employeeManagement.text4')} />
           <StatCard icon={DollarSign} color="text-blue-500 bg-blue-500/10" value={formatCurrency(stats?.approved || 0)} label={t('employeeManagement.text5')} />
           <StatCard icon={ClipboardCheck} color="text-purple-500 bg-purple-500/10" value={stats?.pendingReviews || 0} label={t('employeeManagement.text7')} />
@@ -110,12 +110,12 @@ export default function EmployeeManagement() {
         <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-6">
           <ScrollArea className="w-full" type="scroll">
             <TabsList className="inline-flex w-max">
-              <TabsTrigger value="overview" className="gap-1.5 text-xs"><LayoutDashboard className="h-4 w-4" />Overview</TabsTrigger>
+              <TabsTrigger value="overview" className="gap-1.5 text-xs"><LayoutDashboard className="h-4 w-4" />{t('employeeManagement.overview', 'Overview')}</TabsTrigger>
               <TabsTrigger value="employees" className="gap-1.5 text-xs"><UserCog className="h-4 w-4" />{t('employeeManagement.text9')}</TabsTrigger>
-              <TabsTrigger value="team-performance" className="gap-1.5 text-xs"><BarChart3 className="h-4 w-4" />Team Performance</TabsTrigger>
-              <TabsTrigger value="productivity" className="gap-1.5 text-xs"><Activity className="h-4 w-4" />Productivity</TabsTrigger>
-              <TabsTrigger value="targets-commissions" className="gap-1.5 text-xs"><Wallet className="h-4 w-4" />Targets & Commissions</TabsTrigger>
-              <TabsTrigger value="reviews-development" className="gap-1.5 text-xs"><GraduationCap className="h-4 w-4" />Reviews & Development</TabsTrigger>
+              <TabsTrigger value="team-performance" className="gap-1.5 text-xs"><BarChart3 className="h-4 w-4" />{t('employeeManagement.teamPerformance', 'Team Performance')}</TabsTrigger>
+              <TabsTrigger value="productivity" className="gap-1.5 text-xs"><Activity className="h-4 w-4" />{t('employeeManagement.productivity', 'Productivity')}</TabsTrigger>
+              <TabsTrigger value="targets-commissions" className="gap-1.5 text-xs"><Wallet className="h-4 w-4" />{t('employeeManagement.targetsCommissions', 'Targets & Commissions')}</TabsTrigger>
+              <TabsTrigger value="reviews-development" className="gap-1.5 text-xs"><GraduationCap className="h-4 w-4" />{t('employeeManagement.reviewsDevelopment', 'Reviews & Development')}</TabsTrigger>
             </TabsList>
             <ScrollBar orientation="horizontal" />
           </ScrollArea>
@@ -125,7 +125,7 @@ export default function EmployeeManagement() {
             <Card>
               <div className="p-6 pb-3 flex items-center justify-between">
                 <div>
-                  <h3 className="font-semibold flex items-center gap-2"><Trophy className="h-5 w-5 text-amber-500" />Revenue Leaderboard</h3>
+                  <h3 className="font-semibold flex items-center gap-2"><Trophy className="h-5 w-5 text-amber-500" />{t('employeeManagement.revenueLeaderboard', 'Revenue Leaderboard')}</h3>
                   <p className="text-xs text-muted-foreground mt-1">Ranked by placement fee revenue (YTD)</p>
                 </div>
                 <div className="flex items-center gap-2">
@@ -173,15 +173,15 @@ export default function EmployeeManagement() {
           <TabsContent value="productivity"><RecruiterProductivityPanel /></TabsContent>
 
           <TabsContent value="targets-commissions" className="space-y-8">
-            <section><h3 className="text-lg font-semibold mb-4 flex items-center gap-2"><Target className="h-5 w-5 text-primary" />Target Management</h3><TargetManagementPanel /></section>
+            <section><h3 className="text-lg font-semibold mb-4 flex items-center gap-2"><Target className="h-5 w-5 text-primary" />{t('employeeManagement.targetManagement', 'Target Management')}</h3><TargetManagementPanel /></section>
             <div className="border-t border-border/50" />
-            <section><h3 className="text-lg font-semibold mb-4 flex items-center gap-2"><DollarSign className="h-5 w-5 text-primary" />Commission Tiers</h3><CommissionTierBuilder /></section>
+            <section><h3 className="text-lg font-semibold mb-4 flex items-center gap-2"><DollarSign className="h-5 w-5 text-primary" />{t('employeeManagement.commissionTiers', 'Commission Tiers')}</h3><CommissionTierBuilder /></section>
             <div className="border-t border-border/50" />
-            <section><h3 className="text-lg font-semibold mb-4 flex items-center gap-2"><Wallet className="h-5 w-5 text-primary" />Payout Scheduler</h3><PayoutScheduler /></section>
+            <section><h3 className="text-lg font-semibold mb-4 flex items-center gap-2"><Wallet className="h-5 w-5 text-primary" />{t('employeeManagement.payoutScheduler', 'Payout Scheduler')}</h3><PayoutScheduler /></section>
           </TabsContent>
 
           <TabsContent value="reviews-development" className="space-y-8">
-            <section><h3 className="text-lg font-semibold mb-4 flex items-center gap-2"><ClipboardCheck className="h-5 w-5 text-primary" />Performance Reviews</h3><PerformanceReviewPanel /></section>
+            <section><h3 className="text-lg font-semibold mb-4 flex items-center gap-2"><ClipboardCheck className="h-5 w-5 text-primary" />{t('employeeManagement.performanceReviews', 'Performance Reviews')}</h3><PerformanceReviewPanel /></section>
             <div className="border-t border-border/50" />
             <section><h3 className="text-lg font-semibold mb-4 flex items-center gap-2"><GraduationCap className="h-5 w-5 text-primary" />Training Records</h3><TrainingRecordsPanel /></section>
             <div className="border-t border-border/50" />

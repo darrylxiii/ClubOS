@@ -160,7 +160,7 @@ export const BulkEmailTab = () => {
               <SelectValue placeholder={t('bulk-ops.bulkEmailTab.selectATemplateOrWriteCustom')} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="custom">Custom Email</SelectItem>
+              <SelectItem value="custom">{t('admin:bulkOps.customEmail', 'Custom Email')}</SelectItem>
               {templates.map((template) => (
                 <SelectItem key={template.id} value={template.id}>
                   {template.name}

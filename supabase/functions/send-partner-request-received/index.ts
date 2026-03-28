@@ -8,26 +8,22 @@ import { baseEmailTemplate } from "../_shared/email-templates/base-template.ts";
 import {
   Heading, Paragraph, Spacer, Card, StatusBadge, InfoRow, Button,
 } from "../_shared/email-templates/components.ts";
-import { EMAIL_SENDERS, EMAIL_COLORS, getEmailAppUrl } from "../_shared/email-config.ts";
+import { EMAIL_SENDERS, EMAIL_COLORS, getEmailAppUrl, getEmailHeaders } from "../_shared/email-config.ts";
 import { sendEmail } from '../_shared/resend-client.ts';
+import { z, parseBody, emailSchema, nameSchema, optionalNameSchema } from '../_shared/validation.ts';
+import { sanitizeForEmail } from '../_shared/sanitize.ts';
 
-interface PartnerRequestReceivedRequest {
-  email: string;
-  contactName: string;
-  companyName?: string;
-  requestId?: string;
-}
+const bodySchema = z.object({
+  email: emailSchema,
+  contactName: nameSchema,
+  companyName: optionalNameSchema,
+  requestId: z.string().optional(),
+});
 
 Deno.serve(createHandler(async (req, ctx) => {
-  const body: PartnerRequestReceivedRequest = await req.json();
-  const { email, contactName, companyName, requestId } = body;
-
-  if (!email || !contactName) {
-    return new Response(
-      JSON.stringify({ error: 'email and contactName are required' }),
-      { status: 400, headers: { ...ctx.corsHeaders, 'Content-Type': 'application/json' } }
-    );
-  }
+  const parsed = await parseBody(req, bodySchema, ctx.corsHeaders);
+  if ('error' in parsed) return parsed.error;
+  const { email, contactName, companyName, requestId } = parsed.data;
 
   console.log(`[send-partner-request-received] Sending to ${email}`);
 
@@ -37,9 +33,9 @@ Deno.serve(createHandler(async (req, ctx) => {
     ${StatusBadge({ status: 'pending', text: 'BRIEF RECEIVED' })}
     ${Heading({ text: 'Your Brief Has Been Received', level: 1, align: 'center' })}
     ${Spacer(24)}
-    ${Paragraph(`Dear ${contactName},`, 'primary')}
+    ${Paragraph(`Dear ${sanitizeForEmail(contactName)},`, 'primary')}
     ${Spacer(8)}
-    ${Paragraph(`Thank you for your interest in partnering with The Quantum Club${companyName ? ` on behalf of <strong>${companyName}</strong>` : ''}. Your request has been received and is now under review.`, 'secondary')}
+    ${Paragraph(`Thank you for your interest in partnering with The Quantum Club${companyName ? ` on behalf of <strong>${sanitizeForEmail(companyName)}</strong>` : ''}. Your request has been received and is now under review.`, 'secondary')}
     ${Spacer(24)}
     ${Card({
       variant: 'highlight',
@@ -73,6 +69,7 @@ Deno.serve(createHandler(async (req, ctx) => {
     to: [email],
     subject: 'Partner Request Received — The Quantum Club',
     html: htmlContent,
+    headers: getEmailHeaders(),
   });
 
   console.log('[send-partner-request-received] Sent successfully:', result.id);

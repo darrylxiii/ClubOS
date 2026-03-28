@@ -74,7 +74,7 @@ export const ApplicationsTable = ({ applications, onUpdate }: ApplicationsTableP
     if (daysSince > 14) {
       return <Badge variant="destructive">{t('applicationsTable.badge.urgent')}</Badge>;
     } else if (daysSince > 7) {
-      return <Badge variant="outline" className="border-amber-500 text-amber-500">Needs Follow-up</Badge>;
+      return <Badge variant="outline" className="border-amber-500 text-amber-500">{t('applicationsTable.badge.needsFollowUp', 'Needs Follow-up')}</Badge>;
     }
     return null;
   };
@@ -107,13 +107,13 @@ export const ApplicationsTable = ({ applications, onUpdate }: ApplicationsTableP
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Candidate</TableHead>
-                  <TableHead>Job</TableHead>
-                  <TableHead>Stage</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Source</TableHead>
-                  <TableHead>Last Activity</TableHead>
-                  <TableHead>Applied</TableHead>
+                  <TableHead>{t('applicationsTable.candidate', 'Candidate')}</TableHead>
+                  <TableHead>{t('applicationsTable.job', 'Job')}</TableHead>
+                  <TableHead>{t('applicationsTable.stage', 'Stage')}</TableHead>
+                  <TableHead>{t('common:fields.status', 'Status')}</TableHead>
+                  <TableHead>{t('applicationsTable.source', 'Source')}</TableHead>
+                  <TableHead>{t('applicationsTable.lastActivity', 'Last Activity')}</TableHead>
+                  <TableHead>{t('applicationsTable.applied', 'Applied')}</TableHead>
                   <TableHead>{t('common:actions')}</TableHead>
                 </TableRow>
               </TableHeader>
@@ -239,7 +239,7 @@ export const ApplicationsTable = ({ applications, onUpdate }: ApplicationsTableP
                             <DropdownMenuContent align="end">
                               <DropdownMenuItem onClick={() => handleOpenAction(app, 'advance')}>
                                 <UserCheck className="w-4 h-4 mr-2" />
-                                Advance Stage
+                                {t('applicationsTable.advanceStage', 'Advance Stage')}
                               </DropdownMenuItem>
                               <DropdownMenuItem onClick={() => handleOpenAction(app, 'reject')}>
                                 <UserX className="w-4 h-4 mr-2" />
@@ -247,11 +247,11 @@ export const ApplicationsTable = ({ applications, onUpdate }: ApplicationsTableP
                               </DropdownMenuItem>
                               <DropdownMenuItem>
                                 <MessageSquare className="w-4 h-4 mr-2" />
-                                Send Message
+                                {t('applicationsTable.sendMessage', 'Send Message')}
                               </DropdownMenuItem>
                               <DropdownMenuItem>
                                 <Calendar className="w-4 h-4 mr-2" />
-                                Schedule Interview
+                                {t('applicationsTable.scheduleInterview', 'Schedule Interview')}
                               </DropdownMenuItem>
                             </DropdownMenuContent>
                           </DropdownMenu>

@@ -1,15 +1,29 @@
+import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { createAuthenticatedHandler } from '../_shared/handler.ts';
+import { baseEmailTemplate } from '../_shared/email-templates/base-template.ts';
+import { Button, Heading, Paragraph, Spacer, Card, AlertBox } from '../_shared/email-templates/components.ts';
+import { EMAIL_SENDERS, EMAIL_COLORS, getEmailHeaders } from '../_shared/email-config.ts';
 import { sendEmail } from '../_shared/resend-client.ts';
+import { getAppUrl } from '../_shared/app-config.ts';
+import { checkUserRateLimit, createRateLimitResponse } from '../_shared/rate-limiter.ts';
+import { z, parseBody, uuidSchema } from '../_shared/validation.ts';
+import { sanitizeForEmail } from '../_shared/sanitize.ts';
+
+const bodySchema = z.object({
+  candidateId: uuidSchema,
+  customMessage: z.string().max(500).optional(),
+});
 
 Deno.serve(createAuthenticatedHandler(async (req, ctx) => {
-  const { candidateId, customMessage } = await req.json();
-
-  if (!candidateId) {
-    return new Response(JSON.stringify({ error: 'candidateId is required' }), {
-      status: 400,
-      headers: { ...ctx.corsHeaders, 'Content-Type': 'application/json' },
-    });
+  // Rate limit: 10 invitations per hour per user
+  const rateLimit = await checkUserRateLimit(ctx.user.id, 'send-candidate-invitation', 10);
+  if (!rateLimit.allowed) {
+    return createRateLimitResponse(rateLimit.retryAfter ?? 60, ctx.corsHeaders);
   }
+
+  const parsed = await parseBody(req, bodySchema, ctx.corsHeaders);
+  if ('error' in parsed) return parsed.error;
+  const { candidateId, customMessage } = parsed.data;
 
   // Fetch candidate profile
   const { data: candidate, error: cpError } = await ctx.supabase
@@ -70,40 +84,42 @@ Deno.serve(createAuthenticatedHandler(async (req, ctx) => {
     });
   }
 
-  // Send email via Resend
-  const appUrl = Deno.env.get('APP_URL') || 'https://os.thequantumclub.com';
+  // Build email using template system
+  const appUrl = getAppUrl();
   const firstName = candidate.full_name?.split(' ')[0] || 'there';
-
   const signupUrl = `${appUrl}/auth?invite=${inviteCode.code}`;
 
-  const emailHtml = `
-    <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 560px; margin: 0 auto; background: #0E0E10; color: #F5F4EF; padding: 40px 32px; border-radius: 16px;">
-      <img src="${appUrl}/quantum-logo.svg" alt="The Quantum Club" style="height: 32px; margin-bottom: 32px;" />
-
-      <h1 style="font-size: 24px; font-weight: 700; margin: 0 0 16px;">You've been invited</h1>
-
-      <p style="font-size: 15px; line-height: 1.6; color: #A0A0A5; margin: 0 0 16px;">
-        Hi ${firstName}, you've been invited to join The Quantum Club — an exclusive talent platform connecting exceptional professionals with remarkable opportunities.
-      </p>
-
-      ${customMessage ? `<p style="font-size: 15px; line-height: 1.6; color: #A0A0A5; margin: 0 0 24px; padding: 16px; border-left: 3px solid #C9A24E; background: rgba(201,162,78,0.05);">${customMessage}</p>` : ''}
-
-      <a href="${signupUrl}" style="display: inline-block; background: #C9A24E; color: #0E0E10; font-size: 15px; font-weight: 600; padding: 14px 32px; border-radius: 8px; text-decoration: none; margin: 8px 0 24px;">
-        Accept Invitation
-      </a>
-
-      <p style="font-size: 13px; color: #666; margin: 24px 0 0;">
-        This invitation was sent by The Quantum Club. If you didn't expect this, you can safely ignore this email.
-      </p>
-    </div>
+  const emailContent = `
+    ${Heading({ text: "You've Been Invited", level: 1, align: 'center' })}
+    ${Spacer(24)}
+    ${Paragraph(`Hi ${firstName},`, 'secondary')}
+    ${Paragraph("You've been invited to join The Quantum Club \u2014 an exclusive talent platform connecting exceptional professionals with remarkable opportunities.", 'secondary')}
+    ${Spacer(16)}
+    ${customMessage ? `
+      ${Card({ variant: 'highlight', content: Paragraph(sanitizeForEmail(customMessage), 'secondary') })}
+      ${Spacer(16)}
+    ` : ''}
+    ${Button({ url: signupUrl, text: 'Accept Invitation', variant: 'primary' })}
+    ${Spacer(24)}
+    ${AlertBox({ type: 'info', title: 'Personal Invitation', message: 'This invitation is personal and tied to your email address. Please do not share it with others.' })}
+    ${Spacer(24)}
+    ${Paragraph("If you didn't expect this invitation, you can safely ignore this email. No action will be taken on your behalf.", 'muted')}
   `;
+
+  const html = baseEmailTemplate({
+    preheader: `${firstName}, you've been invited to The Quantum Club`,
+    content: emailContent,
+    showHeader: true,
+    showFooter: true,
+  });
 
   try {
     await sendEmail({
-      from: 'The Quantum Club <talent@thequantumclub.nl>',
+      from: EMAIL_SENDERS.notifications,
       to: [candidate.email],
       subject: `${firstName}, you've been invited to The Quantum Club`,
-      html: emailHtml,
+      html,
+      headers: getEmailHeaders(),
     });
   } catch (emailError) {
     console.error('[send-candidate-invitation] Resend error:', emailError);

@@ -133,7 +133,7 @@ const FreelancerAnalyticsPage = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Profile Views</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('freelancerAnalytics.profileViews', 'Profile Views')}</CardTitle>
             <Eye className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -144,7 +144,7 @@ const FreelancerAnalyticsPage = () => {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Proposal Success</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('freelancerAnalytics.proposalSuccess', 'Proposal Success')}</CardTitle>
             <FileText className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -155,7 +155,7 @@ const FreelancerAnalyticsPage = () => {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Total Earnings</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('freelancerAnalytics.totalEarnings', 'Total Earnings')}</CardTitle>
             <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -166,7 +166,7 @@ const FreelancerAnalyticsPage = () => {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Average Rating</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('freelancerAnalytics.avgRating', 'Average Rating')}</CardTitle>
             <Star className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -180,8 +180,8 @@ const FreelancerAnalyticsPage = () => {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card>
           <CardHeader>
-            <CardTitle>Profile Views & Proposals</CardTitle>
-            <CardDescription>Last 30 days activity</CardDescription>
+            <CardTitle>{t('freelancerAnalytics.profileViewsProposals', 'Profile Views & Proposals')}</CardTitle>
+            <CardDescription>{t('freelancerAnalytics.last30Days', 'Last 30 days activity')}</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="h-64">
@@ -201,8 +201,8 @@ const FreelancerAnalyticsPage = () => {
 
         <Card>
           <CardHeader>
-            <CardTitle>Success Rate by Category</CardTitle>
-            <CardDescription>Proposal acceptance rates</CardDescription>
+            <CardTitle>{t('freelancerAnalytics.successByCategory', 'Success Rate by Category')}</CardTitle>
+            <CardDescription>{t('freelancerAnalytics.proposalAcceptance', 'Proposal acceptance rates')}</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="h-64">
@@ -231,15 +231,15 @@ const FreelancerAnalyticsPage = () => {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex justify-between items-center">
-              <span className="text-sm text-muted-foreground">Avg. response time</span>
+              <span className="text-sm text-muted-foreground">{t('freelancerAnalytics.avgResponseTime', 'Avg. response time')}</span>
               <span className="font-medium">{profile?.avg_response_time_hours ? `${profile.avg_response_time_hours}h` : 'N/A'}</span>
             </div>
             <div className="flex justify-between items-center">
-              <span className="text-sm text-muted-foreground">Connects remaining</span>
+              <span className="text-sm text-muted-foreground">{t('freelancerAnalytics.connectsRemaining', 'Connects remaining')}</span>
               <span className="font-medium">{profile?.connects_balance || 0}</span>
             </div>
             <div className="flex justify-between items-center">
-              <span className="text-sm text-muted-foreground">Completion rate</span>
+              <span className="text-sm text-muted-foreground">{t('freelancerAnalytics.completionRate', 'Completion rate')}</span>
               <span className="font-medium">{profile?.job_success_score || 0}%</span>
             </div>
           </CardContent>
@@ -257,19 +257,19 @@ const FreelancerAnalyticsPage = () => {
               {proposalSuccessRate < 30 && (
                 <li className="flex items-start gap-2">
                   <span className="text-primary">•</span>
-                  <span>Personalize proposals more — mention specific project details</span>
+                  <span>{t('freelancerAnalytics.tipPersonalize', 'Personalize proposals more — mention specific project details')}</span>
                 </li>
               )}
               {!profile?.video_intro_url && (
                 <li className="flex items-start gap-2">
                   <span className="text-primary">•</span>
-                  <span>Add a video introduction to increase profile views by 40%</span>
+                  <span>{t('freelancerAnalytics.tipVideoIntro', 'Add a video introduction to increase profile views by 40%')}</span>
                 </li>
               )}
               {(contracts?.length || 0) < 5 && (
                 <li className="flex items-start gap-2">
                   <span className="text-primary">•</span>
-                  <span>Complete your portfolio to improve search visibility</span>
+                  <span>{t('analytics:completePortfolio', 'Complete your portfolio to improve search visibility')}</span>
                 </li>
               )}
               <li className="flex items-start gap-2">

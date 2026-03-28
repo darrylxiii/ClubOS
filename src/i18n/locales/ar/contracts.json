@@ -232,16 +232,16 @@
   },
   "text": {
     "contractdetailpage": {
-      "signContract": "Sign Contract",
-      "milestoneStarted": "Milestone started!",
-      "milestoneSubmittedForReview": "Milestone submitted for review!",
-      "milestoneApprovedButPaymentReleaseFailed": "Milestone approved, but payment release failed. Please contact support.",
-      "milestoneApprovedPaymentReleasedSuccessfully": "Milestone approved! Payment released successfully.",
-      "youAreTheFreelancer": "You are the freelancer",
-      "youAreTheClient": "You are the client",
-      "client": "Client",
-      "freelancer": "Freelancer",
-      "anErrorOccurred": "An error occurred"
+      "signContract": "توقيع العقد",
+      "milestoneStarted": "بدأ العمل على المرحلة!",
+      "milestoneSubmittedForReview": "تم تقديم المرحلة للمراجعة!",
+      "milestoneApprovedButPaymentReleaseFailed": "تمت الموافقة على المرحلة، ولكن فشل تحرير الدفعة. يرجى الاتصال بالدعم.",
+      "milestoneApprovedPaymentReleasedSuccessfully": "تمت الموافقة على المرحلة! تم تحرير الدفعة بنجاح.",
+      "youAreTheFreelancer": "أنت المستقل",
+      "youAreTheClient": "أنت العميل",
+      "client": "العميل",
+      "freelancer": "المستقل",
+      "anErrorOccurred": "حدث خطأ"
     }
   }
 }

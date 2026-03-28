@@ -1,0 +1,1 @@
+import"./vendor-react-CuFUCoS-.js";import"./index-T2VZWyPA.js";const r={it_hardware:"IT Hardware",office_furniture:"Office Furniture",software_purchased:"Software (Purchased)",software_developed:"Software (Developed)",development_costs:"Development Costs",other:"Other"},t=["software_purchased","software_developed","development_costs"];export{r as C,t as I};

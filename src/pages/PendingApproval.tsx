@@ -210,7 +210,7 @@ export default function PendingApproval() {
                 )}
                 <p className="text-sm text-muted-foreground">
                   {t('pendingApproval.declinedContact')}{" "}
-                  <strong>hello@thequantumclub.com</strong>
+                  <strong>info@thequantumclub.com</strong>
                 </p>
               </CardContent>
             </Card>

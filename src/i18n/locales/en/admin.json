@@ -95,7 +95,10 @@
       "edit": "Edit",
       "suspend": "Suspend",
       "unsuspend": "Unsuspend",
-      "view": "View"
+      "view": "View",
+      "provisionPartner": "Provision Partner",
+      "loading": "Loading partners...",
+      "noResults": "No partners found"
     },
     "pendingRequestsTab": {
       "pendingRequests": "Pending Requests"
@@ -118,7 +121,10 @@
       "searchByNameEmailOrRole": "Search by name, email, or role...",
       "viewProfile": "View Profile",
       "edit": "Edit",
-      "view": "View"
+      "view": "View",
+      "employeeDashboard": "Employee Dashboard",
+      "loading": "Loading staff...",
+      "noResults": "No staff found"
     },
     "totalUsersCard": {
       "totalUsers": "Total Users"
@@ -497,7 +503,8 @@
     "pending": "Pending",
     "suspended": "Suspended",
     "verified": "Verified",
-    "unverified": "Unverified"
+    "unverified": "Unverified",
+    "title": "Status"
   },
   "actions": {
     "view": "View",
@@ -508,7 +515,10 @@
     "refresh": "Refresh",
     "filter": "Filter",
     "search": "Search",
-    "reset": "Reset"
+    "reset": "Reset",
+    "copied": "Copied to clipboard",
+    "done": "Done",
+    "title": "Actions"
   },
   "confirmations": {
     "deleteUser": "Are you sure you want to delete this user?",
@@ -1528,7 +1538,9 @@
       "achievementSystem": "Achievement System",
       "totalAchievements": "Total Achievements",
       "userUnlocks": "User Unlocks",
-      "mostUnlocked": "Most Unlocked"
+      "mostUnlocked": "Most Unlocked",
+      "platformAchievements": "Platform achievements",
+      "manageGamification": "Manage platform achievements and gamification"
     }
   },
   "activity": {
@@ -1862,7 +1874,10 @@
       "selectACompany": "Select a company...",
       "roleOptional": "Role (Optional)",
       "selectARole": "Select a role...",
-      "startingPipelineStage": "Starting Pipeline Stage"
+      "startingPipelineStage": "Starting Pipeline Stage",
+      "selectCompany": "Select a company...",
+      "selectRole": "Select a role...",
+      "addAsGeneralCandidate": "Add as general candidate (no role assignment)"
     },
     "assignmentTypeStep": {
       "assignRoleOrPipeline": "Assign Role or Pipeline",
@@ -2003,7 +2018,15 @@
     "customAssessmentsTab": {
       "customAssessmentTemplates": "Custom Assessment Templates",
       "noCustomAssessmentsYet": "No custom assessments yet",
-      "public": "Public"
+      "public": "Public",
+      "confirmDelete": "Are you sure you want to delete this assessment template?",
+      "title": "Custom Assessment Templates",
+      "description": "Create and manage custom assessments for your organization",
+      "createTemplate": "Create Template",
+      "emptyState": "No custom assessments yet",
+      "createFirst": "Create Your First Template",
+      "active": "Active",
+      "inactive": "Inactive"
     },
     "sendAssessmentsTab": {
       "selectCandidates": "Select Candidates",
@@ -2022,7 +2045,13 @@
       "assessmentResults": "Assessment Results",
       "totalCompleted": "Total Completed",
       "averageScore": "Average Score",
-      "passRate": "Pass Rate"
+      "passRate": "Pass Rate",
+      "descriptionLoading": "Assessment results",
+      "description": "Track candidate assessments and scores",
+      "inProgress": "in progress",
+      "pending": "pending",
+      "overallPerformance": "Overall performance",
+      "threshold": "70% threshold"
     },
     "resultsDashboardTab": {}
   },
@@ -2054,7 +2083,11 @@
       "allStages": "All stages",
       "exportFormat": "Export Format",
       "selectFieldsToExport": "Select Fields to Export",
-      "noDataToExport": "No data to export"
+      "noDataToExport": "No data to export",
+      "allCandidatesOption": "All Candidates",
+      "allStagesOption": "All Stages",
+      "exporting": "Exporting...",
+      "exportData": "Export Data"
     },
     "bulkInvitationTab": {
       "selectCandidatesWithoutAccounts": "Select Candidates (Without Accounts)",
@@ -2071,7 +2104,11 @@
       "bookingLink": "Booking Link",
       "customMessageOptional": "Custom Message (Optional)",
       "selectABookingLink": "Select a booking link",
-      "bookingLinkCopied": "Booking link copied!"
+      "bookingLinkCopied": "Booking link copied!",
+      "customMessagePlaceholder": "Add a personal message... Use {{name}} for personalization, {{link}} for booking URL",
+      "sending": "Sending...",
+      "min": "min",
+      "variables": "Variables"
     },
     "candidateSelectorTable": {
       "allCandidates": "All Candidates",
@@ -2546,7 +2583,8 @@
       "status": "Status",
       "actions": "Actions",
       "moreOptions": "More options"
-    }
+    },
+    "monthlyDepreciationTrend": "Monthly Depreciation Trend"
   },
   "kpi": {
     "aIExecutiveSummary": {
@@ -3320,7 +3358,13 @@
       "recent": "Recent",
       "errorRate24h": "Error Rate (24h)",
       "systemHealth": "System Health",
-      "system": "System"
+      "system": "System",
+      "platformHealth": "Platform health",
+      "description": "Monitor platform health and data integrity",
+      "uptime30d": "uptime (30d)",
+      "allSystemsGo": "All Systems Go",
+      "avgP95": "Average (p95)",
+      "never": "Never"
     },
     "systemHealthMetrics": {
       "activeUsers1h": "Active Users (1h)",
@@ -3596,7 +3640,19 @@
     "text12": "Payouts",
     "text13": "Reviews",
     "text14": "Training",
-    "text15": "Onboarding"
+    "text15": "Onboarding",
+    "teamRevenueYtd": "Team Revenue YTD",
+    "totalPlacements": "Total Placements",
+    "overview": "Overview",
+    "teamPerformance": "Team Performance",
+    "productivity": "Productivity",
+    "targetsCommissions": "Targets & Commissions",
+    "reviewsDevelopment": "Reviews & Development",
+    "revenueLeaderboard": "Revenue Leaderboard",
+    "targetManagement": "Target Management",
+    "commissionTiers": "Commission Tiers",
+    "payoutScheduler": "Payout Scheduler",
+    "performanceReviews": "Performance Reviews"
   },
   "enterpriseDashboard": {
     "desc": "SOC 2 compliance, SLA monitoring, disaster recovery, and white-label configuration",
@@ -3776,7 +3832,20 @@
     "desc2": "Completed Projects",
     "desc3": "Avg. Contract Value",
     "desc4": "Connects Purchased",
-    "desc5": "Connects Revenue"
+    "desc5": "Connects Revenue",
+    "gmv": "Gross Merchandise Value",
+    "platformRevenue": "Platform Revenue",
+    "activeFreelancers": "Active Freelancers",
+    "openProjects": "Open Projects",
+    "gmvRevenueTrend": "GMV & Revenue Trend",
+    "last30Days": "Last 30 days performance",
+    "categoryPerformance": "Category Performance",
+    "projectsGmvByCategory": "Projects and GMV by category",
+    "projectsPosted": "Projects Posted",
+    "proposalsSubmitted": "Proposals Submitted",
+    "proposalsAccepted": "Proposals Accepted",
+    "contractsCompleted": "Contracts Completed",
+    "overallConversion": "Overall Conversion"
   },
   "rAGAnalyticsDashboard": {
     "desc": "Real-time performance metrics for the retrieval-augmented generation system",
@@ -4516,5 +4585,202 @@
       "anUnexpectedErrorOccurred": "An unexpected error occurred",
       "auditLogsExportedToCsv": "Audit logs exported to CSV"
     }
+  },
+  "abTest": {
+    "testPaused": "Test paused",
+    "activeTests": "Active Tests",
+    "winnersFound": "Winners Found",
+    "avgLift": "Avg Lift",
+    "pause": "Pause",
+    "variantA": "Variant A",
+    "variantB": "Variant B",
+    "confidence": "Confidence",
+    "completedTests": "Completed Tests",
+    "winner": "Winner",
+    "noTests": "No A/B tests yet. Tests are created automatically when the engine generates headline or CTA variants."
+  },
+  "blogEngine": {
+    "blogEngineControl": "Blog Engine Control",
+    "configureEngine": "Configure the AI content generation engine.",
+    "engineActive": "Engine Active",
+    "contentFormats": "Content Formats",
+    "categories": "Categories",
+    "autoPublish": "Auto-publish",
+    "requireExpertReview": "Require expert review",
+    "publishingWindow": "Publishing Window",
+    "engineControl": "Engine Control",
+    "masterSwitchDesc": "Master switch for automated generation.",
+    "postsPerDay": "Posts per day",
+    "autoPublishDesc": "Publish articles automatically when quality passes.",
+    "autoPublishWarning": "Articles will publish without manual review.",
+    "expertReviewDesc": "Hold articles for manual review before publishing.",
+    "minQualityScore": "Min Quality Score",
+    "windowStart": "Start",
+    "windowEnd": "End",
+    "saveConfiguration": "Save Configuration"
+  },
+  "common": {
+    "cancel": "Cancel"
+  },
+  "assessmentOverview": {
+    "totalAttempts": "Total Attempts",
+    "allTimeStarted": "All time assessments started",
+    "completionRate": "Completion Rate",
+    "avgAcrossAll": "Average across all assessments",
+    "averageScore": "Average Score",
+    "platformWide": "Platform-wide average",
+    "completedToday": "Completed Today",
+    "assessmentActivity": "Assessment Activity"
+  },
+  "myPerformance": {
+    "revenueYtd": "Revenue Generated (YTD)",
+    "sourced": "Sourced",
+    "closed": "Closed",
+    "nextTier": "Next tier",
+    "toGo": "to go",
+    "toNext": "to next",
+    "earned": "Earned",
+    "projected": "Projected",
+    "teamRank": "Team Rank",
+    "placements": "Placements",
+    "pipelineValue": "Pipeline Value",
+    "placementRate": "Placement Rate",
+    "avgTimeToHire": "Avg Time to Hire"
+  },
+  "recruiterProductivity": {
+    "subtitle": "Activity tracking and conversion metrics",
+    "lastYear": "Last year",
+    "totalActivities": "Total Activities",
+    "leaderboard": "Leaderboard",
+    "activityFeed": "Activity Feed",
+    "recruiterLeaderboard": "Recruiter Leaderboard",
+    "rankedByVolume": "Ranked by total activity volume",
+    "searchByName": "Search by name...",
+    "aggregateFunnel": "Aggregate Funnel",
+    "recentActivity": "Recent Activity",
+    "latestInteractions": "Latest recruiter interactions",
+    "noRecentActivity": "No recent activity."
+  },
+  "apiKeys": {
+    "revokeKey": "Revoke API Key",
+    "revokeKeyBtn": "Revoke Key",
+    "keyRevoked": "API key revoked",
+    "deleteKey": "Delete API Key",
+    "deleteKeyBtn": "Delete Key",
+    "keyDeleted": "API key deleted",
+    "title": "API KEY MANAGEMENT",
+    "subtitle": "Create, manage, and revoke API keys for programmatic access",
+    "createKey": "Create API Key",
+    "createNewKey": "Create New API Key",
+    "keyName": "Key Name",
+    "keyNamePlaceholder": "Production Integration",
+    "rateLimit": "Rate Limit (req/hour)",
+    "expiresIn": "Expires In",
+    "permissions": "Permissions",
+    "createKeyBtn": "Create Key",
+    "keyCreated": "API Key Created",
+    "copyKeyWarning": "Copy this key now -- it won't be shown again",
+    "totalKeys": "Total Keys",
+    "active": "Active",
+    "revoked": "Revoked",
+    "expiringSoon": "Expiring Soon",
+    "apiKeys": "API Keys",
+    "searchPlaceholder": "Search by key name...",
+    "noKeysCreated": "No API keys created. Create one to enable programmatic access.",
+    "noKeysMatch": "No API keys match your search.",
+    "name": "Name",
+    "key": "Key",
+    "rateLimitCol": "Rate Limit",
+    "usage": "Usage",
+    "expires": "Expires",
+    "revoke": "Revoke"
+  },
+  "30_days": "30 days",
+  "90_days": "90 days",
+  "6_months": "6 months",
+  "1_year": "1 year",
+  "expired": "Expired",
+  "kia": {
+    "eligibleAssets": "KIA Eligible Assets",
+    "deduction": "KIA Deduction",
+    "status": "Status",
+    "taxSavings": "Tax Savings (25.8%)",
+    "annualBenefit": "Annual benefit",
+    "investmentPosition": "KIA Investment Position",
+    "currentPosition": "Current Position",
+    "brackets2024": "2024 KIA Brackets",
+    "noDeduction": "No deduction",
+    "optimizationTips": "Optimization Tips",
+    "eligible": "Eligible",
+    "belowMinimum": "Below Minimum",
+    "aboveMaximum": "Above Maximum",
+    "youAreInThisBracket": "You are in this bracket",
+    "inBracketConsiderOptimization": "You are in this bracket - consider optimization",
+    "considerSplitting": "Consider splitting across fiscal years",
+    "total": "total",
+    "effective": "effective",
+    "splitInvestments": "Split investments",
+    "optimized": "Optimized",
+    "bracket28pct": "28% of investment",
+    "highestBracketDesc": "Highest deduction percentage bracket • Max €18,456",
+    "fixed15750": "Fixed €15,750",
+    "maxFixedDesc": "Maximum fixed deduction amount",
+    "phaseOutRate": "€15,750 minus 7.59%",
+    "phaseOutDesc": "Decreasing deduction (phase-out zone)",
+    "aboveMaxDesc": "Above maximum threshold - no KIA available",
+    "reachMinThreshold": "Reach the minimum threshold",
+    "maximize28Bracket": "Maximize the 28% bracket",
+    "optimalPosition": "Optimal position",
+    "considerTimingOpt": "Consider timing optimization",
+    "splitAcrossFiscalYears": "Split investments across fiscal years to maximize KIA benefits per year.",
+    "minimumPerAsset": "Minimum per asset",
+    "minimumPerAssetDesc": "KIA eligible investments require minimum €450 per individual asset."
+  },
+  "blogQueue": {
+    "queueNewArticle": "Queue New Article",
+    "aiTopicSuggestions": "AI Topic Suggestions",
+    "generationQueue": "Generation Queue",
+    "queueEmpty": "Queue is empty. Add a topic above or generate AI suggestions."
+  },
+  "assignmentTracking": {
+    "title": "Assignment Tracking",
+    "noAssignments": "No assignments found",
+    "noDeadline": "No deadline",
+    "searchPlaceholder": "Search by assessment name...",
+    "all": "All",
+    "assessment": "Assessment",
+    "assignedDate": "Assigned Date",
+    "dueDate": "Due Date",
+    "status": "Status",
+    "actions": "Actions",
+    "overdue": "Overdue"
+  },
+  "sendAssessments": {
+    "selectCandidates": "Select Candidates",
+    "selectAssessments": "Select Assessments",
+    "configuration": "Configuration",
+    "noCandidates": "No candidates selected",
+    "selectAtLeastOneCandidate": "Please select at least one candidate",
+    "noAssessments": "No assessments selected",
+    "selectAtLeastOneAssessment": "Please select at least one assessment",
+    "chooseRecipients": "Choose who should receive the assessments",
+    "searchPlaceholder": "Search by name or skills...",
+    "chooseAssessments": "Choose which assessments to assign",
+    "dueDate": "Due Date (Optional)",
+    "notesLabel": "Notes for Candidates (Optional)"
+  },
+  "blogLearnings": {
+    "learningUpdated": "Learning updated",
+    "totalInsights": "Total Insights",
+    "active": "Active",
+    "avgConfidence": "Avg Confidence",
+    "timesApplied": "Times Applied",
+    "noLearnings": "No learnings yet. The engine discovers patterns as it generates and analyzes content.",
+    "insights": "Insights",
+    "confidence": "confidence"
+  },
+  "common:back": "Back",
+  "common:actions": {
+    "edit": "Edit"
   }
 }

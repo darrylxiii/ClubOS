@@ -19,12 +19,12 @@ interface NotionImporterProps {
 }
 
 const TEMPLATE_CATEGORIES = [
-  { value: 'onboarding', label: t('workspace.notionimporter.onboarding', 'Onboarding') },
-  { value: 'meeting-notes', label: t('workspace.notionimporter.meetingNotes', 'Meeting Notes') },
-  { value: 'project', label: t('workspace.notionimporter.projectManagement', 'Project Management') },
-  { value: 'recruitment', label: t('workspace.notionimporter.recruitment', 'Recruitment') },
-  { value: 'documentation', label: t('workspace.notionimporter.documentation', 'Documentation') },
-  { value: 'custom', label: t('workspace.notionimporter.custom', 'Custom') },
+  { value: 'onboarding', label: 'Onboarding' },
+  { value: 'meeting-notes', label: 'Meeting Notes' },
+  { value: 'project', label: 'Project Management' },
+  { value: 'recruitment', label: 'Recruitment' },
+  { value: 'documentation', label: 'Documentation' },
+  { value: 'custom', label: 'Custom' },
 ];
 
 export function NotionImporter({ open, onOpenChange, onImport }: NotionImporterProps) {

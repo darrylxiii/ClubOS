@@ -1,3 +1,4 @@
+import { Helmet } from 'react-helmet-async';
 import { useTranslation } from 'react-i18next';
 import { LegalPageLayout } from "@/components/legal/LegalPageLayout";
 import { LegalSection } from "@/components/legal/LegalSection";
@@ -11,7 +12,7 @@ import quantumLogoDark from "@/assets/quantum-club-logo.png";
 
 export default function DataProcessingAgreement() {
   const { t } = useTranslation('common');
-  const lastUpdated = "January 15, 2025";
+  const lastUpdated = "March 28, 2026";
 
   const sections = [
     { id: "introduction", title: t('text.dataprocessingagreement.introduction', 'Introduction') },
@@ -50,6 +51,10 @@ export default function DataProcessingAgreement() {
         </div>
       </div>
 
+      <Helmet>
+        <title>{t('legalPages.dataProcessingAgreement', 'Data Processing Agreement')} | The Quantum Club</title>
+        <meta name="description" content={t('legalPages.dataProcessingAgreementDesc', 'Legal documentation for The Quantum Club recruitment platform.')} />
+      </Helmet>
       <LegalPageLayout
         title={t('legalPages.dataProcessingAgreement', 'Data Processing Agreement')}
         lastUpdated={lastUpdated}
@@ -324,14 +329,14 @@ export default function DataProcessingAgreement() {
 
           <LegalSection id="international-transfers" title={"International Transfers"}>
             <p>
-              Personal Data is primarily processed within the European Economic Area (EEA). 
-              Where transfers outside the EEA are necessary:
+              Personal Data is strictly processed within the European Economic Area (EEA) as a default. 
+              Under no circumstances shall data be transferred to non-adequate third countries without prior explicit constraint overrides from the Controller. Where approved transfers outside the EEA are necessary:
             </p>
             <ul className="list-disc pl-6 mt-4 space-y-2 text-muted-foreground">
-              <li>{"Processor ensures appropriate safeguards are in place"}</li>
-              <li>{"Standard Contractual Clauses (SCCs) are used where required"}</li>
-              <li>{"Adequacy decisions are relied upon where available"}</li>
-              <li>{"Controller is notified of any new international transfers"}</li>
+              <li>{"Processor enforces a Sub-Processor Fallback Protocol, ensuring immediate contract termination if a sub-processor fails localized compliance."}</li>
+              <li>{"Standard Contractual Clauses (SCCs) are strictly supplemented by Data Transfer Impact Assessments (DTIAs)."}</li>
+              <li>{"Adequacy decisions are relied upon where available."}</li>
+              <li>{"Controller retains a right to veto any new sub-processor prior to data transit."}</li>
             </ul>
             <p className="mt-4 text-muted-foreground">
               The current list of Sub-Processors and their locations is maintained at{" "}
@@ -357,23 +362,23 @@ export default function DataProcessingAgreement() {
             <div className="mt-4 space-y-2">
               <p>
                 <strong>{"Data Protection Officer:"}</strong>{" "}
-                <a href="mailto:dpo@thequantumclub.com" className="text-primary hover:underline">
-                  dpo@thequantumclub.com
+                <a href="mailto:info@thequantumclub.com" className="text-primary hover:underline">
+                  info@thequantumclub.com
                 </a>
               </p>
               <p>
                 <strong>{"Legal Department:"}</strong>{" "}
-                <a href="mailto:legal@thequantumclub.com" className="text-primary hover:underline">
-                  legal@thequantumclub.com
+                <a href="mailto:info@thequantumclub.com" className="text-primary hover:underline">
+                  info@thequantumclub.com
                 </a>
               </p>
-              <p><strong>{"Address:"}</strong>{"The Quantum Club B.V., Amsterdam, Netherlands"}</p>
+              <p><strong>{"Address:"}</strong>{"The Quantum Club B.V., Pieter Cornelisz. Hooftstraat 41-2, 1071BM, Amsterdam, The Netherlands"}</p>
             </div>
             <Card className="mt-6 p-4 border-primary/30 bg-primary/5">
               <p className="text-sm text-muted-foreground">
                 To execute this DPA, Partners should contact their account manager or email{" "}
-                <a href="mailto:legal@thequantumclub.com" className="text-primary hover:underline">
-                  legal@thequantumclub.com
+                <a href="mailto:info@thequantumclub.com" className="text-primary hover:underline">
+                  info@thequantumclub.com
                 </a>
                 . A signed copy will be countersigned and returned within 5 business days.
               </p>

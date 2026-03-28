@@ -88,8 +88,8 @@ const KanbanJobCard = memo(({ job, isSelected, onToggleSelect, onNavigate }: {
         </div>
       </div>
       <div className="flex items-center gap-1 flex-wrap">
-        {job.is_stealth && <Badge variant="outline" className="text-[10px] px-1 py-0 h-5 bg-amber-500/10 text-amber-600 border-amber-500/30"><Lock className="h-2.5 w-2.5 mr-0.5" />{t("stealth", "Stealth")}</Badge>}
-        {job.club_sync_status === 'accepted' && <Badge variant="outline" className="text-[10px] px-1 py-0 h-5 bg-primary/10 text-primary border-primary/30"><Zap className="h-2.5 w-2.5 mr-0.5" />{t("sync", "Sync")}</Badge>}
+        {job.is_stealth && <Badge variant="outline" className="text-[10px] px-1 py-0 h-5 bg-amber-500/10 text-amber-600 border-amber-500/30"><Lock className="h-2.5 w-2.5 mr-0.5" />{"Stealth"}</Badge>}
+        {job.club_sync_status === 'accepted' && <Badge variant="outline" className="text-[10px] px-1 py-0 h-5 bg-primary/10 text-primary border-primary/30"><Zap className="h-2.5 w-2.5 mr-0.5" />{"Sync"}</Badge>}
         {job.is_continuous && <Badge variant="outline" className="text-[10px] px-1 py-0 h-5 bg-blue-500/10 text-blue-600 border-blue-500/30"><Target className="h-2.5 w-2.5 mr-0.5" />{job.hired_count}/{job.target_hire_count || '∞'}</Badge>}
       </div>
       <div className="flex items-center justify-between text-xs">

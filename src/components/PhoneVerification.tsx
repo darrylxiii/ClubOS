@@ -95,7 +95,7 @@ export const PhoneVerification = ({
   return (
     <div className="space-y-4">
       <div>
-        <Label htmlFor="phone">Phone Number</Label>
+        <Label htmlFor="phone">{t('phoneVerification.phoneNumber', 'Phone Number')}</Label>
         <div className="flex gap-2">
           <PhoneInput
             international
@@ -126,14 +126,14 @@ export const PhoneVerification = ({
               className="bg-green-600 text-white whitespace-nowrap"
             >
               <CheckCircle2 className="w-4 h-4 mr-1" />
-              Verified
+              {t('phoneVerification.verified', 'Verified')}
             </Button>
           )}
         </div>
         {phoneNumber && !isPhoneValid && !otpSent && (
           <div className="flex items-center gap-2 text-xs text-destructive mt-2">
             <XCircle className="w-4 h-4" />
-            <span>Invalid phone number</span>
+            <span>{t('phoneVerification.invalidPhone', 'Invalid phone number')}</span>
           </div>
         )}
         {/* Country-prefix delivery warning */}
@@ -152,7 +152,7 @@ export const PhoneVerification = ({
         <div className="p-4 border border-accent/20 rounded-lg bg-accent/5 space-y-4">
           <div className="space-y-2">
             <Label htmlFor="otp" className="text-sm font-medium">
-              Enter 6-digit verification code
+              {t('phoneVerification.enterCode', 'Enter 6-digit verification code')}
             </Label>
             <p className="text-xs text-muted-foreground">
               We sent a code to {phoneNumber}
@@ -223,7 +223,7 @@ export const PhoneVerification = ({
               {isVerifying ? (
                 <InlineLoader text="Verifying..." />
               ) : (
-                'Verify'
+                t('phoneVerification.verify', 'Verify')
               )}
             </Button>
           </div>

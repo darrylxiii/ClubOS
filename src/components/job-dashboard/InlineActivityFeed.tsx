@@ -166,7 +166,8 @@ export const InlineActivityFeed = memo(({ jobId, initialLimit = 5 }: InlineActiv
           <div className="space-y-3">
             {activities.map((activity) => {
               const Icon = ACTION_ICONS[activity.action] || Activity;
-              const actionLabel = ACTION_LABELS[activity.action] || activity.action.replace(/_/g, ' ');
+              const labelEntry = ACTION_LABEL_KEYS[activity.action];
+              const actionLabel = labelEntry ? t(labelEntry.key, labelEntry.fallback) : activity.action.replace(/_/g, ' ');
               const userName = activity.profile?.full_name || 'Someone';
               const initials = userName.split(' ').map((n: string) => n[0]).join('').toUpperCase();
               const timeAgo = formatDistanceToNow(parseISO(activity.created_at), { addSuffix: true });

@@ -801,7 +801,7 @@
   "network": {
     "networkQuality": "Netwerkkwaliteit",
     "connectionQuality": "Verbindingskwaliteit",
-    "latency": "Latency",
+    "latency": "Latentie",
     "packetLoss": "Pakketverlies",
     "jitter": "Jitter",
     "bandwidth": "Bandbreedte",
@@ -847,7 +847,7 @@
     "fps": "FPS",
     "cpu": "CPU",
     "memory": "Geheugen",
-    "latency": "Latency",
+    "latency": "Latentie",
     "resourceOptimization": "Resource Optimalisatie",
     "videoQuality": "Videokwaliteit",
     "audioQuality": "Audiokwaliteit",

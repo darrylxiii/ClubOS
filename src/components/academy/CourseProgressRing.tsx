@@ -25,7 +25,7 @@ export const CourseProgressRing = memo<CourseProgressRingProps>(({
 
   return (
     <div className={`relative ${sizeClasses[size]} flex items-center justify-center`}>
-      <svg className="transform -rotate-90" width="100%" height="100%" viewBox="0 0 100 100">
+      <svg className="transform -rotate-90" width="100%" height="100%" viewBox="0 0 100 100" role="img" aria-label={`Course progress: ${progress}% complete, ${completedModules} of ${totalModules} modules`}>
         <circle
           cx="50"
           cy="50"

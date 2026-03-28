@@ -4,10 +4,11 @@ import { useTranslation } from 'react-i18next';
 import { LegalSection } from "@/components/legal/LegalSection";
 import { Card } from "@/components/ui/card";
 import { Shield } from "lucide-react";
+import { Helmet } from "react-helmet-async";
 
 const PrivacyPolicy = () => {
   const { t } = useTranslation('common');
-  const lastUpdated = "January 15, 2025";
+  const lastUpdated = "March 28, 2026";
   
   const sections = [
     { id: "introduction", title: t('text.privacypolicy.introduction', 'Introduction') },
@@ -31,10 +32,15 @@ const PrivacyPolicy = () => {
 
   return (
     <>
+      <Helmet>
+        <title>{t('legalPages.privacyPolicy', 'Privacy Policy')} | The Quantum Club</title>
+        <meta name="description" content={t('legalPages.privacyPolicyDesc', 'Learn how The Quantum Club collects, uses, and protects your personal data.')} />
+      </Helmet>
       <LegalPageLayout
         title={t('text.privacypolicy.privacyPolicy', 'Privacy Policy')}
         lastUpdated={lastUpdated}
         sections={sections}
+        description="Learn how The Quantum Club collects, uses, and protects your personal data. GDPR, UK GDPR, and CCPA compliant."
       >
         <div className="space-y-8">
           <Card className="p-6 bg-primary/5 border-primary/20">
@@ -68,10 +74,10 @@ const PrivacyPolicy = () => {
           <LegalSection id="data-controller" title={t('text.privacypolicy.dataControllerInformation', 'Data Controller Information')}>
             <div className="space-y-3">
               <p><strong>{t('text.privacypolicy.company', 'Company:')}</strong>{t('text.privacypolicy.theQuantumClubBv', 'The Quantum Club B.V.')}</p>
-              <p><strong>{t('text.privacypolicy.registration', 'Registration:')}</strong>{t('text.privacypolicy.netherlandsChamberOfCommerce', 'Netherlands Chamber of Commerce')}</p>
-              <p><strong>{t('text.privacypolicy.location', 'Location:')}</strong>{t('text.privacypolicy.amsterdamNetherlands', 'Amsterdam, Netherlands')}</p>
-              <p><strong>{t('text.privacypolicy.email', 'Email:')}</strong>privacy@thequantumclub.com</p>
-              <p><strong>{t('text.privacypolicy.dataProtectionOfficer', 'Data Protection Officer:')}</strong>Available upon request via privacy@thequantumclub.com</p>
+              <p><strong>{t('text.privacypolicy.registration', 'Registration:')}</strong>{t('text.privacypolicy.netherlandsChamberOfCommerce', 'Netherlands Chamber of Commerce (KvK: 93498871)')}</p>
+              <p><strong>{t('text.privacypolicy.location', 'Location:')}</strong>{t('text.privacypolicy.amsterdamNetherlands', 'Pieter Cornelisz. Hooftstraat 41-2, 1071BM, Amsterdam, The Netherlands')}</p>
+              <p><strong>{t('text.privacypolicy.email', 'Support & Legal Email:')}</strong>info@thequantumclub.com</p>
+              <p><strong>{t('text.privacypolicy.dataProtectionOfficer', 'Data Protection Officer:')}</strong>dpo@thequantumclub.com</p>
             </div>
             <p className="mt-4">
               For EU users, The Quantum Club B.V. acts as the data controller. We process data in accordance with the 
@@ -82,7 +88,7 @@ const PrivacyPolicy = () => {
           <LegalSection id="data-collection" title={t('text.privacypolicy.whatDataWeCollect', 'What Data We Collect')}>
             <div className="space-y-6">
               <div>
-                <h4 className="font-semibold text-lg mb-3">{t('privacyPolicy.title')}</h4>
+                <h4 className="font-semibold text-lg mb-3">{t('text.privacypolicy.identityData', 'Identity Data')}</h4>
                 <ul className="list-disc pl-6 space-y-2 text-muted-foreground">
                   <li>{t('text.privacypolicy.fullNameEmailAddressPhoneNumber', 'Full name, email address, phone number')}</li>
                   <li>{t('text.privacypolicy.linkedinProfileUrlAndProfessionalProfile', 'LinkedIn profile URL and professional profile data')}</li>
@@ -91,7 +97,7 @@ const PrivacyPolicy = () => {
               </div>
 
               <div>
-                <h4 className="font-semibold text-lg mb-3">{t('privacyPolicy.title')}</h4>
+                <h4 className="font-semibold text-lg mb-3">{t('text.privacypolicy.professionalData', 'Professional Data')}</h4>
                 <ul className="list-disc pl-6 space-y-2 text-muted-foreground">
                   <li>{t('text.privacypolicy.cvresumeDocuments', 'CV/Resume documents')}</li>
                   <li>{t('text.privacypolicy.workExperienceSkillsEducationCertifications', 'Work experience, skills, education, certifications')}</li>
@@ -101,7 +107,7 @@ const PrivacyPolicy = () => {
               </div>
 
               <div>
-                <h4 className="font-semibold text-lg mb-3">{t('privacyPolicy.title')}</h4>
+                <h4 className="font-semibold text-lg mb-3">{t('text.privacypolicy.careerPreferenceData', 'Career Preference Data')}</h4>
                 <ul className="list-disc pl-6 space-y-2 text-muted-foreground">
                   <li>{t('text.privacypolicy.salaryExpectationsCurrentAndTargetRanges', 'Salary expectations (current and target ranges)')}</li>
                   <li>{t('text.privacypolicy.noticePeriodAndContractEndDates', 'Notice period and contract end dates')}</li>
@@ -121,7 +127,7 @@ const PrivacyPolicy = () => {
               </div>
 
               <div>
-                <h4 className="font-semibold text-lg mb-3">{t('privacyPolicy.title')}</h4>
+                <h4 className="font-semibold text-lg mb-3">{t('text.privacypolicy.communicationData', 'Communication Data')}</h4>
                 <ul className="list-disc pl-6 space-y-2 text-muted-foreground">
                   <li>{t('text.privacypolicy.messagesExchangedWithStrategistsAndPartners', 'Messages exchanged with strategists and partners')}</li>
                   <li>{t('text.privacypolicy.emailCommunicationsViaIntegrations', 'Email communications (via integrations)')}</li>
@@ -131,7 +137,7 @@ const PrivacyPolicy = () => {
               </div>
 
               <div>
-                <h4 className="font-semibold text-lg mb-3">{t('privacyPolicy.title')}</h4>
+                <h4 className="font-semibold text-lg mb-3">{t('text.privacypolicy.usageActivityData', 'Usage & Activity Data')}</h4>
                 <ul className="list-disc pl-6 space-y-2 text-muted-foreground">
                   <li>{t('text.privacypolicy.applicationHistoryAndJobViews', 'Application history and job views')}</li>
                   <li>{t('text.privacypolicy.searchQueriesAndFilterPreferences', 'Search queries and filter preferences')}</li>
@@ -141,7 +147,7 @@ const PrivacyPolicy = () => {
               </div>
 
               <div>
-                <h4 className="font-semibold text-lg mb-3">{t('privacyPolicy.title')}</h4>
+                <h4 className="font-semibold text-lg mb-3">{t('text.privacypolicy.technicalData', 'Technical Data')}</h4>
                 <ul className="list-disc pl-6 space-y-2 text-muted-foreground">
                   <li>{t('text.privacypolicy.ipAddressDeviceInformationBrowserType', 'IP address, device information, browser type')}</li>
                   <li>{t('text.privacypolicy.cookiesAndSessionIdentifiers', 'Cookies and session identifiers')}</li>
@@ -151,7 +157,7 @@ const PrivacyPolicy = () => {
               </div>
 
               <div>
-                <h4 className="font-semibold text-lg mb-3">{t('privacyPolicy.title')}</h4>
+                <h4 className="font-semibold text-lg mb-3">{t('text.privacypolicy.financialData', 'Financial Data')}</h4>
                 <ul className="list-disc pl-6 space-y-2 text-muted-foreground">
                   <li>{t('text.privacypolicy.referralRewardAmountsAndPaymentDetails', 'Referral reward amounts and payment details')}</li>
                   <li>{t('text.privacypolicy.notePaymentProcessingHandledByThirdparty', 'Note: Payment processing handled by third-party processors (we do not store full credit card data)')}</li>
@@ -163,7 +169,7 @@ const PrivacyPolicy = () => {
           <LegalSection id="how-collect" title={t('text.privacypolicy.howWeCollectData', 'How We Collect Data')}>
             <div className="space-y-4">
               <div>
-                <h4 className="font-semibold mb-2">{t('privacyPolicy.title')}</h4>
+                <h4 className="font-semibold mb-2">{t('text.privacypolicy.directlyProvided', 'Directly Provided by You')}</h4>
                 <p className="text-muted-foreground">
                   You provide data directly through onboarding, profile editing, job applications, 
                   and communication on our platform.
@@ -171,7 +177,7 @@ const PrivacyPolicy = () => {
               </div>
 
               <div>
-                <h4 className="font-semibold mb-2">{t('privacyPolicy.title')}</h4>
+                <h4 className="font-semibold mb-2">{t('text.privacypolicy.automaticallyCollected', 'Automatically Collected')}</h4>
                 <p className="text-muted-foreground">
                   We automatically collect technical data through cookies, analytics tools, and session tracking 
                   to improve platform performance and user experience.
@@ -179,7 +185,7 @@ const PrivacyPolicy = () => {
               </div>
 
               <div>
-                <h4 className="font-semibold mb-2">{t('privacyPolicy.title')}</h4>
+                <h4 className="font-semibold mb-2">{t('text.privacypolicy.thirdPartyIntegrations', 'Third-Party Integrations')}</h4>
                 <p className="text-muted-foreground">
                   With your permission, we collect data from LinkedIn OAuth, Google Calendar, Microsoft Calendar, 
                   and Greenhouse ATS integrations.
@@ -187,7 +193,7 @@ const PrivacyPolicy = () => {
               </div>
 
               <div>
-                <h4 className="font-semibold mb-2">{t('privacyPolicy.title')}</h4>
+                <h4 className="font-semibold mb-2">{t('text.privacypolicy.aiInteractions', 'AI Interactions')}</h4>
                 <p className="text-muted-foreground">
                   When you interact with Club AI features (interview prep, career guidance), we process your 
                   prompts and conversations to provide personalized assistance.
@@ -203,6 +209,9 @@ const PrivacyPolicy = () => {
                 <p className="text-muted-foreground">
                   We rely on your explicit consent for: marketing communications, stealth mode settings, 
                   data sharing with specific clients, Club Sync auto-applications, and meeting recordings.
+                </p>
+                <p className="text-muted-foreground mt-2">
+                  <strong>Cryptographic Consent Verification:</strong> All explicit user consents for data processing, dossier sharing, and platform automation are tracked via immutable, cryptographically verifiable logs to ensure absolute non-repudiation and lifetime data governance.
                 </p>
               </div>
 
@@ -247,7 +256,7 @@ const PrivacyPolicy = () => {
           <LegalSection id="data-sharing" title={t('text.privacypolicy.dataSharingDisclosures', 'Data Sharing & Disclosures')}>
             <div className="space-y-4">
               <div>
-                <h4 className="font-semibold mb-2">{t('privacyPolicy.title')}</h4>
+                <h4 className="font-semibold mb-2">{t('text.privacypolicy.internalAccess', 'Internal Access')}</h4>
                 <p className="text-muted-foreground">
                   Your data is accessible to: Platform administrators (for support and moderation), assigned strategists 
                   (for personalized service), and finance team (for referral rewards, minimal PII access).
@@ -255,7 +264,7 @@ const PrivacyPolicy = () => {
               </div>
 
               <div>
-                <h4 className="font-semibold mb-2">{t('privacyPolicy.title')}</h4>
+                <h4 className="font-semibold mb-2">{t('text.privacypolicy.partnerSharing', 'Partner Sharing')}</h4>
                 <p className="text-muted-foreground">
                   We share only: Fields you mark as shareable in Privacy Settings, data you consent to share via 
                   Club Sync or dossier approvals. Current employer protection applies—blocked companies never see your data.
@@ -263,7 +272,7 @@ const PrivacyPolicy = () => {
               </div>
 
               <div>
-                <h4 className="font-semibold mb-2">{t('privacyPolicy.title')}</h4>
+                <h4 className="font-semibold mb-2">{t('text.privacypolicy.thirdPartyProcessors', 'Third-Party Processors')}</h4>
                 <ul className="list-disc pl-6 space-y-2 text-muted-foreground mt-2">
                   <li><strong>{t('text.privacypolicy.hostingDatabase', 'Hosting & Database:')}</strong>{t('text.privacypolicy.supabaseEuRegionGdprcompliant', 'Supabase (EU region, GDPR-compliant)')}</li>
                   <li><strong>{t('text.privacypolicy.aiProcessing', 'AI Processing:')}</strong>{t('text.privacypolicy.googleGeminiAndOpenaiGptModels', 'Google Gemini and OpenAI GPT models - data processing agreements in place')}</li>
@@ -275,7 +284,7 @@ const PrivacyPolicy = () => {
               </div>
 
               <div>
-                <h4 className="font-semibold mb-2">{t('privacyPolicy.title')}</h4>
+                <h4 className="font-semibold mb-2">{t('text.privacypolicy.legalDisclosures', 'Legal Disclosures')}</h4>
                 <p className="text-muted-foreground">
                   We may disclose data in response to: Court orders, legal obligations, GDPR data portability requests, 
                   law enforcement inquiries (only when legally required).
@@ -283,7 +292,7 @@ const PrivacyPolicy = () => {
               </div>
 
               <div>
-                <h4 className="font-semibold mb-2">{t('privacyPolicy.title')}</h4>
+                <h4 className="font-semibold mb-2">{t('text.privacypolicy.businessTransfers', 'Business Transfers')}</h4>
                 <p className="text-muted-foreground">
                   In case of merger, acquisition, or sale: We will notify you via email, your data will be transferred 
                   under the same privacy protections, and you retain all GDPR rights.
@@ -329,7 +338,7 @@ const PrivacyPolicy = () => {
               </div>
               <div>
                 <p className="font-semibold">{t('privacyPolicy.desc8')}</p>
-                <p className="text-muted-foreground">{t('text.privacypolicy.youCanRequestEarlierDeletionVia', 'You can request earlier deletion via Settings → Delete Account or privacy@thequantumclub.com')}</p>
+                <p className="text-muted-foreground">{t('text.privacypolicy.youCanRequestEarlierDeletionVia', 'You can request earlier deletion via Settings → Delete Account or info@thequantumclub.com')}</p>
               </div>
             </div>
           </LegalSection>
@@ -337,12 +346,12 @@ const PrivacyPolicy = () => {
           <LegalSection id="your-rights" title={t('text.privacypolicy.yourRightsGdprccpaukGdpr', 'Your Rights (GDPR/CCPA/UK GDPR)')}>
             <div className="space-y-4">
               <div>
-                <h4 className="font-semibold mb-2">{t('privacyPolicy.title')}</h4>
+                <h4 className="font-semibold mb-2">{t('text.privacypolicy.rightOfAccess', 'Right of Access')}</h4>
                 <p className="text-muted-foreground">{t('text.privacypolicy.downloadAllYourDataViaSettings', 'Download all your data via Settings → Privacy → Export Data (JSON format).')}</p>
               </div>
 
               <div>
-                <h4 className="font-semibold mb-2">{t('privacyPolicy.title')}</h4>
+                <h4 className="font-semibold mb-2">{t('text.privacypolicy.rightToRectification', 'Right to Rectification')}</h4>
                 <p className="text-muted-foreground">{t('privacyPolicy.desc9')}</p>
               </div>
 
@@ -352,27 +361,27 @@ const PrivacyPolicy = () => {
               </div>
 
               <div>
-                <h4 className="font-semibold mb-2">{t('privacyPolicy.title')}</h4>
+                <h4 className="font-semibold mb-2">{t('text.privacypolicy.rightToRestriction', 'Right to Restriction of Processing')}</h4>
                 <p className="text-muted-foreground">{t('text.privacypolicy.limitDataUsageThroughGranularPrivacy', 'Limit data usage through granular privacy settings (Settings → Privacy).')}</p>
               </div>
 
               <div>
-                <h4 className="font-semibold mb-2">{t('privacyPolicy.title')}</h4>
+                <h4 className="font-semibold mb-2">{t('text.privacypolicy.rightToDataPortability', 'Right to Data Portability')}</h4>
                 <p className="text-muted-foreground">{t('privacyPolicy.desc10')}</p>
               </div>
 
               <div>
-                <h4 className="font-semibold mb-2">{t('privacyPolicy.title')}</h4>
+                <h4 className="font-semibold mb-2">{t('text.privacypolicy.rightToObject', 'Right to Object')}</h4>
                 <p className="text-muted-foreground">{t('privacyPolicy.desc11')}</p>
               </div>
 
               <div>
-                <h4 className="font-semibold mb-2">{t('privacyPolicy.title')}</h4>
+                <h4 className="font-semibold mb-2">{t('text.privacypolicy.rightToWithdrawConsent', 'Right to Withdraw Consent')}</h4>
                 <p className="text-muted-foreground">{t('privacyPolicy.desc12')}</p>
               </div>
 
               <div>
-                <h4 className="font-semibold mb-2">{t('privacyPolicy.title')}</h4>
+                <h4 className="font-semibold mb-2">{t('text.privacypolicy.rightToLodgeComplaint', 'Right to Lodge a Complaint')}</h4>
                 <p className="text-muted-foreground">
                   Contact the Dutch Data Protection Authority (Autoriteit Persoonsgegevens) or your local supervisory authority if you believe we've violated your privacy rights.
                 </p>
@@ -409,22 +418,22 @@ const PrivacyPolicy = () => {
           <LegalSection id="cookies" title={t('text.privacypolicy.cookiesTracking', 'Cookies & Tracking')}>
             <div className="space-y-4">
               <div>
-                <h4 className="font-semibold mb-2">{t('privacyPolicy.title')}</h4>
+                <h4 className="font-semibold mb-2">{t('text.privacypolicy.essentialCookies', 'Essential Cookies')}</h4>
                 <p className="text-muted-foreground">{t('privacyPolicy.desc14')}</p>
               </div>
 
               <div>
-                <h4 className="font-semibold mb-2">{t('privacyPolicy.title')}</h4>
+                <h4 className="font-semibold mb-2">{t('text.privacypolicy.functionalCookies', 'Functional Cookies')}</h4>
                 <p className="text-muted-foreground">{t('privacyPolicy.desc15')}</p>
               </div>
 
               <div>
-                <h4 className="font-semibold mb-2">{t('privacyPolicy.title')}</h4>
+                <h4 className="font-semibold mb-2">{t('text.privacypolicy.analyticsCookies', 'Analytics Cookies')}</h4>
                 <p className="text-muted-foreground">{t('text.privacypolicy.anonymizedUsageDataToImprovePlatform', 'Anonymized usage data to improve platform performance. You can opt-out via Settings → Privacy.')}</p>
               </div>
 
               <div>
-                <h4 className="font-semibold mb-2">{t('privacyPolicy.title')}</h4>
+                <h4 className="font-semibold mb-2">{t('text.privacypolicy.advertisingCookies', 'Advertising Cookies')}</h4>
                 <p className="text-muted-foreground">
                   <strong>{t('text.privacypolicy.weDoNotUseThirdpartyAdvertising', 'We do not use third-party advertising cookies.')}</strong>
                 </p>
@@ -434,19 +443,20 @@ const PrivacyPolicy = () => {
 
           <LegalSection id="children" title={t('text.privacypolicy.childrensPrivacy', 'Children\'s Privacy')}>
             <p>
-              {t('text.privacypolicy.theQuantumClubIsAn', 'The Quantum Club is an')} <strong>18+ platform</strong> designed for professional career management. 
-              We do not knowingly collect data from anyone under 18 years of age.
+              {t('text.privacypolicy.theQuantumClubIsAn', 'The Quantum Club is an')} <strong>{t('text.privacypolicy.minimumAgePlatform', '16+ platform')}</strong> {t('text.privacypolicy.designedForProfessionalCareer', 'designed for professional career management.')}{' '}
+              {t('text.privacypolicy.doNotKnowinglyCollectMinors', 'We do not knowingly collect data from individuals under 16 years of age. All users must confirm they meet the minimum age requirement during registration.')}
             </p>
             <p className="mt-4 text-muted-foreground">
-              If we discover that we have inadvertently collected data from a minor, we will delete it immediately. 
-              If you believe a minor has provided us with personal information, please contact privacy@thequantumclub.com.
+              {t('text.privacypolicy.minorDataDeletion', 'If we discover that we have inadvertently collected data from an individual under 16, we will delete it immediately.')}{' '}
+              {t('text.privacypolicy.reportMinorData', 'If you believe a minor has provided us with personal data, please contact')}{' '}
+              <a href="mailto:info@thequantumclub.com" className="text-primary hover:underline">info@thequantumclub.com</a>.
             </p>
           </LegalSection>
 
           <LegalSection id="ai-decisions" title={t('text.privacypolicy.aiAutomatedDecisionmaking', 'AI & Automated Decision-Making')}>
             <div className="space-y-4">
               <div>
-                <h4 className="font-semibold mb-2">{t('privacyPolicy.title')}</h4>
+                <h4 className="font-semibold mb-2">{t('text.privacypolicy.clubAiFeatures', 'Club AI Features')}</h4>
                 <p className="text-muted-foreground">
                   Powered by Lovable AI (Google Gemini, OpenAI GPT models). Used for: career guidance, 
                   interview preparation, resume analysis, meeting intelligence. AI outputs are assistive, not definitive.
@@ -454,7 +464,7 @@ const PrivacyPolicy = () => {
               </div>
 
               <div>
-                <h4 className="font-semibold mb-2">{t('privacyPolicy.title')}</h4>
+                <h4 className="font-semibold mb-2">{t('text.privacypolicy.jobMatching', 'Job Matching')}</h4>
                 <p className="text-muted-foreground">
                   Combines AI scoring with rule-based matching. <strong>{t('text.privacypolicy.notFullyAutomated', 'Not fully automated')}</strong>—all matches 
                   are reviewed by human strategists before shortlisting.
@@ -462,15 +472,15 @@ const PrivacyPolicy = () => {
               </div>
 
               <div>
-                <h4 className="font-semibold mb-2">{t('privacyPolicy.title')}</h4>
+                <h4 className="font-semibold mb-2">{t('text.privacypolicy.humanOversight', 'Human Oversight')}</h4>
                 <p className="text-muted-foreground">
                   You can request manual review of AI-generated match scores or recommendations. 
-                  Contact your strategist or privacy@thequantumclub.com.
+                  Contact your strategist or info@thequantumclub.com.
                 </p>
               </div>
 
               <div>
-                <h4 className="font-semibold mb-2">{t('privacyPolicy.title')}</h4>
+                <h4 className="font-semibold mb-2">{t('text.privacypolicy.explainability', 'Explainability')}</h4>
                 <p className="text-muted-foreground">
                   We provide "Why matched" explanations for job recommendations, showing factors like 
                   skills overlap, compensation proximity, and industry fit.
@@ -487,7 +497,7 @@ const PrivacyPolicy = () => {
             <p className="mt-4 text-muted-foreground">
               <strong>{t('text.privacypolicy.materialChangesWillBeNotifiedVia', 'Material changes will be notified via email.')}</strong> Continued use of the platform 
               after notification constitutes acceptance of the updated policy. You can review historical 
-              versions by contacting privacy@thequantumclub.com.
+              versions by contacting info@thequantumclub.com.
             </p>
             <p className="mt-4 text-muted-foreground">{t('text.privacypolicy.theLastUpdatedDateAtThe', 'The "Last Updated" date at the top of this page reflects the most recent revision.')}</p>
           </LegalSection>
@@ -495,19 +505,19 @@ const PrivacyPolicy = () => {
           <LegalSection id="contact" title={t('text.privacypolicy.contactDataProtectionOfficer', 'Contact & Data Protection Officer')}>
             <div className="space-y-3">
               <p><strong>{t('text.privacypolicy.forPrivacyInquiriesDataSubjectRequests', 'For privacy inquiries, data subject requests, or complaints:')}</strong></p>
-              <p><strong>{t('text.privacypolicy.email', 'Email:')}</strong>privacy@thequantumclub.com</p>
-              <p><strong>{t('text.privacypolicy.dataProtectionOfficer', 'Data Protection Officer:')}</strong>{t('text.privacypolicy.availableUponRequest', 'Available upon request')}</p>
-              <p><strong>{t('text.privacypolicy.address', 'Address:')}</strong>{t('text.privacypolicy.theQuantumClubBvAmsterdamNetherlands', 'The Quantum Club B.V., Amsterdam, Netherlands')}</p>
+              <p><strong>{t('text.privacypolicy.email', 'Support & Legal Email:')}</strong>info@thequantumclub.com</p>
+              <p><strong>{t('text.privacypolicy.dataProtectionOfficer', 'Data Protection Officer:')}</strong>dpo@thequantumclub.com</p>
+              <p><strong>{t('text.privacypolicy.address', 'Address:')}</strong>{t('text.privacypolicy.theQuantumClubBvAmsterdamNetherlands', 'The Quantum Club B.V., Pieter Cornelisz. Hooftstraat 41-2, 1071BM, Amsterdam, The Netherlands')}</p>
             </div>
             <p className="mt-6 text-muted-foreground">
-              <strong>{t('text.privacypolicy.responseTime', 'Response Time:')}</strong> We aim to respond to all privacy inquiries within 30 days 
-              (GDPR requirement). Data subject access requests (DSARs) will be fulfilled within the same timeframe.
+              <strong>{t('text.privacypolicy.responseTime', 'Response Time:')}</strong> We aim to respond to general privacy inquiries within 30 days 
+              (GDPR requirement). <strong>Data Subject Access Requests (DSARs), Article 20 automated account exports, and Article 18 immediate data processing restrictions are strictly guaranteed a maximum 72-hour Service Level Agreement (SLA).</strong>
             </p>
           </LegalSection>
 
           <div className="mt-12 p-6 bg-muted/50 rounded-lg">
             <p className="text-sm text-muted-foreground text-center">
-              © 2025 The Quantum Club B.V. All rights reserved. | Amsterdam, Netherlands
+              &copy; {new Date().getFullYear()} The Quantum Club B.V. All rights reserved. | Pieter Cornelisz. Hooftstraat 41-2, 1071BM, Amsterdam, The Netherlands | KvK: 93498871
             </p>
           </div>
         </div>

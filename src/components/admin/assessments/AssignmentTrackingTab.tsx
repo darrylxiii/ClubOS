@@ -22,6 +22,7 @@ export const AssignmentTrackingTab = memo(() => {
   const [assignments, setAssignments] = useState<AssessmentAssignment[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
+  const { t } = useTranslation('admin');
 
   useEffect(() => {
     loadAssignments();
@@ -39,7 +40,6 @@ export const AssignmentTrackingTab = memo(() => {
   };
 
   const getStatusBadgeVariant = (status: string) => {
-  const { t } = useTranslation('admin');
     switch (status) {
       case 'completed':
         return 'default';
@@ -68,7 +68,7 @@ export const AssignmentTrackingTab = memo(() => {
         <div className="relative flex-1">
           <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Search by assessment name..."
+            placeholder={t('assignmentTracking.searchPlaceholder', 'Search by assessment name...')}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="pl-10"
@@ -82,7 +82,7 @@ export const AssignmentTrackingTab = memo(() => {
               onClick={() => setStatusFilter(status)}
               className="capitalize"
             >
-              {status === 'all' ? 'All' : status.replace('_', ' ')}
+              {status === 'all' ? t('assignmentTracking.all', 'All') : status.replace('_', ' ')}
             </Button>
           ))}
         </div>
@@ -90,24 +90,24 @@ export const AssignmentTrackingTab = memo(() => {
 
       <Card>
         <CardHeader>
-          <CardTitle>Assignment Tracking</CardTitle>
+          <CardTitle>{t('assignmentTracking.title', 'Assignment Tracking')}</CardTitle>
         </CardHeader>
         <CardContent>
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Assessment</TableHead>
-                <TableHead>Assigned Date</TableHead>
-                <TableHead>Due Date</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Actions</TableHead>
+                <TableHead>{t('assignmentTracking.assessment', 'Assessment')}</TableHead>
+                <TableHead>{t('assignmentTracking.assignedDate', 'Assigned Date')}</TableHead>
+                <TableHead>{t('assignmentTracking.dueDate', 'Due Date')}</TableHead>
+                <TableHead>{t('assignmentTracking.status', 'Status')}</TableHead>
+                <TableHead>{t('assignmentTracking.actions', 'Actions')}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {filteredAssignments.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={5} className="text-center text-muted-foreground">
-                    No assignments found
+                    {t('assignmentTracking.noAssignments', 'No assignments found')}
                   </TableCell>
                 </TableRow>
               ) : (
@@ -128,11 +128,11 @@ export const AssignmentTrackingTab = memo(() => {
                           <Calendar className="h-4 w-4" />
                           {format(new Date(assignment.due_date), 'MMM d, yyyy')}
                           {isOverdue(assignment) && (
-                            <Badge variant="destructive">Overdue</Badge>
+                            <Badge variant="destructive">{t('assignmentTracking.overdue', 'Overdue')}</Badge>
                           )}
                         </div>
                       ) : (
-                        <span className="text-muted-foreground">No deadline</span>
+                        <span className="text-muted-foreground">{t('assignmentTracking.noDeadline', 'No deadline')}</span>
                       )}
                     </TableCell>
                     <TableCell>

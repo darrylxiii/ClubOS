@@ -49,7 +49,7 @@ const BlogLearningsPanel: React.FC = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['blog-learnings'] });
-      toast.success('Learning updated');
+      toast.success(t('blogLearnings.learningUpdated', 'Learning updated'));
     },
   });
 
@@ -84,25 +84,25 @@ const BlogLearningsPanel: React.FC = () => {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <Card>
           <CardContent className="pt-4 pb-4">
-            <p className="text-xs text-muted-foreground uppercase tracking-wide">Total Insights</p>
+            <p className="text-xs text-muted-foreground uppercase tracking-wide">{t('blogLearnings.totalInsights', 'Total Insights')}</p>
             <p className="text-2xl font-semibold text-foreground mt-1">{totalInsights}</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="pt-4 pb-4">
-            <p className="text-xs text-muted-foreground uppercase tracking-wide">Active</p>
+            <p className="text-xs text-muted-foreground uppercase tracking-wide">{t('blogLearnings.active', 'Active')}</p>
             <p className="text-2xl font-semibold text-foreground mt-1">{activeCount}</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="pt-4 pb-4">
-            <p className="text-xs text-muted-foreground uppercase tracking-wide">Avg Confidence</p>
+            <p className="text-xs text-muted-foreground uppercase tracking-wide">{t('blogLearnings.avgConfidence', 'Avg Confidence')}</p>
             <p className="text-2xl font-semibold text-foreground mt-1">{avgConfidence}%</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="pt-4 pb-4">
-            <p className="text-xs text-muted-foreground uppercase tracking-wide">Times Applied</p>
+            <p className="text-xs text-muted-foreground uppercase tracking-wide">{t('blogLearnings.timesApplied', 'Times Applied')}</p>
             <p className="text-2xl font-semibold text-foreground mt-1">{timesApplied}</p>
           </CardContent>
         </Card>
@@ -116,7 +116,7 @@ const BlogLearningsPanel: React.FC = () => {
       ) : !totalInsights ? (
         <Card>
           <CardContent className="py-8">
-            <p className="text-center text-muted-foreground">No learnings yet. The engine discovers patterns as it generates and analyzes content.</p>
+            <p className="text-center text-muted-foreground">{t('blogLearnings.noLearnings', 'No learnings yet. The engine discovers patterns as it generates and analyzes content.')}</p>
           </CardContent>
         </Card>
       ) : (
@@ -127,7 +127,7 @@ const BlogLearningsPanel: React.FC = () => {
               <CardHeader>
                 <CardTitle className="text-lg flex items-center gap-2">
                   <span className={config.color}>{config.icon}</span>
-                  {config.label} Insights
+                  {config.label} {t('blogLearnings.insights', 'Insights')}
                   <Badge variant="outline" className="ml-auto">{(items as any[]).length}</Badge>
                 </CardTitle>
               </CardHeader>
@@ -142,9 +142,9 @@ const BlogLearningsPanel: React.FC = () => {
                         )}
                         <div className="flex items-center gap-3 mt-2">
                           {confidenceDots(learning.confidence_score || 0)}
-                          <span className="text-xs text-muted-foreground">{learning.confidence_score}% confidence</span>
+                          <span className="text-xs text-muted-foreground">{learning.confidence_score}% {t('blogLearnings.confidence', 'confidence')}</span>
                           {learning.times_applied > 0 && (
-                            <span className="text-xs text-muted-foreground">Applied {learning.times_applied}x</span>
+                            <span className="text-xs text-muted-foreground">{t('blogLearnings.appliedCount', 'Applied {{count}}x', { count: learning.times_applied })}</span>
                           )}
                         </div>
                       </div>

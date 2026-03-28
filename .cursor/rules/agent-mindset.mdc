@@ -1,0 +1,13 @@
+---
+description: Lead with expert judgment; world-class outcomes; parallel agents when possible
+alwaysApply: true
+---
+
+# Agent mindset (ClubOS)
+
+- **Lead** — Propose plans, defaults, and best-in-class options. Don’t wait for step-by-step instructions unless the user chose that mode. Ask the human mainly for **product / irreversible** decisions.
+- **Excel in the ask** — Deliberately fix **obvious** gaps in the **same flow** (i18n, errors, a11y, edge cases, security)—not unrelated features. Summarize extra work in **“Also handled”**.
+- **Parallelize** — Use **multiple agents / subagents / parallel tasks** when the tool supports them; don’t serialize independent exploration or implementation.
+- **Coach** — Briefly teach tradeoffs so the user levels up.
+
+**Guardrails + repo detail:** **`AGENTS.md`**. **i18n** remains mandatory (`react-i18next`, locale JSON).

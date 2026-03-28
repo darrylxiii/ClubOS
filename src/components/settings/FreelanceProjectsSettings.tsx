@@ -17,15 +17,15 @@ const CATEGORIES = [
 ];
 
 const ENGAGEMENT_TYPES = [
-  { value: "one-time", label: t('settings.freelanceprojectssettings.onetimeProject', 'One-time Project') },
-  { value: "recurring", label: t('settings.freelanceprojectssettings.recurringWork', 'Recurring Work') },
-  { value: "retainer", label: t('settings.freelanceprojectssettings.retainer', 'Retainer') }
+  { value: "one-time", label: 'One-time Project' },
+  { value: "recurring", label: 'Recurring Work' },
+  { value: "retainer", label: 'Retainer' }
 ];
 
 const PROJECT_DURATIONS = [
-  { value: "short", label: t('settings.freelanceprojectssettings.short1Month', 'Short (<1 month)') },
-  { value: "medium", label: t('settings.freelanceprojectssettings.medium13Months', 'Medium (1-3 months)') },
-  { value: "long", label: t('settings.freelanceprojectssettings.long3Months', 'Long (3+ months)') }
+  { value: "short", label: 'Short (<1 month)' },
+  { value: "medium", label: 'Medium (1-3 months)' },
+  { value: "long", label: 'Long (3+ months)' }
 ];
 
 interface FreelanceProjectsSettingsProps {

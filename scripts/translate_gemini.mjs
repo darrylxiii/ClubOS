@@ -30,6 +30,8 @@ const LANG_CONFIG = {
   zh: { name: 'Chinese (Simplified)', native: '简体中文', tone: 'Simplified Chinese (zh-CN). Professional, concise for a B2B recruitment platform.' },
   ar: { name: 'Arabic', native: 'العربية', tone: 'Modern Standard Arabic. Professional tone for a B2B recruitment platform.' },
   ru: { name: 'Russian', native: 'Русский', tone: 'Use formal "Вы" form. Professional Russian for a B2B recruitment platform.' },
+  it: { name: 'Italian', native: 'Italiano', tone: 'Use formal "Lei" form. Professional, elegant Italian for a B2B recruitment platform.' },
+  pt: { name: 'Portuguese (European)', native: 'Português', tone: 'Use formal European Portuguese (pt-PT). Professional tone for a B2B recruitment platform.' },
 };
 
 const config = LANG_CONFIG[LANG];

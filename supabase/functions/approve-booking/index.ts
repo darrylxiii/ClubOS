@@ -1,25 +1,22 @@
 import { createAuthenticatedHandler } from '../_shared/handler.ts';
+import { z, parseBody, uuidSchema } from '../_shared/validation.ts';
+import { sanitizeForEmail } from '../_shared/sanitize.ts';
+
+const approveSchema = z.object({
+  bookingId: uuidSchema,
+  action: z.enum(['approve', 'reject']),
+  rejectionReason: z.string().max(1000).trim().optional(),
+});
 
 Deno.serve(createAuthenticatedHandler(async (req, ctx) => {
     const corsHeaders = ctx.corsHeaders;
     const supabaseClient = ctx.supabase;
     const user = ctx.user;
 
-    const { bookingId, action, rejectionReason } = await req.json();
-
-    if (!bookingId || !action) {
-      return new Response(
-        JSON.stringify({ error: "Missing required fields: bookingId and action" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
-
-    if (!["approve", "reject"].includes(action)) {
-      return new Response(
-        JSON.stringify({ error: "Invalid action. Must be 'approve' or 'reject'" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
+    const parsed = await parseBody(req, approveSchema, corsHeaders);
+    if ('error' in parsed) return parsed.error;
+    const { bookingId, action, rejectionReason } = parsed.data;
+    const safeRejectionReason = sanitizeForEmail(rejectionReason);
 
     // Get the booking and verify ownership
     const { data: booking, error: bookingError } = await supabaseClient
@@ -197,8 +194,8 @@ Deno.serve(createAuthenticatedHandler(async (req, ctx) => {
             user_id: guestUser.id,
             type: 'booking_approval',
             title: `Booking request declined`,
-            content: rejectionReason 
-              ? `Your booking request for "${booking.booking_links?.title}" was declined: ${rejectionReason}`
+            content: safeRejectionReason
+              ? `Your booking request for "${booking.booking_links?.title}" was declined: ${safeRejectionReason}`
               : `Your booking request for "${booking.booking_links?.title}" could not be confirmed.`,
             action_url: `/book/${booking.booking_links?.slug}`,
             metadata: {
@@ -226,16 +223,16 @@ Deno.serve(createAuthenticatedHandler(async (req, ctx) => {
         const emailContent = `
           ${Heading({ text: 'Booking Request Update', level: 1 })}
           ${Spacer(16)}
-          ${Paragraph(`Hi ${booking.guest_name},`, 'primary')}
+          ${Paragraph(`Hi ${sanitizeForEmail(booking.guest_name)},`, 'primary')}
           ${Spacer(8)}
           ${Paragraph(`Unfortunately, your booking request for <strong>${meetingTitle}</strong> could not be confirmed.`, 'secondary')}
-          ${rejectionReason ? `
+          ${safeRejectionReason ? `
             ${Spacer(16)}
             ${Card({
               variant: 'default',
               content: `
                 <p style="margin: 0; font-size: 14px; font-weight: 600; color: ${EMAIL_COLORS.textSecondary};">Reason</p>
-                <p style="margin: 8px 0 0; font-size: 14px; color: ${EMAIL_COLORS.textPrimary};">${rejectionReason}</p>
+                <p style="margin: 8px 0 0; font-size: 14px; color: ${EMAIL_COLORS.textPrimary};">${safeRejectionReason}</p>
               `,
             })}
           ` : ''}

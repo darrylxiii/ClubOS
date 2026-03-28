@@ -58,6 +58,7 @@ import { ManualInterviewEntryDialog } from "@/components/partner/ManualInterview
 import { CalendarInterviewLinker } from "@/components/partner/CalendarInterviewLinker";
 
 export default function JobDashboard() {
+  const { t } = useTranslation('common');
   const { jobId } = useParams();
   const navigate = useNavigate();
   const { currentRole: role, loading: roleLoading } = useRole();

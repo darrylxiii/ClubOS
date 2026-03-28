@@ -4,17 +4,19 @@ import { baseEmailTemplate } from "../_shared/email-templates/base-template.ts";
 import { Button, Heading, Paragraph, Spacer, CodeBox, Card, InfoRow, Divider, AlertBox } from "../_shared/email-templates/components.ts";
 import { EMAIL_SENDERS, EMAIL_COLORS } from "../_shared/email-config.ts";
 import { sendEmail } from '../_shared/resend-client.ts';
+import { z, parseBody, emailSchema } from '../_shared/validation.ts';
+import { sanitizeForEmail, sanitizeTruncate } from '../_shared/sanitize.ts';
 
-interface PasswordResetEmailRequest {
-  email: string;
-  userName: string;
-  otpCode: string;
-  magicLink: string;
-  expiresInMinutes: number;
-  ipAddress: string;
-  deviceInfo: string;
-  correlationId?: string;
-}
+const requestSchema = z.object({
+  email: emailSchema,
+  userName: z.string().max(200).trim(),
+  otpCode: z.string(),
+  magicLink: z.string().url(),
+  expiresInMinutes: z.number().int().positive(),
+  ipAddress: z.string(),
+  deviceInfo: z.string(),
+  correlationId: z.string().optional(),
+});
 
 Deno.serve(createHandler(async (req, ctx) => {
   // Internal-only: require service_role key or matching internal secret
@@ -32,6 +34,8 @@ Deno.serve(createHandler(async (req, ctx) => {
     );
   }
 
+  const parsed = await parseBody(req, requestSchema, ctx.corsHeaders);
+  if ('error' in parsed) return parsed.error;
   const {
     email,
     userName,
@@ -41,14 +45,14 @@ Deno.serve(createHandler(async (req, ctx) => {
     ipAddress,
     deviceInfo,
     correlationId
-  }: PasswordResetEmailRequest = await req.json();
+  } = parsed.data;
 
   console.log(`[PasswordReset][${correlationId}][email] Sending password reset email`);
 
   const emailContent = `
     ${Heading({ text: 'Reset Your Password', level: 1, align: 'center' })}
     ${Spacer(24)}
-    ${Paragraph(`Hi ${userName},`, 'secondary')}
+    ${Paragraph(`Hi ${sanitizeForEmail(userName)},`, 'secondary')}
     ${Spacer(8)}
     ${Paragraph('We received a request to reset your password for The Quantum Club.', 'secondary')}
     ${Spacer(32)}
@@ -94,8 +98,8 @@ Deno.serve(createHandler(async (req, ctx) => {
       variant: 'default',
       content: `
         <p style="font-size: 12px; color: ${EMAIL_COLORS.textMuted}; margin: 0 0 8px 0;">Request details:</p>
-        ${InfoRow({ label: 'IP Address', value: ipAddress })}
-        ${InfoRow({ label: 'Device', value: deviceInfo.substring(0, 60) + '...' })}
+        ${InfoRow({ label: 'IP Address', value: sanitizeForEmail(ipAddress) })}
+        ${InfoRow({ label: 'Device', value: sanitizeTruncate(deviceInfo, 60) + '...' })}
       `
     })}
   `;

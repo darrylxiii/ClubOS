@@ -98,7 +98,7 @@ export const CourseCarousel = ({ title, courses, viewAllLink, showTrending, show
         {courses.map((course) => (
           <Link
             key={course.id}
-            to={`/academy/courses/${course.slug}`}
+            to={`/courses/${course.slug}`}
             className="snap-start"
           >
             <Card className="w-[300px] hover:shadow-lg transition-all hover:-translate-y-1 group">

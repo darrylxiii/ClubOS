@@ -1,3 +1,4 @@
+import { Helmet } from 'react-helmet-async';
 import { useTranslation } from 'react-i18next';
 import { LegalPageLayout } from "@/components/legal/LegalPageLayout";
 import { LegalSection } from "@/components/legal/LegalSection";
@@ -10,7 +11,7 @@ import quantumLogoDark from "@/assets/quantum-club-logo.png";
 
 export default function ReferralTerms() {
   const { t } = useTranslation('common');
-  const lastUpdated = "January 15, 2025";
+  const lastUpdated = "March 28, 2026";
 
   const sections = [
     { id: "overview", title: "Program Overview" },
@@ -46,6 +47,10 @@ export default function ReferralTerms() {
         </div>
       </div>
 
+      <Helmet>
+        <title>{t('legalPages.referralTerms', 'Referral Program Terms')} | The Quantum Club</title>
+        <meta name="description" content={t('legalPages.referralTermsDesc', 'Legal documentation for The Quantum Club recruitment platform.')} />
+      </Helmet>
       <LegalPageLayout
         title={t('legalPages.referralTerms', 'Referral Program Terms')}
         lastUpdated={lastUpdated}
@@ -337,10 +342,16 @@ export default function ReferralTerms() {
               Questions about the referral program? Contact us:
             </p>
             <div className="mt-4 space-y-2">
-              <p><strong>{"Referral Support:"}</strong> <a href="mailto:referrals@thequantumclub.com" className="text-primary hover:underline">{"referrals@thequantumclub.com"}</a></p>
-              <p><strong>{"General Support:"}</strong> <a href="mailto:support@thequantumclub.com" className="text-primary hover:underline">{"support@thequantumclub.com"}</a></p>
+              <p><strong>{"Referral Support:"}</strong> <a href="mailto:info@thequantumclub.com" className="text-primary hover:underline">{"info@thequantumclub.com"}</a></p>
+              <p><strong>{"General Support:"}</strong> <a href="mailto:info@thequantumclub.com" className="text-primary hover:underline">{"info@thequantumclub.com"}</a></p>
             </div>
           </LegalSection>
+        <div className="mt-12 p-6 bg-muted/50 rounded-lg">
+          <p className="text-sm text-muted-foreground text-center">
+            &copy; {new Date().getFullYear()} The Quantum Club B.V. All rights reserved. | Pieter Cornelisz. Hooftstraat 41-2, 1071BM, Amsterdam, The Netherlands | KvK: 93498871
+          </p>
+        </div>
+
         </div>
       </LegalPageLayout>
     </div>

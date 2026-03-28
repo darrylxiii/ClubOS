@@ -4,8 +4,9 @@ import {
   Heading, Paragraph, Spacer, Card, InfoRow,
   VideoCallCard, StatusBadge, MeetingPrepCard, CalendarButtons
 } from "../_shared/email-templates/components.ts";
-import { EMAIL_SENDERS, EMAIL_COLORS, getEmailAppUrl } from "../_shared/email-config.ts";
+import { EMAIL_SENDERS, EMAIL_COLORS, getEmailAppUrl, getEmailHeaders } from "../_shared/email-config.ts";
 import { sendEmail } from '../_shared/resend-client.ts';
+import { sanitizeForEmail } from '../_shared/sanitize.ts';
 
 Deno.serve(createHandler(async (req, ctx) => {
     const supabaseClient = ctx.supabase;
@@ -82,7 +83,8 @@ Deno.serve(createHandler(async (req, ctx) => {
         });
         const formattedTimeRange = `${formattedTime} - ${endDate.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" })}`;
 
-        const hostName = profile?.full_name || "Your Host";
+        const hostName = sanitizeForEmail(profile?.full_name) || "Your Host";
+        const safeGuestName = sanitizeForEmail(booking.guest_name);
 
         // Determine video meeting link
         let meetingLink = null;
@@ -109,7 +111,7 @@ Deno.serve(createHandler(async (req, ctx) => {
           ${StatusBadge({ status: 'reminder', text: 'MEETING TOMORROW' })}
           ${Heading({ text: 'Your Meeting is Tomorrow', level: 1, align: 'center' })}
           ${Spacer(24)}
-          ${Paragraph(`Hi ${booking.guest_name},`, 'primary')}
+          ${Paragraph(`Hi ${safeGuestName},`, 'primary')}
           ${Spacer(8)}
           ${Paragraph(`This is a friendly reminder about your upcoming meeting with <strong>${hostName}</strong>.`, 'secondary')}
           ${Spacer(32)}
@@ -168,6 +170,7 @@ Deno.serve(createHandler(async (req, ctx) => {
           to: [booking.guest_email],
           subject: `Reminder: ${booking.booking_links.title} Tomorrow at ${formattedTime}`,
           html: reminderHtml,
+          headers: getEmailHeaders(),
         });
 
         // Mark reminder as sent

@@ -9,21 +9,23 @@ import { baseEmailTemplate } from "../_shared/email-templates/base-template.ts";
 import {
   Heading, Paragraph, Spacer, Card, StatusBadge, InfoRow, Button,
 } from "../_shared/email-templates/components.ts";
-import { EMAIL_SENDERS, EMAIL_COLORS, getEmailAppUrl } from "../_shared/email-config.ts";
+import { EMAIL_SENDERS, EMAIL_COLORS, getEmailAppUrl, getEmailHeaders } from "../_shared/email-config.ts";
 import { sendEmail } from '../_shared/resend-client.ts';
+import { z, parseBody, uuidSchema, emailSchema } from '../_shared/validation.ts';
+import { sanitizeForEmail } from '../_shared/sanitize.ts';
 
-interface JobSubmittedRequest {
-  jobId: string;
-  jobTitle: string;
-  companyName: string;
-  submittedByName: string;
-  submittedByEmail: string;
-  employmentType: string;
-  location: string;
-  department?: string;
-  seniorityLevel?: string;
-  urgency?: string;
-}
+const requestSchema = z.object({
+  jobId: uuidSchema,
+  jobTitle: z.string().min(1).max(500).trim(),
+  companyName: z.string().min(1).max(300).trim(),
+  submittedByName: z.string().max(200).trim().optional().default(''),
+  submittedByEmail: emailSchema.optional().default(''),
+  employmentType: z.string().max(100).optional().default(''),
+  location: z.string().max(300).optional().default(''),
+  department: z.string().max(200).trim().optional(),
+  seniorityLevel: z.string().max(100).optional(),
+  urgency: z.string().max(100).optional(),
+});
 
 const EMPLOYMENT_LABELS: Record<string, string> = {
   fulltime: 'Full-time',
@@ -42,18 +44,18 @@ const URGENCY_LABELS: Record<string, string> = {
 };
 
 Deno.serve(createHandler(async (req, ctx) => {
-  const body: JobSubmittedRequest = await req.json();
+  const parsed = await parseBody(req, requestSchema, ctx.corsHeaders);
+  if ('error' in parsed) return parsed.error;
   const {
-    jobId, jobTitle, companyName, submittedByName, submittedByEmail,
-    employmentType, location, department, seniorityLevel, urgency,
-  } = body;
+    jobId, jobTitle: rawJobTitle, companyName: rawCompanyName, submittedByName: rawSubmittedByName,
+    submittedByEmail, employmentType, location, department: rawDepartment, seniorityLevel, urgency,
+  } = parsed.data;
 
-  if (!jobId || !jobTitle || !companyName) {
-    return new Response(
-      JSON.stringify({ error: 'jobId, jobTitle, and companyName are required' }),
-      { status: 400, headers: { ...ctx.corsHeaders, 'Content-Type': 'application/json' } }
-    );
-  }
+  // Sanitize user-supplied text for HTML embedding
+  const jobTitle = sanitizeForEmail(rawJobTitle);
+  const companyName = sanitizeForEmail(rawCompanyName);
+  const submittedByName = sanitizeForEmail(rawSubmittedByName);
+  const department = rawDepartment ? sanitizeForEmail(rawDepartment) : undefined;
 
   console.log(`[notify-admin-job-submitted] New role: ${jobTitle} at ${companyName}`);
 
@@ -126,6 +128,7 @@ Deno.serve(createHandler(async (req, ctx) => {
         to: adminEmails,
         subject: `New role submitted for review: ${jobTitle}`,
         html: htmlContent,
+        headers: getEmailHeaders(),
       });
       console.log('[notify-admin-job-submitted] Email sent:', result.id);
     } catch (emailErr) {

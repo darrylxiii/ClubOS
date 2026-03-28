@@ -50,10 +50,10 @@ interface ExpenseFormDialogProps {
 }
 
 const FREQUENCIES = [
-  { value: "monthly", label: t('financial.expenseformdialog.monthly', 'Monthly') },
-  { value: "quarterly", label: t('financial.expenseformdialog.quarterly', 'Quarterly') },
-  { value: "semi-annual", label: t('financial.expenseformdialog.semiannual', 'Semi-Annual') },
-  { value: "annual", label: t('financial.expenseformdialog.annual', 'Annual') },
+  { value: "monthly", label: 'Monthly' },
+  { value: "quarterly", label: 'Quarterly' },
+  { value: "semi-annual", label: 'Semi-Annual' },
+  { value: "annual", label: 'Annual' },
 ];
 
 const SUPPORTED_CURRENCIES: Currency[] = ['EUR', 'USD', 'GBP', 'AED'];

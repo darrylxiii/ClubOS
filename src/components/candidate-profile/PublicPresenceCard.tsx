@@ -15,11 +15,11 @@ export const PublicPresenceCard = ({ publicMentions }: Props) => {
         <CardHeader className="pb-3">
           <CardTitle className="flex items-center gap-2 text-base">
             <Globe className="w-4 h-4" />
-            Public Presence
+            {t('publicPresence.title', 'Public Presence')}
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-sm text-muted-foreground">Public presence not yet scanned.</p>
+          <p className="text-sm text-muted-foreground">{t('publicPresence.notYetScanned', 'Public presence not yet scanned.')}</p>
         </CardContent>
       </Card>
     );
@@ -34,11 +34,11 @@ export const PublicPresenceCard = ({ publicMentions }: Props) => {
         <CardHeader className="pb-3">
           <CardTitle className="flex items-center gap-2 text-base">
             <Globe className="w-4 h-4" />
-            Public Presence
+            {t('publicPresence.title', 'Public Presence')}
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-sm text-muted-foreground">No significant public mentions found.</p>
+          <p className="text-sm text-muted-foreground">{t('publicPresence.noMentionsFound', 'No significant public mentions found.')}</p>
         </CardContent>
       </Card>
     );
@@ -81,7 +81,7 @@ export const PublicPresenceCard = ({ publicMentions }: Props) => {
       <CardHeader className="pb-3">
         <CardTitle className="flex items-center gap-2 text-base">
           <Globe className="w-4 h-4" />
-          Public Presence
+          {t('publicPresence.title', 'Public Presence')}
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">

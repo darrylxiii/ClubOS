@@ -53,10 +53,10 @@ export function MaterialCard({
   const Icon = config.icon;
 
   return (
-    <Card className="squircle overflow-hidden hover-lift">
+    <Card className="rounded-2xl overflow-hidden hover-lift">
       {/* Illustration */}
       <div className={`h-40 bg-gradient-to-br ${illustrationColors[illustration as keyof typeof illustrationColors] || illustrationColors.design} p-4 flex items-center justify-center relative`}>
-        <Badge className="absolute top-3 left-3 squircle-sm bg-background/80 backdrop-blur-sm">
+        <Badge className="absolute top-3 left-3 rounded-xl bg-background/80 backdrop-blur-sm">
           {count} {countType}
         </Badge>
         <Icon className="h-16 w-16 text-primary/40" />
@@ -65,11 +65,11 @@ export function MaterialCard({
       {/* Content */}
       <div className="p-4 space-y-3">
         <div className="flex items-center gap-2">
-          <Badge className={`squircle-sm ${config.color}`}>
+          <Badge className={`rounded-xl ${config.color}`}>
             {config.label}
           </Badge>
           {certified && (
-            <Badge variant="outline" className="squircle-sm">
+            <Badge variant="outline" className="rounded-xl">
               Certified
             </Badge>
           )}
@@ -78,12 +78,12 @@ export function MaterialCard({
         <h3 className="font-semibold line-clamp-2 min-h-[3rem]">{title}</h3>
 
         <div className="flex items-center gap-2 text-sm">
-          <Badge variant="outline" className="squircle-sm">
+          <Badge variant="outline" className="rounded-xl">
             {category}
           </Badge>
           <Badge
             variant="outline"
-            className={`squircle-sm ${
+            className={`rounded-xl ${
               urgency === "Urgent"
                 ? "border-destructive/50 text-destructive"
                 : "border-muted-foreground/30 text-muted-foreground"
@@ -104,7 +104,7 @@ export function MaterialCard({
         )}
 
         {status === "Not Started" ? (
-          <Button className="w-full squircle-sm" variant="outline">
+          <Button className="w-full rounded-xl" variant="outline">
             Start
           </Button>
         ) : progress > 0 ? (
@@ -114,10 +114,10 @@ export function MaterialCard({
               <span className="font-semibold">{progress}%</span>
             </div>
             <Progress value={progress} className="h-1.5" />
-            <Button className="w-full squircle-sm">{t("continue", "Continue")}</Button>
+            <Button className="w-full rounded-xl">{t("continue", "Continue")}</Button>
           </div>
         ) : (
-          <Button className="w-full squircle-sm" variant="outline">
+          <Button className="w-full rounded-xl" variant="outline">
             View
           </Button>
         )}

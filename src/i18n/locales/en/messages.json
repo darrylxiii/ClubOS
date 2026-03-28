@@ -21,7 +21,12 @@
     "archived": "Archived",
     "spam": "Spam",
     "trash": "Trash",
-    "empty": "Your inbox is empty"
+    "empty": "Your inbox is empty",
+    "breadcrumb": {
+      "home": "Home",
+      "inbox": "Inbox"
+    },
+    "description": "Manage your email communications and notifications"
   },
   "sent": {
     "title": "Sent",
@@ -295,7 +300,9 @@
     "text3": "Messages",
     "text4": "Search conversations and messages...",
     "text5": "Select a conversation",
-    "text6": "Choose from your existing conversations or start a new one"
+    "text6": "Choose from your existing conversations or start a new one",
+    "failedToSendMessage": "Failed to send message",
+    "startYourFirstConversation": "Start Your First Conversation"
   },
   "whatsAppInbox": {
     "text1": "WhatsApp Business"

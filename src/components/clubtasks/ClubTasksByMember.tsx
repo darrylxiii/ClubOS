@@ -139,11 +139,11 @@ export const ClubTasksByMember = ({ objectiveId, onRefresh }: ClubTasksByMemberP
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="w-[120px]">ID</TableHead>
-                    <TableHead>Task Description</TableHead>
-                    <TableHead>Due Date</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Blocker</TableHead>
+                    <TableHead className="w-[120px]">{t('clubTasks.id', 'ID')}</TableHead>
+                    <TableHead>{t('clubTasks.taskDescription', 'Task Description')}</TableHead>
+                    <TableHead>{t('clubTasks.dueDate', 'Due Date')}</TableHead>
+                    <TableHead>{t('common:fields.status', 'Status')}</TableHead>
+                    <TableHead>{t('clubTasks.blocker', 'Blocker')}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>

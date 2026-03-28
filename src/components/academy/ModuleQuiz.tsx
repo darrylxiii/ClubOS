@@ -6,8 +6,9 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { supabase } from '@/integrations/supabase/client';
 import { notify } from '@/lib/notify';
-import { Check, X, Loader2, Trophy } from 'lucide-react';
+import { Check, X, Loader2, Trophy, Info } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { trackAssessmentInteraction } from '@/services/sessionTracking';
 
 interface Question {
@@ -136,6 +137,53 @@ export const ModuleQuiz = memo<ModuleQuizProps>(({ quizId, onComplete }) => {
           <p className="text-sm text-muted-foreground mt-2">
             {t('academy.passThreshold', { threshold: quiz?.passing_score || 70 })}
           </p>
+        </div>
+
+        {/* Question Review with Explanations */}
+        <div className="text-left space-y-4 mt-4">
+          <h4 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide">
+            {t('academy.reviewAnswers', 'Review Your Answers')}
+          </h4>
+          {questions.map((q, idx) => {
+            const userAnswer = answers[q.id];
+            const correctOption = q.options.find((o) => o.is_correct);
+            const isCorrect = userAnswer === correctOption?.text;
+
+            return (
+              <Card key={q.id} className="p-4 text-left space-y-2">
+                <div className="flex items-start gap-2">
+                  {isCorrect ? (
+                    <Check className="h-5 w-5 text-green-500 flex-shrink-0 mt-0.5" />
+                  ) : (
+                    <X className="h-5 w-5 text-destructive flex-shrink-0 mt-0.5" />
+                  )}
+                  <div className="flex-1">
+                    <p className="font-medium text-sm">{idx + 1}. {q.question_text}</p>
+                    <p className="text-sm mt-1">
+                      <span className="text-muted-foreground">{t('academy.yourAnswer', 'Your answer')}:</span>{' '}
+                      <span className={isCorrect ? 'text-green-600 font-medium' : 'text-destructive font-medium'}>
+                        {userAnswer || t('academy.noAnswer', 'No answer')}
+                      </span>
+                    </p>
+                    {!isCorrect && correctOption && (
+                      <p className="text-sm mt-0.5">
+                        <span className="text-muted-foreground">{t('academy.correctAnswer', 'Correct answer')}:</span>{' '}
+                        <span className="text-green-600 font-medium">{correctOption.text}</span>
+                      </p>
+                    )}
+                    {q.explanation && (
+                      <Alert className="mt-2 bg-muted/50">
+                        <Info className="h-4 w-4" />
+                        <AlertDescription className="text-xs">
+                          {q.explanation}
+                        </AlertDescription>
+                      </Alert>
+                    )}
+                  </div>
+                </div>
+              </Card>
+            );
+          })}
         </div>
 
         {!results.passed && (

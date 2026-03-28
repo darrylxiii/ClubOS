@@ -100,7 +100,7 @@ export const JobsCompactHeader = memo(({
                   <Search className="h-4 w-4" />
                 </Button>
               </TooltipTrigger>
-              <TooltipContent>Search (/ key)</TooltipContent>
+              <TooltipContent>{t('jobsCompactHeader.tooltip.search', 'Search (/ key)')}</TooltipContent>
             </Tooltip>
           )}
         </div>
@@ -128,12 +128,12 @@ export const JobsCompactHeader = memo(({
             
             <DropdownMenuItem onClick={() => onNavigate('/company-applications')} className="gap-2">
               <LayoutDashboard className="h-4 w-4" />
-              Applications Hub
+              {t('jobsCompactHeader.menu.applicationsHub', 'Applications Hub')}
             </DropdownMenuItem>
             
             <DropdownMenuItem onClick={() => onNavigate('/company-jobs')} className="gap-2">
               <Settings className="h-4 w-4" />
-              Company Settings
+              {t('jobsCompactHeader.menu.companySettings', 'Company Settings')}
             </DropdownMenuItem>
 
             {isAdmin && (
@@ -143,22 +143,22 @@ export const JobsCompactHeader = memo(({
                 
                 <DropdownMenuItem onClick={() => onNavigate('/admin/companies')} className="gap-2">
                   <Building2 className="h-4 w-4" />
-                  Company Management
+                  {t('jobsCompactHeader.menu.companyManagement', 'Company Management')}
                 </DropdownMenuItem>
                 
                 <DropdownMenuItem onClick={() => onNavigate('/admin/ai-config')} className="gap-2">
                   <Brain className="h-4 w-4" />
-                  AI Configuration
+                  {t('jobsCompactHeader.menu.aiConfiguration', 'AI Configuration')}
                 </DropdownMenuItem>
                 
                 <DropdownMenuItem onClick={() => onNavigate('/admin/club-sync-requests')} className="gap-2">
                   <Zap className="h-4 w-4" />
-                  Club Sync Requests
+                  {t('jobsCompactHeader.menu.clubSyncRequests', 'Club Sync Requests')}
                 </DropdownMenuItem>
                 
                 <DropdownMenuItem onClick={() => onNavigate('/admin/analytics')} className="gap-2">
                   <BarChart3 className="h-4 w-4" />
-                  Global Analytics
+                  {t('jobsCompactHeader.menu.globalAnalytics', 'Global Analytics')}
                 </DropdownMenuItem>
               </>
             )}
@@ -167,7 +167,7 @@ export const JobsCompactHeader = memo(({
             
             <DropdownMenuItem onClick={onRefresh} className="gap-2">
               <RefreshCw className="h-4 w-4" />
-              Refresh Data
+              {t('jobsCompactHeader.menu.refreshData', 'Refresh Data')}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

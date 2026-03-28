@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -16,6 +17,7 @@ import { RoleGate } from '@/components/RoleGate';
 export default function WhatsAppImport() {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const { t } = useTranslation('common');
 
   const [step, setStep] = useState(1);
   const [file, setFile] = useState<File | null>(null);
@@ -142,8 +144,8 @@ export default function WhatsAppImport() {
     <RoleGate allowedRoles={['admin', 'strategist']}>
       <div className="w-full px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold">Import WhatsApp Chat</h1>
-          <p className="text-muted-foreground">Upload a WhatsApp chat export to track company interactions</p>
+          <h1 className="text-3xl font-bold">{t('whatsappImport.title', 'Import WhatsApp Chat')}</h1>
+          <p className="text-muted-foreground">{t('whatsappImport.subtitle', 'Upload a WhatsApp chat export to track company interactions')}</p>
         </div>
 
         {/* Progress Steps */}
@@ -153,7 +155,7 @@ export default function WhatsAppImport() {
               <div className={`h-8 w-8 rounded-full flex items-center justify-center ${step >= 1 ? 'bg-primary text-primary-foreground' : 'bg-muted'}`}>
                 1
               </div>
-              <span className="font-medium">Upload File</span>
+              <span className="font-medium">{t('whatsappImport.steps.uploadFile', 'Upload File')}</span>
             </div>
             <div className="flex-1 h-1 mx-4 bg-muted">
               <div className={`h-full bg-primary transition-all ${step >= 2 ? 'w-full' : 'w-0'}`} />
@@ -162,7 +164,7 @@ export default function WhatsAppImport() {
               <div className={`h-8 w-8 rounded-full flex items-center justify-center ${step >= 2 ? 'bg-primary text-primary-foreground' : 'bg-muted'}`}>
                 2
               </div>
-              <span className="font-medium">Select Company</span>
+              <span className="font-medium">{t('whatsappImport.steps.selectCompany', 'Select Company')}</span>
             </div>
             <div className="flex-1 h-1 mx-4 bg-muted">
               <div className={`h-full bg-primary transition-all ${step >= 3 ? 'w-full' : 'w-0'}`} />
@@ -171,7 +173,7 @@ export default function WhatsAppImport() {
               <div className={`h-8 w-8 rounded-full flex items-center justify-center ${step >= 3 ? 'bg-primary text-primary-foreground' : 'bg-muted'}`}>
                 3
               </div>
-              <span className="font-medium">Processing</span>
+              <span className="font-medium">{t('whatsappImport.steps.processing', 'Processing')}</span>
             </div>
           </div>
         </div>
@@ -180,9 +182,9 @@ export default function WhatsAppImport() {
         {step === 1 && (
           <Card>
             <CardHeader>
-              <CardTitle>Upload WhatsApp Export</CardTitle>
+              <CardTitle>{t('whatsappImport.uploadTitle', 'Upload WhatsApp Export')}</CardTitle>
               <CardDescription>
-                Export your WhatsApp chat and upload the .txt file here
+                {t('whatsappImport.uploadDesc', 'Export your WhatsApp chat and upload the .txt file here')}
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -190,7 +192,7 @@ export default function WhatsAppImport() {
                 <div className="border-2 border-dashed rounded-lg p-12 text-center">
                   <Upload className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
                   <Label htmlFor="file-upload" className="cursor-pointer">
-                    <span className="text-lg font-medium">Choose a file</span>
+                    <span className="text-lg font-medium">{t('whatsappImport.chooseFile', 'Choose a file')}</span>
                     <p className="text-sm text-muted-foreground mt-2">
                       .txt or .zip files only
                     </p>
@@ -205,13 +207,13 @@ export default function WhatsAppImport() {
                 </div>
 
                 <div className="bg-muted p-4 rounded-lg">
-                  <h4 className="font-medium mb-2">How to export from WhatsApp:</h4>
+                  <h4 className="font-medium mb-2">{t('whatsappImport.howToExport', 'How to export from WhatsApp:')}</h4>
                   <ol className="list-decimal list-inside space-y-1 text-sm text-muted-foreground">
-                    <li>Open the WhatsApp chat you want to export</li>
-                    <li>Tap the three dots (⋮) menu</li>
-                    <li>Select "More" → "Export chat"</li>
-                    <li>Choose "Without Media"</li>
-                    <li>Save the .txt file and upload it here</li>
+                    <li>{t('whatsappImport.step1', 'Open the WhatsApp chat you want to export')}</li>
+                    <li>{t('whatsappImport.step2', 'Tap the three dots (⋮) menu')}</li>
+                    <li>{t('whatsappImport.step3', 'Select "More" → "Export chat"')}</li>
+                    <li>{t('whatsappImport.step4', 'Choose "Without Media"')}</li>
+                    <li>{t('whatsappImport.step5', 'Save the .txt file and upload it here')}</li>
                   </ol>
                 </div>
               </div>
@@ -224,8 +226,8 @@ export default function WhatsAppImport() {
           <div className="space-y-6">
             <Card>
               <CardHeader>
-                <CardTitle>Chat Preview</CardTitle>
-                <CardDescription>Preview of the first few messages</CardDescription>
+                <CardTitle>{t('whatsappImport.chatPreview', 'Chat Preview')}</CardTitle>
+                <CardDescription>{t('whatsappImport.chatPreviewDesc', 'Preview of the first few messages')}</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-2">
@@ -244,15 +246,15 @@ export default function WhatsAppImport() {
 
             <Card>
               <CardHeader>
-                <CardTitle>Select Company</CardTitle>
-                <CardDescription>Which company is this conversation about?</CardDescription>
+                <CardTitle>{t('whatsappImport.selectCompanyTitle', 'Select Company')}</CardTitle>
+                <CardDescription>{t('whatsappImport.selectCompanyDesc', 'Which company is this conversation about?')}</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-2">
-                  <Label>Company</Label>
+                  <Label>{t('whatsappImport.company', 'Company')}</Label>
                   <Select value={selectedCompanyId} onValueChange={setSelectedCompanyId}>
                     <SelectTrigger>
-                      <SelectValue placeholder="Select company" />
+                      <SelectValue placeholder={t('whatsappImport.selectCompanyPlaceholder', 'Select company')} />
                     </SelectTrigger>
                     <SelectContent>
                       {companies.map(company => (
@@ -270,7 +272,7 @@ export default function WhatsAppImport() {
                     onClick={() => setStep(1)}
                     className="flex-1"
                   >
-                    Back
+                    {t('common.back', 'Back')}
                   </Button>
                   <Button
                     onClick={handleUpload}
@@ -281,11 +283,11 @@ export default function WhatsAppImport() {
                     {uploading ? (
                       <>
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        <span className="sr-only">Import in progress</span>
-                        Import Chat
+                        <span className="sr-only">{t('whatsappImport.importInProgress', 'Import in progress')}</span>
+                        {t('whatsappImport.importChat', 'Import Chat')}
                       </>
                     ) : (
-                      'Import Chat'
+                      t('whatsappImport.importChat', 'Import Chat')
                     )}
                   </Button>
                 </div>
@@ -298,16 +300,16 @@ export default function WhatsAppImport() {
         {step === 3 && (
           <Card>
             <CardHeader>
-              <CardTitle>Processing Chat</CardTitle>
-              <CardDescription>Parsing messages and resolving participants...</CardDescription>
+              <CardTitle>{t('whatsappImport.processingChat', 'Processing Chat')}</CardTitle>
+              <CardDescription>{t('whatsappImport.processingDesc', 'Parsing messages and resolving participants...')}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="flex items-center gap-4">
                 <SectionLoader />
                 <div className="flex-1">
-                  <p className="font-medium">Analyzing messages</p>
+                  <p className="font-medium">{t('whatsappImport.analyzing', 'Analyzing messages')}</p>
                   <p className="text-sm text-muted-foreground">
-                    This may take a minute for large conversations
+                    {t('whatsappImport.analyzingDesc', 'This may take a minute for large conversations')}
                   </p>
                 </div>
               </div>
@@ -322,21 +324,21 @@ export default function WhatsAppImport() {
             <CardHeader>
               <div className="flex items-center gap-2">
                 <CheckCircle className="h-6 w-6 text-green-500" />
-                <CardTitle>Import Complete!</CardTitle>
+                <CardTitle>{t('whatsappImport.importComplete', 'Import Complete!')}</CardTitle>
               </div>
-              <CardDescription>Your WhatsApp chat has been successfully imported</CardDescription>
+              <CardDescription>{t('whatsappImport.importCompleteDesc', 'Your WhatsApp chat has been successfully imported')}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="grid grid-cols-3 gap-4">
                 <div className="p-4 bg-muted rounded-lg">
                   <FileText className="h-8 w-8 mb-2 text-primary" />
                   <div className="text-2xl font-bold">{importResult.total_messages}</div>
-                  <div className="text-sm text-muted-foreground">Messages</div>
+                  <div className="text-sm text-muted-foreground">{t('whatsappImport.messages', 'Messages')}</div>
                 </div>
                 <div className="p-4 bg-muted rounded-lg">
                   <Users className="h-8 w-8 mb-2 text-primary" />
                   <div className="text-2xl font-bold">{importResult.participants_detected?.length || 0}</div>
-                  <div className="text-sm text-muted-foreground">Participants</div>
+                  <div className="text-sm text-muted-foreground">{t('whatsappImport.participants', 'Participants')}</div>
                 </div>
                 <div className="p-4 bg-muted rounded-lg">
                   <Calendar className="h-8 w-8 mb-2 text-primary" />
@@ -352,7 +354,7 @@ export default function WhatsAppImport() {
                   onClick={() => navigate(`/companies/${selectedCompanyId}/intelligence`)}
                   className="flex-1"
                 >
-                  View Company Intelligence
+                  {t('whatsappImport.viewIntelligence', 'View Company Intelligence')}
                 </Button>
                 <Button
                   variant="outline"
@@ -364,7 +366,7 @@ export default function WhatsAppImport() {
                   }}
                   className="flex-1"
                 >
-                  Import Another
+                  {t('whatsappImport.importAnother', 'Import Another')}
                 </Button>
               </div>
             </CardContent>

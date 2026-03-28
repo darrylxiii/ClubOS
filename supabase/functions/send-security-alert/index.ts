@@ -4,20 +4,22 @@ import { Resend } from 'https://esm.sh/resend@2.0.0';
 import { baseEmailTemplate } from "../_shared/email-templates/base-template.ts";
 import { Heading, Paragraph, Spacer, Card, AlertBox, InfoRow } from "../_shared/email-templates/components.ts";
 import { EMAIL_SENDERS, EMAIL_COLORS, getEmailAppUrl, getEmailHeaders, htmlToPlainText } from "../_shared/email-config.ts";
+import { z, parseBody } from '../_shared/validation.ts';
+import { sanitizeForEmail, sanitizeTruncate } from '../_shared/sanitize.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-interface SecurityAlertRequest {
-  threat_type: string;
-  severity: 'low' | 'medium' | 'high' | 'critical';
-  ip_address?: string;
-  details: string;
-  actions_taken?: string[];
-  threat_id?: string;
-}
+const requestSchema = z.object({
+  threat_type: z.string().max(200),
+  severity: z.enum(['low', 'medium', 'high', 'critical']),
+  ip_address: z.string().optional(),
+  details: z.string().max(2000),
+  actions_taken: z.array(z.string().max(500)).optional(),
+  threat_id: z.string().optional(),
+});
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -30,7 +32,9 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     );
 
-    const body: SecurityAlertRequest = await req.json();
+    const parsed = await parseBody(req, requestSchema, corsHeaders);
+    if ('error' in parsed) return parsed.error;
+    const body = parsed.data;
     console.log('[send-security-alert] Received alert request:', body);
 
     // Get alert configuration
@@ -95,9 +99,14 @@ serve(async (req) => {
 
     const appUrl = getEmailAppUrl();
 
+    // Sanitize user-supplied values for email HTML
+    const safeThreatType = sanitizeForEmail(body.threat_type);
+    const safeDetails = sanitizeForEmail(body.details);
+    const safeIpAddress = body.ip_address ? sanitizeForEmail(body.ip_address) : '';
+
     // Build actions list
-    const actionsHtml = body.actions_taken?.length 
-      ? `<ul style="margin: 8px 0 0 0; padding-left: 20px;">${body.actions_taken.map(a => `<li style="margin-bottom: 4px;">${a}</li>`).join('')}</ul>`
+    const actionsHtml = body.actions_taken?.length
+      ? `<ul style="margin: 8px 0 0 0; padding-left: 20px;">${body.actions_taken.map(a => `<li style="margin-bottom: 4px;">${sanitizeForEmail(a)}</li>`).join('')}</ul>`
       : '';
 
     // Build email content
@@ -105,20 +114,20 @@ serve(async (req) => {
       ${AlertBox({
         type: alertTypeMap[body.severity],
         title: `${severityEmoji[body.severity]} Security Alert - ${body.severity.toUpperCase()}`,
-        message: body.threat_type,
+        message: safeThreatType,
       })}
-      
+
       ${Spacer(24)}
-      
+
       ${Card({
         variant: 'default',
         content: `
-          ${InfoRow({ icon: '🔍', label: 'Threat Type', value: body.threat_type })}
-          ${body.ip_address ? InfoRow({ icon: '🌐', label: 'IP Address', value: body.ip_address }) : ''}
+          ${InfoRow({ icon: '🔍', label: 'Threat Type', value: safeThreatType })}
+          ${safeIpAddress ? InfoRow({ icon: '🌐', label: 'IP Address', value: safeIpAddress }) : ''}
           ${InfoRow({ icon: '🕐', label: 'Time', value: new Date().toISOString() })}
           <div style="margin-top: 16px; padding-top: 16px; border-top: 1px solid rgba(255,255,255,0.1);">
             <p style="margin: 0 0 8px 0; font-weight: 600; color: ${EMAIL_COLORS.ivory};">Details:</p>
-            <p style="margin: 0; color: ${EMAIL_COLORS.textSecondary};">${body.details}</p>
+            <p style="margin: 0; color: ${EMAIL_COLORS.textSecondary};">${safeDetails}</p>
           </div>
           ${body.actions_taken?.length ? `
             <div style="margin-top: 16px; padding-top: 16px; border-top: 1px solid rgba(255,255,255,0.1);">
@@ -136,7 +145,7 @@ serve(async (req) => {
     `;
 
     const htmlContent = baseEmailTemplate({
-      preheader: `[${body.severity.toUpperCase()}] Security Alert: ${body.threat_type}`,
+      preheader: `[${body.severity.toUpperCase()}] Security Alert: ${safeThreatType}`,
       content: emailContent,
       showHeader: true,
       showFooter: true,

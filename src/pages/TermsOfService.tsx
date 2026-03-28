@@ -3,12 +3,16 @@ import { LegalPageLayout } from "@/components/legal/LegalPageLayout";
 import { LegalSection } from "@/components/legal/LegalSection";
 import { Card } from "@/components/ui/card";
 import { FileText } from "lucide-react";
+import { Helmet } from "react-helmet-async";
+import { useTranslation } from "react-i18next";
 
 const TermsOfService = () => {
-  const lastUpdated = "January 15, 2025";
+  const { t } = useTranslation('common');
+  const lastUpdated = "March 28, 2026";
   
   const sections = [
     { id: "agreement", title: "Agreement to Terms" },
+    { id: "eligibility", title: "Eligibility & Age Verification" },
     { id: "definitions", title: "Definitions" },
     { id: "accounts", title: "User Accounts" },
     { id: "acceptable-use", title: "Acceptable Use Policy" },
@@ -33,10 +37,15 @@ const TermsOfService = () => {
 
   return (
     <>
+      <Helmet>
+        <title>{t('legalPages.termsOfService', 'Terms of Service')} | The Quantum Club</title>
+        <meta name="description" content={t('legalPages.termsOfServiceDesc', 'Terms of Service for The Quantum Club recruitment platform.')} />
+      </Helmet>
       <LegalPageLayout
         title="Terms of Service" 
         lastUpdated={lastUpdated}
         sections={sections}
+        description="Terms of Service for The Quantum Club recruitment platform. Covers user agreements, acceptable use, referral programs, and legal obligations under Dutch law."
       >
         <div className="space-y-8">
           <Card className="p-6 bg-primary/5 border-primary/20">
@@ -61,8 +70,17 @@ const TermsOfService = () => {
               If you do not agree with any of these terms, you are prohibited from using or accessing this site. 
               The materials contained in this Platform are protected by applicable copyright and trademark law.
             </p>
-            <p className="mt-4">
-              <strong>Minimum Age:</strong> You must be at least 18 years old to use The Quantum Club.
+            <div className="p-4 bg-primary/5 rounded-md border border-primary/20 mt-6 mb-4">
+              <h4 className="font-semibold text-primary mb-2">Age Restriction & Zero-Knowledge Verification</h4>
+              <p className="text-sm text-foreground">
+                You must be at least sixteen (16) years of age, or the legal age of majority in your jurisdiction, to create an account on Club OS.
+              </p>
+            </div>
+            <p className="text-muted-foreground mb-4">
+              <strong>1. Strict Prohibition:</strong> The Platform is not intended for, and strictly prohibits use by, anyone under 16 years of age in compliance with the General Data Protection Regulation (GDPR) and the Children's Online Privacy Protection Act (COPPA).
+            </p>
+            <p className="text-muted-foreground">
+              <strong>2. Cryptographic Remediation:</strong> In the event we discover that an account has been created by an individual under the required age without verified parental consent, our systems initiate an immediate, zero-knowledge cryptographic shredding protocol. All associated personal data is permanently destroyed from our active servers and immutable logs within 24 hours of discovery.
             </p>
             <p className="mt-4 font-semibold">
               Effective Date: {lastUpdated}
@@ -99,7 +117,7 @@ const TermsOfService = () => {
                 <p className="text-muted-foreground">
                   You are responsible for maintaining the confidentiality of your password and account. 
                   We strongly recommend enabling 2FA/MFA. Notify us immediately of any unauthorized access 
-                  via privacy@thequantumclub.com.
+                  via info@thequantumclub.com.
                 </p>
               </div>
 
@@ -578,9 +596,11 @@ const TermsOfService = () => {
           <LegalSection id="contact" title="Contact">
             <div className="space-y-3">
               <p><strong>For legal inquiries or questions about these Terms:</strong></p>
-              <p><strong>Email:</strong> legal@thequantumclub.com</p>
-              <p><strong>Privacy matters:</strong> privacy@thequantumclub.com</p>
-              <p><strong>Address:</strong> The Quantum Club B.V., Amsterdam, Netherlands</p>
+              <p><strong>Support & Legal Email:</strong> info@thequantumclub.com</p>
+              <p><strong>Data Protection Officer (DPO):</strong> info@thequantumclub.com</p>
+              <p><strong>Address:</strong> The Quantum Club B.V., Pieter Cornelisz. Hooftstraat 41-2, 1071BM, Amsterdam, The Netherlands</p>
+              <p><strong>KvK Number:</strong> 93498871</p>
+              <p><strong>VAT Number:</strong> Registration in Progress, The Netherlands</p>
             </div>
             <p className="mt-6 text-muted-foreground">
               <strong>Response Time:</strong> We aim to respond to all inquiries within 5-7 business days.
@@ -589,7 +609,7 @@ const TermsOfService = () => {
 
           <div className="mt-12 p-6 bg-muted/50 rounded-lg">
             <p className="text-sm text-muted-foreground text-center">
-              © 2025 The Quantum Club B.V. All rights reserved. | Amsterdam, Netherlands
+              &copy; {new Date().getFullYear()} The Quantum Club B.V. All rights reserved. | Pieter Cornelisz. Hooftstraat 41-2, 1071BM, Amsterdam, The Netherlands | KvK: 93498871
             </p>
           </div>
         </div>

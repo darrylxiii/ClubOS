@@ -36,7 +36,7 @@ const getNextAction = (
   if (activeStageCount > 0 && activeStageCount >= candidateCount * 0.5) {
     return {
       icon: MessageSquare,
-      message: t('partner.candidatesAwaitingFeedback', '{{count}} candidate(s) awaiting feedback', { count: activeStageCount }),
+      message: `${activeStageCount} candidate(s) awaiting feedback`,
       variant: 'warning',
     };
   }
@@ -45,7 +45,7 @@ const getNextAction = (
   if (daysOpen > 45 && candidateCount < 5) {
     return {
       icon: TrendingUp,
-      message: t('partner.considerPromoting', 'Consider promoting \u2014 low applicants'),
+      message: 'Consider promoting \u2014 low applicants',
       variant: 'warning',
     };
   }
@@ -54,7 +54,7 @@ const getNextAction = (
   if (lastActivityDays !== null && lastActivityDays > 7 && activeStageCount > 0) {
     return {
       icon: Clock,
-      message: t('partner.pipelineStalled', 'Pipeline stalled \u2014 check in'),
+      message: 'Pipeline stalled \u2014 check in',
       variant: 'warning',
     };
   }
@@ -63,7 +63,7 @@ const getNextAction = (
   if (conversionRate !== null && conversionRate >= 20) {
     return {
       icon: Trophy,
-      message: t('partner.highPerformingRole', 'High performing role'),
+      message: 'High performing role',
       variant: 'success',
     };
   }
@@ -72,7 +72,7 @@ const getNextAction = (
   if (candidateCount >= 10 && activeStageCount > 0) {
     return {
       icon: Users,
-      message: t('partner.strongPipeline', 'Strong pipeline \u2014 review candidates'),
+      message: 'Strong pipeline \u2014 review candidates',
       variant: 'info',
     };
   }

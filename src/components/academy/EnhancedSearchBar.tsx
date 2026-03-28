@@ -27,12 +27,12 @@ export const EnhancedSearchBar = memo<EnhancedSearchBarProps>(({
 
   return (
     <div className="relative">
-      <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+      <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground/60" />
       <Input
         value={localValue}
         onChange={(e) => setLocalValue(e.target.value)}
         placeholder={placeholder || t('academy.searchPlaceholder', 'Search courses, skills, topics...')}
-        className="pl-10 h-12 text-base"
+        className="glass border-border/30 rounded-xl h-12 pl-11 text-sm"
       />
       {localValue && resultsCount !== undefined && (
         <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">

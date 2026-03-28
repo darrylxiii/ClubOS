@@ -41,16 +41,16 @@ interface Company {
 }
 
 const AVAILABLE_ROLES = [
-  { value: 'admin', label: t('unifiedusermanagementtsx.unifiedusermanagement.admin', 'Admin'), description: t('unifiedusermanagementtsx.unifiedusermanagement.fullSystemAccess', 'Full system access') },
-  { value: 'strategist', label: t('unifiedusermanagementtsx.unifiedusermanagement.talentStrategist', 'Talent Strategist'), description: t('unifiedusermanagementtsx.unifiedusermanagement.manageCandidatesAndPlacements', 'Manage candidates and placements') },
-  { value: 'partner', label: t('unifiedusermanagementtsx.unifiedusermanagement.partner', 'Partner'), description: t('unifiedusermanagementtsx.unifiedusermanagement.companyPartnerWithFullHiringPipeline', 'Company partner with full hiring pipeline control') },
-  { value: 'user', label: t('unifiedusermanagementtsx.unifiedusermanagement.candidate', 'Candidate'), description: t('unifiedusermanagementtsx.unifiedusermanagement.standardUserAccess', 'Standard user access') },
+  { value: 'admin', label: 'Admin', description: 'Full system access' },
+  { value: 'strategist', label: 'Talent Strategist', description: 'Manage candidates and placements' },
+  { value: 'partner', label: 'Partner', description: 'Company partner with full hiring pipeline control' },
+  { value: 'user', label: 'Candidate', description: 'Standard user access' },
 ];
 
 const COMPANY_ROLES = [
-  { value: 'owner', label: t('unifiedusermanagementtsx.unifiedusermanagement.owner', 'Owner') },
-  { value: 'admin', label: t('unifiedusermanagementtsx.unifiedusermanagement.admin', 'Admin') },
-  { value: 'recruiter', label: t('unifiedusermanagementtsx.unifiedusermanagement.recruiter', 'Recruiter') },
+  { value: 'owner', label: 'Owner' },
+  { value: 'admin', label: 'Admin' },
+  { value: 'recruiter', label: 'Recruiter' },
 ];
 
 export function UnifiedUserManagement() {

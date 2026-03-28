@@ -1,251 +1,204 @@
-import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { createHandler } from '../_shared/handler.ts';
 import { baseEmailTemplate } from "../_shared/email-templates/base-template.ts";
-import { EMAIL_SENDERS } from "../_shared/email-config.ts";
+import {
+  Heading, Paragraph, Spacer, Card, InfoRow, StatusBadge
+} from "../_shared/email-templates/components.ts";
+import { EMAIL_SENDERS, EMAIL_COLORS } from "../_shared/email-config.ts";
 import { sendEmail } from '../_shared/resend-client.ts';
 import { checkUserRateLimit, createRateLimitResponse } from "../_shared/rate-limiter.ts";
-import { getCorsHeaders } from '../_shared/cors.ts';
+import { z, parseBody, uuidSchema } from '../_shared/validation.ts';
+import { sanitizeForEmail } from '../_shared/sanitize.ts';
 
-serve(async (req) => {
-  const corsHeaders = getCorsHeaders(req);
-  if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
+Deno.serve(createHandler(async (req, ctx) => {
+  // Rate limiting: 10 cancellations per 15 minutes per IP
+  const clientIp = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown';
+  const rateLimit = await checkUserRateLimit(clientIp, 'cancel-booking', 10, 15 * 60 * 1000);
+  if (!rateLimit.allowed) {
+    return createRateLimitResponse(rateLimit.retryAfter!, ctx.corsHeaders);
   }
 
-  try {
-    // Rate limiting: 10 cancellations per 15 minutes per IP
-    const clientIp = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown';
-    const rateLimit = await checkUserRateLimit(clientIp, 'cancel-booking', 10, 15 * 60 * 1000);
-    if (!rateLimit.allowed) {
-      return createRateLimitResponse(rateLimit.retryAfter!, corsHeaders);
-    }
+  const cancelSchema = z.object({
+    bookingId: uuidSchema,
+    reason: z.string().min(1, 'Reason is required').max(1000).trim(),
+  });
 
-    const { bookingId, reason } = await req.json();
+  const parsed = await parseBody(req, cancelSchema, ctx.corsHeaders);
+  if ('error' in parsed) return parsed.error;
+  const { bookingId, reason } = parsed.data;
 
-    if (!bookingId || !reason) {
-      return new Response(
-        JSON.stringify({ error: "Missing bookingId or reason" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
+  const safeReason = sanitizeForEmail(reason);
 
-    const supabaseClient = createClient(
-      Deno.env.get("SUPABASE_URL") ?? "",
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
+  // Get booking details first
+  const { data: booking, error: fetchError } = await ctx.supabase
+    .from("bookings")
+    .select(`
+      *,
+      booking_links!inner(
+        title,
+        user_id
+      )
+    `)
+    .eq("id", bookingId)
+    .single();
+
+  if (fetchError || !booking) {
+    console.error("[cancel-booking] Booking fetch error:", fetchError);
+    throw new Error("Booking not found");
+  }
+
+  // Fetch owner profile separately (more robust than nested query)
+  const { data: ownerProfile, error: profileError } = await ctx.supabase
+    .from("profiles")
+    .select("email, full_name")
+    .eq("id", booking.booking_links.user_id)
+    .single();
+
+  if (profileError) {
+    console.error("[cancel-booking] Owner profile fetch error:", profileError);
+  }
+
+  console.log("[cancel-booking] Owner profile:", ownerProfile?.email || "not found");
+
+  if (booking.status === "cancelled") {
+    return new Response(
+      JSON.stringify({ error: "Booking already cancelled" }),
+      { status: 400, headers: { ...ctx.corsHeaders, "Content-Type": "application/json" } }
     );
+  }
 
-    // Get booking details first
-    const { data: booking, error: fetchError } = await supabaseClient
-      .from("bookings")
-      .select(`
-        *,
-        booking_links!inner(
-          title,
-          user_id
-        )
-      `)
-      .eq("id", bookingId)
-      .single();
+  // Update booking status
+  const { error: updateError } = await ctx.supabase
+    .from("bookings")
+    .update({
+      status: "cancelled",
+      cancelled_at: new Date().toISOString(),
+      cancellation_reason: reason,
+    })
+    .eq("id", bookingId);
 
-    if (fetchError || !booking) {
-      console.error("[Cancel] Booking fetch error:", fetchError);
-      throw new Error("Booking not found");
-    }
+  if (updateError) throw updateError;
 
-    // Fetch owner profile separately (more robust than nested query)
-    const { data: ownerProfile, error: profileError } = await supabaseClient
-      .from("profiles")
-      .select("email, full_name")
-      .eq("id", booking.booking_links.user_id)
-      .single();
-
-    if (profileError) {
-      console.error("[Cancel] Owner profile fetch error:", profileError);
-    }
-    
-    console.log("[Cancel] Owner profile:", ownerProfile?.email || "not found");
-
-    if (booking.status === "cancelled") {
-      return new Response(
-        JSON.stringify({ error: "Booking already cancelled" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
-
-    // Update booking status
-    const { error: updateError } = await supabaseClient
-      .from("bookings")
+  // Cancel linked Quantum Club meeting if exists
+  if (booking.meeting_id) {
+    const { error: meetingCancelError } = await ctx.supabase
+      .from("meetings")
       .update({
-        status: "cancelled",
-        cancelled_at: new Date().toISOString(),
-        cancellation_reason: reason,
+        status: 'cancelled',
+        updated_at: new Date().toISOString(),
       })
-      .eq("id", bookingId);
+      .eq("id", booking.meeting_id);
 
-    if (updateError) throw updateError;
-
-    // Cancel linked Quantum Club meeting if exists
-    if (booking.meeting_id) {
-      const { error: meetingCancelError } = await supabaseClient
-        .from("meetings")
-        .update({
-          status: 'cancelled',
-          updated_at: new Date().toISOString(),
-        })
-        .eq("id", booking.meeting_id);
-
-      if (meetingCancelError) {
-        console.error("[Cancel] Failed to cancel linked meeting:", meetingCancelError);
-      } else {
-        console.log(`[Cancel] Cancelled linked meeting ${booking.meeting_id}`);
-      }
+    if (meetingCancelError) {
+      console.error("[cancel-booking] Failed to cancel linked meeting:", meetingCancelError);
+    } else {
+      console.log(`[cancel-booking] Cancelled linked meeting ${booking.meeting_id}`);
     }
+  }
 
-    // Delete calendar event if synced
-    if (booking.synced_to_calendar && booking.calendar_event_id) {
-      try {
-        const functionName = booking.calendar_provider === "google"
-          ? "google-calendar-events"
-          : "microsoft-calendar-events";
+  // Delete calendar event if synced
+  if (booking.synced_to_calendar && booking.calendar_event_id) {
+    try {
+      const functionName = booking.calendar_provider === "google"
+        ? "google-calendar-events"
+        : "microsoft-calendar-events";
 
-        await supabaseClient.functions.invoke(functionName, {
-          body: {
-            action: "deleteEvent",
-            eventId: booking.calendar_event_id,
-            connectionId: booking.booking_links.user_id,
-          },
-        });
-      } catch (calError) {
-        console.error("Calendar deletion failed:", calError);
-      }
+      await ctx.supabase.functions.invoke(functionName, {
+        body: {
+          action: "deleteEvent",
+          eventId: booking.calendar_event_id,
+          connectionId: booking.booking_links.user_id,
+        },
+      });
+    } catch (calError) {
+      console.error("[cancel-booking] Calendar deletion failed:", calError);
     }
+  }
 
-    // Send cancellation emails
-    const formattedDate = new Date(booking.scheduled_start).toLocaleDateString("en-US", {
-      weekday: "long",
-      year: "numeric",
-      month: "long",
-      day: "numeric",
+  // Send cancellation emails
+  const formattedDate = new Date(booking.scheduled_start).toLocaleDateString("en-US", {
+    weekday: "long",
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
+  const formattedTime = new Date(booking.scheduled_start).toLocaleTimeString("en-US", {
+    hour: "numeric",
+    minute: "2-digit",
+    timeZoneName: "short",
+  });
+
+  // Email to guest
+  const guestContent = `
+    ${StatusBadge({ status: 'cancelled', text: 'BOOKING CANCELLED' })}
+    ${Heading({ text: 'Your Booking Has Been Cancelled', level: 1 })}
+    ${Spacer(8)}
+    ${Paragraph(`Your booking for <strong>${booking.booking_links.title}</strong> has been cancelled.`, 'secondary')}
+    ${Spacer(24)}
+    ${Card({
+      variant: 'warning',
+      content: `
+        ${Heading({ text: 'Cancelled Booking Details', level: 3 })}
+        ${Spacer(16)}
+        ${InfoRow({ label: 'Date', value: formattedDate })}
+        ${InfoRow({ label: 'Time', value: formattedTime })}
+        ${InfoRow({ label: 'Reason', value: safeReason })}
+      `
+    })}
+    ${Spacer(24)}
+    ${Paragraph('Need to reschedule? Book a new time at any time.', 'muted')}
+  `;
+
+  const safeGuestName = sanitizeForEmail(booking.guest_name);
+
+  try {
+    await sendEmail({
+      from: EMAIL_SENDERS.bookings,
+      to: [booking.guest_email],
+      subject: `Booking Cancelled - ${booking.booking_links.title}`,
+      html: baseEmailTemplate({ content: guestContent }),
     });
-    const formattedTime = new Date(booking.scheduled_start).toLocaleTimeString("en-US", {
-      hour: "numeric",
-      minute: "2-digit",
-      timeZoneName: "short",
-    });
+    console.log("[cancel-booking] Guest cancellation email sent to:", booking.guest_email);
+  } catch (emailErr) {
+    console.error("[cancel-booking] Guest email send failed:", emailErr);
+  }
 
-    // Email to guest
-    const guestContent = `
-      <div style="text-align: center; margin-bottom: 32px;">
-        <div style="display: inline-block; padding: 8px 16px; background-color: #FEE2E2; color: #DC2626; border-radius: 8px; font-weight: 600; font-size: 14px; margin-bottom: 24px;">
-          BOOKING CANCELLED
-        </div>
-      </div>
-
-      <h1 class="text-primary" style="font-size: 28px; font-weight: 700; margin: 0 0 16px 0; line-height: 1.3;">
-        Your Booking Has Been Cancelled
-      </h1>
-
-      <p class="text-secondary" style="font-size: 16px; line-height: 1.6; margin: 0 0 32px 0;">
-        Your booking for <strong>${booking.booking_links.title}</strong> has been cancelled.
-      </p>
-
-      <div class="bg-card" style="padding: 24px; border-radius: 12px; margin-bottom: 32px;">
-        <h3 class="text-primary" style="font-size: 18px; font-weight: 600; margin: 0 0 16px 0;">Cancelled Booking Details</h3>
-        <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="font-size: 15px;">
-          <tr>
-            <td class="text-secondary" style="padding: 8px 0;"><strong>Date:</strong></td>
-            <td class="text-primary" style="padding: 8px 0; text-align: right;">${formattedDate}</td>
-          </tr>
-          <tr>
-            <td class="text-secondary" style="padding: 8px 0;"><strong>Time:</strong></td>
-            <td class="text-primary" style="padding: 8px 0; text-align: right;">${formattedTime}</td>
-          </tr>
-          <tr>
-            <td class="text-secondary" style="padding: 8px 0;"><strong>Reason:</strong></td>
-            <td class="text-primary" style="padding: 8px 0; text-align: right;">${reason}</td>
-          </tr>
-        </table>
-      </div>
-
-      <p class="text-secondary" style="font-size: 14px; line-height: 1.6; margin: 0;">
-        Need to reschedule? Book a new time at any time.
-      </p>
+  // Email to owner
+  const ownerEmail = ownerProfile?.email;
+  if (ownerEmail) {
+    const ownerContent = `
+      ${Heading({ text: 'Booking Cancellation Notice', level: 1 })}
+      ${Spacer(8)}
+      ${Paragraph(`${safeGuestName} has cancelled their booking.`, 'secondary')}
+      ${Spacer(24)}
+      ${Card({
+        variant: 'warning',
+        content: `
+          ${InfoRow({ label: 'Guest', value: safeGuestName })}
+          ${InfoRow({ label: 'Email', value: booking.guest_email })}
+          ${InfoRow({ label: 'Date', value: formattedDate })}
+          ${InfoRow({ label: 'Time', value: formattedTime })}
+          ${InfoRow({ label: 'Reason', value: safeReason })}
+        `
+      })}
     `;
 
     try {
       await sendEmail({
         from: EMAIL_SENDERS.bookings,
-        to: [booking.guest_email],
-        subject: `Booking Cancelled - ${booking.booking_links.title}`,
-        html: baseEmailTemplate({ content: guestContent }),
+        to: [ownerEmail],
+        subject: `Booking Cancelled - ${booking.guest_name}`,
+        html: baseEmailTemplate({ content: ownerContent }),
       });
-      console.log("[Cancel] Guest cancellation email sent to:", booking.guest_email);
+      console.log("[cancel-booking] Owner cancellation email sent to:", ownerEmail);
     } catch (emailErr) {
-      console.error("[Cancel] Guest email send failed:", emailErr);
+      console.error("[cancel-booking] Owner email send failed:", emailErr);
     }
-
-    // Email to owner
-    const ownerEmail = ownerProfile?.email;
-    if (ownerEmail) {
-      const ownerContent = `
-        <h1 class="text-primary" style="font-size: 28px; font-weight: 700; margin: 0 0 16px 0;">
-          Booking Cancellation Notice
-        </h1>
-
-        <p class="text-secondary" style="font-size: 16px; line-height: 1.6; margin: 0 0 24px 0;">
-          ${booking.guest_name} has cancelled their booking.
-        </p>
-
-        <div class="bg-card" style="padding: 24px; border-radius: 12px; margin-bottom: 24px;">
-          <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="font-size: 15px;">
-            <tr>
-              <td class="text-secondary" style="padding: 8px 0;"><strong>Guest:</strong></td>
-              <td class="text-primary" style="padding: 8px 0; text-align: right;">${booking.guest_name}</td>
-            </tr>
-            <tr>
-              <td class="text-secondary" style="padding: 8px 0;"><strong>Email:</strong></td>
-              <td class="text-primary" style="padding: 8px 0; text-align: right;">${booking.guest_email}</td>
-            </tr>
-            <tr>
-              <td class="text-secondary" style="padding: 8px 0;"><strong>Date:</strong></td>
-              <td class="text-primary" style="padding: 8px 0; text-align: right;">${formattedDate}</td>
-            </tr>
-            <tr>
-              <td class="text-secondary" style="padding: 8px 0;"><strong>Time:</strong></td>
-              <td class="text-primary" style="padding: 8px 0; text-align: right;">${formattedTime}</td>
-            </tr>
-            <tr>
-              <td class="text-secondary" style="padding: 8px 0;"><strong>Reason:</strong></td>
-              <td class="text-primary" style="padding: 8px 0; text-align: right;">${reason}</td>
-            </tr>
-          </table>
-        </div>
-      `;
-
-      try {
-        await sendEmail({
-          from: EMAIL_SENDERS.bookings,
-          to: [ownerEmail],
-          subject: `Booking Cancelled - ${booking.guest_name}`,
-          html: baseEmailTemplate({ content: ownerContent }),
-        });
-        console.log("[Cancel] Owner cancellation email sent to:", ownerEmail);
-      } catch (emailErr) {
-        console.error("[Cancel] Owner email send failed:", emailErr);
-      }
-    } else {
-      console.warn("[Cancel] No owner email found, skipping owner notification");
-    }
-
-    return new Response(
-      JSON.stringify({ success: true }),
-      { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
-  } catch (error: any) {
-    console.error("Error cancelling booking:", error);
-    return new Response(
-      JSON.stringify({ error: error.message }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
+  } else {
+    console.warn("[cancel-booking] No owner email found, skipping owner notification");
   }
-});
+
+  return new Response(
+    JSON.stringify({ success: true }),
+    { status: 200, headers: { ...ctx.corsHeaders, "Content-Type": "application/json" } }
+  );
+}));

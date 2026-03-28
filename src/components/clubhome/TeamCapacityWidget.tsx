@@ -8,6 +8,21 @@ import { StrategistManagementModal } from "@/components/admin/StrategistManageme
 import { cn } from "@/lib/utils";
 import { useTranslation } from 'react-i18next';
 import { formatDistanceToNow } from "date-fns";
+import { enUS, fr, nl, de, es, it, pt, ru, zhCN, arSA } from "date-fns/locale";
+import type { Locale } from "date-fns";
+
+const DATE_FNS_LOCALES: Record<string, Locale> = {
+  en: enUS,
+  fr,
+  nl,
+  de,
+  es,
+  it,
+  pt,
+  ru,
+  zh: zhCN,
+  ar: arSA,
+};
 
 const getCapacityColor = (percent: number) => {
   if (percent >= 85) return { bar: "bg-destructive", text: "text-destructive" };
@@ -27,7 +42,8 @@ const formatRevenue = (amount: number) => {
 const RANK_COLORS = ["bg-amber-500", "bg-slate-400", "bg-orange-700"];
 
 export const TeamCapacityWidget = () => {
-  const { t } = useTranslation('common');
+  const { t, i18n } = useTranslation('common');
+  const dateLocale = DATE_FNS_LOCALES[i18n.language.split('-')[0]] ?? enUS;
   const { data: workloads, isLoading } = useStrategistWorkload();
   const [modalOpen, setModalOpen] = useState(false);
 
@@ -44,19 +60,19 @@ export const TeamCapacityWidget = () => {
         icon={Users}
         isLoading={isLoading}
         isEmpty={!visible.length}
-        emptyMessage="No strategists assigned yet"
+        emptyMessage={t('home.teamCapacity.noStrategists')}
         headerAction={
           <Button variant="ghost" size="sm" className="text-xs text-muted-foreground gap-1 h-7 px-2" onClick={() => setModalOpen(true)}>
-            Manage <ExternalLink className="h-3 w-3" />
+            {t('home.teamCapacity.manage')} <ExternalLink className="h-3 w-3" />
           </Button>
         }
       >
         <div className="space-y-3">
           {sorted.length > 0 && (
             <div className="flex items-center gap-3 text-[11px] text-muted-foreground font-medium px-1 pb-1 border-b border-white/5">
-              <span className="flex items-center gap-1"><Trophy className="h-3 w-3 text-amber-500" />{totalPlacements} placed</span>
+              <span className="flex items-center gap-1"><Trophy className="h-3 w-3 text-amber-500" />{t('home.teamCapacity.placedCount', { count: totalPlacements })}</span>
               <span className="text-white/10">|</span>
-              <span className="flex items-center gap-1"><DollarSign className="h-3 w-3 text-emerald-500" />{formatRevenue(totalRevenue)} revenue</span>
+              <span className="flex items-center gap-1"><DollarSign className="h-3 w-3 text-emerald-500" />{t('home.teamCapacity.revenueAmount', { amount: formatRevenue(totalRevenue) })}</span>
             </div>
           )}
 
@@ -82,7 +98,9 @@ export const TeamCapacityWidget = () => {
                       <span className="text-[13px] font-semibold tracking-tight truncate text-foreground/90 group-hover:text-foreground transition-colors block">{s.full_name}</span>
                       {s.lastActiveAt && (
                         <span className="text-[9px] text-muted-foreground/50 font-medium">
-                          Active {formatDistanceToNow(new Date(s.lastActiveAt), { addSuffix: false })} ago
+                          {t('home.teamCapacity.memberLastActive', {
+                            time: formatDistanceToNow(new Date(s.lastActiveAt), { addSuffix: true, locale: dateLocale }),
+                          })}
                         </span>
                       )}
                     </div>
@@ -107,7 +125,7 @@ export const TeamCapacityWidget = () => {
           })}
 
           {sorted.length > 4 && (
-            <p className="text-[10px] text-muted-foreground text-center pt-1">+{sorted.length - 4} more</p>
+            <p className="text-[10px] text-muted-foreground text-center pt-1">{t('home.teamCapacity.moreCount', { count: sorted.length - 4 })}</p>
           )}
         </div>
       </DashboardWidget>

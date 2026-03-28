@@ -14,7 +14,7 @@ const SUPPORTED_LANGUAGES = ['en', 'nl', 'de', 'fr', 'es', 'zh', 'ar', 'ru'];
 
 // Cache key prefix for localStorage
 const TRANSLATION_CACHE_PREFIX = 'tqc_translations_';
-const CACHE_VERSION = 'v4'; // Bumped version to invalidate old caches
+const CACHE_VERSION = 'v5'; // Bumped: translation cache must not store partial DB blobs without merge
 
 // Get cached translations from localStorage
 export const getCachedTranslations = (language: string, namespace: string): Record<string, any> | null => {
@@ -112,42 +112,38 @@ export const changeLanguageWithReload = async (language: string): Promise<boolea
 };
 
 // =============================================================================
-// BUNDLED ENGLISH FALLBACKS - Only English bundled for instant FCP
-// All other languages loaded on-demand via dynamic import() or Supabase backend
-// PERF: This reduces the initial bundle by ~7.8MB (8 langs × ~1MB each → 1 lang)
+// BUNDLED ENGLISH FALLBACKS — Only a critical slice of 'common' is statically
+// bundled (~9KB). The remaining ~640KB of common.json + all other namespaces
+// are loaded asynchronously after first paint via loadDeferredEnglish().
 // =============================================================================
-import commonEn from '@/i18n/locales/en/common.json';
+import commonCritical from '@/i18n/locales/en/common-critical.json';
 import authEn from '@/i18n/locales/en/auth.json';
-import onboardingEn from '@/i18n/locales/en/onboarding.json';
-import adminEn from '@/i18n/locales/en/admin.json';
-import analyticsEn from '@/i18n/locales/en/analytics.json';
-import candidatesEn from '@/i18n/locales/en/candidates.json';
-import complianceEn from '@/i18n/locales/en/compliance.json';
-import contractsEn from '@/i18n/locales/en/contracts.json';
-import jobsEn from '@/i18n/locales/en/jobs.json';
-import meetingsEn from '@/i18n/locales/en/meetings.json';
-import messagesEn from '@/i18n/locales/en/messages.json';
-import partnerEn from '@/i18n/locales/en/partner.json';
-import settingsEn from '@/i18n/locales/en/settings.json';
 
-// Only English bundled - other languages loaded dynamically
+// Only the critical shell is bundled — deferred keys merge in within ~100ms
 const bundledResources = {
   en: {
-    common: commonEn,
+    common: commonCritical,
     auth: authEn,
-    onboarding: onboardingEn,
-    admin: adminEn,
-    analytics: analyticsEn,
-    candidates: candidatesEn,
-    compliance: complianceEn,
-    contracts: contractsEn,
-    jobs: jobsEn,
-    meetings: meetingsEn,
-    messages: messagesEn,
-    partner: partnerEn,
-    settings: settingsEn,
   },
 };
+
+// PERF: Load the full common.json + onboarding asynchronously after first paint
+let deferredLoaded = false;
+export async function loadDeferredEnglish(): Promise<void> {
+  if (deferredLoaded) return;
+  deferredLoaded = true;
+  try {
+    const [commonFull, onboardingEn] = await Promise.all([
+      import('@/i18n/locales/en/common.json'),
+      import('@/i18n/locales/en/onboarding.json'),
+    ]);
+    // Deep-merge full common over the critical shell
+    i18n.addResourceBundle('en', 'common', commonFull.default || commonFull, true, true);
+    i18n.addResourceBundle('en', 'onboarding', onboardingEn.default || onboardingEn, true, true);
+  } catch (err) {
+    console.warn('[i18n] Failed to load deferred English resources:', err);
+  }
+}
 
 /**
  * PERF: Dynamic locale loader — loads language JSON files on-demand

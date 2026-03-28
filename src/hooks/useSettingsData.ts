@@ -98,15 +98,15 @@ export interface SettingsState {
 
 const DEFAULT_PRIVACY: PrivacySettings = {
   share_full_name: true,
-  share_email: true,
-  share_phone: true,
-  share_location: true,
-  share_current_title: true,
-  share_linkedin_url: true,
-  share_career_preferences: true,
-  share_resume: true,
-  share_salary_expectations: true,
-  share_notice_period: true,
+  share_email: false,
+  share_phone: false,
+  share_location: false,
+  share_current_title: false,
+  share_linkedin_url: false,
+  share_career_preferences: false,
+  share_resume: false,
+  share_salary_expectations: false,
+  share_notice_period: false,
 };
 
 export function useSettingsData(user: User | null, i18n: { language: string; changeLanguage: (lang: string) => Promise<unknown> }) {

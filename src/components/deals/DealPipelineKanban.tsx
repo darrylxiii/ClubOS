@@ -47,11 +47,11 @@ const StageColumn = memo(function StageColumn({
         </div>
         <div className="text-xs text-muted-foreground mb-1">{stage.description}</div>
         <div className="flex items-center justify-between text-xs">
-          <span className="text-muted-foreground">{t("weighted_value", "Weighted Value")}</span>
+          <span className="text-muted-foreground">{"Weighted Value"}</span>
           <span className="font-semibold text-foreground">{formatCurrency(stageValue)}</span>
         </div>
         <div className="flex items-center justify-between text-xs mt-1">
-          <span className="text-muted-foreground">{t("probability", "Probability")}</span>
+          <span className="text-muted-foreground">{"Probability"}</span>
           <span className="font-medium text-primary">{stage.probability_weight}%</span>
         </div>
       </Card>
@@ -62,7 +62,7 @@ const StageColumn = memo(function StageColumn({
         ))}
         {deals.length === 0 && (
           <Card className="p-8 text-center border-dashed border-border/50 bg-muted/20">
-            <p className="text-sm text-muted-foreground">{t("no_deals_in_this", "No deals in this stage")}</p>
+            <p className="text-sm text-muted-foreground">{"No deals in this stage"}</p>
           </Card>
         )}
       </div>

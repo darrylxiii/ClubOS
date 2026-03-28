@@ -74,7 +74,7 @@ const LiveKitMeetingWrapper = lazy(() =>
 const LiveKitLoadingFallback = () => (
   <div className="flex flex-col items-center justify-center h-full min-h-[400px] bg-background border rounded-lg">
     <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mb-4"></div>
-    <p className="text-muted-foreground">{t("loading_video_conference", "Loading video conference...")}</p>
+    <p className="text-muted-foreground">{"Loading video conference..."}</p>
   </div>
 );
 

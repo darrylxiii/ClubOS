@@ -1,109 +1,120 @@
-import { useTranslation } from 'react-i18next';
 import { Link } from "react-router-dom";
-import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Clock, Users, Star, BookOpen } from "lucide-react";
+import { BookOpen, Clock, Star, Users } from "lucide-react";
 
 interface CourseCardProps {
   course: any;
 }
 
+const categoryDotColor: Record<string, string> = {
+  marketing: "bg-blue-500",
+  sales: "bg-emerald-500",
+  leadership: "bg-amber-500",
+  technology: "bg-violet-500",
+  finance: "bg-rose-500",
+  operations: "bg-cyan-500",
+  recruiting: "bg-indigo-500",
+  hr: "bg-pink-500",
+};
+
 export function CourseCard({ course }: CourseCardProps) {
-  const { t } = useTranslation('common');
-  const difficultyColors = {
-    beginner: "bg-success/10 text-success hover:bg-success/20",
-    intermediate: "bg-warning/10 text-warning hover:bg-warning/20",
-    advanced: "bg-destructive/10 text-destructive hover:bg-destructive/20",
-    expert: "bg-accent/10 text-accent hover:bg-accent/20",
-  };
+  const category = course.category || "Course";
+  const creatorName = course.profiles?.full_name || "Anonymous";
+  const creatorInitials = creatorName
+    .split(" ")
+    .map((n: string) => n[0])
+    .join("")
+    .toUpperCase()
+    .slice(0, 2);
+
+  const dotColor =
+    categoryDotColor[category.toLowerCase()] || "bg-primary";
 
   return (
-    <Link to={`/academy/courses/${course.slug}`}>
-      <Card className="group overflow-hidden squircle hover-lift transition-all duration-300 h-full">
-        {/* Course Image */}
-        <div className="relative h-48 overflow-hidden">
+    <Link to={`/courses/${course.slug}`} className="block h-full">
+      <div className="glass-subtle rounded-2xl overflow-hidden hover-lift group h-full flex flex-col hover:border-primary/20 transition-all duration-300">
+        {/* Image */}
+        <div className="relative aspect-video overflow-hidden">
           {course.cover_image_url ? (
             <img
               src={course.cover_image_url}
               alt={course.title}
-              className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+              className="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-700"
             />
           ) : (
-            <div className="w-full h-full bg-gradient-accent flex items-center justify-center">
-              <BookOpen className="h-16 w-16 text-white opacity-80" />
+            <div className="w-full h-full bg-gradient-to-br from-primary/20 via-purple-500/10 to-pink-500/10 flex items-center justify-center">
+              <BookOpen className="h-12 w-12 text-primary/30" />
             </div>
           )}
-          <div className="absolute inset-0 bg-gradient-to-t from-background/80 to-transparent" />
-          
-          {/* Difficulty Badge */}
-          {course.difficulty_level && (
-            <Badge 
-              className={`absolute top-4 right-4 squircle-sm ${difficultyColors[course.difficulty_level as keyof typeof difficultyColors]}`}
+          {/* Image overlay */}
+          <div className="absolute inset-0 bg-gradient-to-t from-background via-background/20 to-transparent" />
+
+          {/* Badges on image */}
+          <div className="absolute top-3 left-3 right-3 flex items-center justify-between">
+            <Badge
+              variant="secondary"
+              className="glass border-0 text-xs font-medium capitalize"
             >
-              {course.difficulty_level}
+              {course.difficulty_level || "all levels"}
             </Badge>
-          )}
-        </div>
-
-        {/* Course Content */}
-        <div className="p-6 space-y-4">
-          <div>
-            <h3 className="text-xl font-bold mb-2 group-hover:text-primary transition-colors line-clamp-2">
-              {course.title}
-            </h3>
-            <p className="text-sm text-muted-foreground line-clamp-3">
-              {course.description}
-            </p>
-          </div>
-
-          {/* Course Meta */}
-          <div className="flex items-center gap-4 text-sm text-muted-foreground">
-            {course.estimated_hours && (
-              <div className="flex items-center gap-1">
-                <Clock className="h-4 w-4" />
-                <span>{course.estimated_hours}h</span>
-              </div>
+            {course.estimated_hours > 0 && (
+              <Badge className="glass border-0 text-xs font-semibold text-foreground">
+                <Clock className="h-3 w-3 mr-1" />
+                {course.estimated_hours}h
+              </Badge>
             )}
-            <div className="flex items-center gap-1.5">
-              <div className="flex -space-x-1.5">
-                <Avatar className="h-5 w-5 border-2 border-background">
-                  <AvatarFallback className="bg-primary/10 text-primary text-[10px]">A</AvatarFallback>
-                </Avatar>
-                <Avatar className="h-5 w-5 border-2 border-background">
-                  <AvatarFallback className="bg-secondary/10 text-secondary text-[10px]">B</AvatarFallback>
-                </Avatar>
-                <Avatar className="h-5 w-5 border-2 border-background">
-                  <AvatarFallback className="bg-accent/10 text-accent text-[10px]">C</AvatarFallback>
-                </Avatar>
-              </div>
-              <span>26</span>
-            </div>
-            <div className="flex items-center gap-1">
-              <Star className="h-4 w-4 fill-warning text-warning" />
-              <span>{t("new", "New")}</span>
-            </div>
+          </div>
+        </div>
+
+        {/* Content */}
+        <div className="p-5 space-y-3 flex-1 flex flex-col">
+          {/* Category with colored dot */}
+          <div className="flex items-center gap-2">
+            <span className={`h-1 w-1 rounded-full ${dotColor} shrink-0`} />
+            <span className="text-xs font-medium text-muted-foreground">
+              {category}
+            </span>
           </div>
 
-          {/* Instructor */}
-          {course.profiles && (
-            <div className="flex items-center gap-3 pt-4 border-t">
-              <Avatar className="h-8 w-8">
-                <AvatarImage src={course.profiles.avatar_url} />
-                <AvatarFallback>
-                  {course.profiles.full_name?.charAt(0) || 'E'}
-                </AvatarFallback>
-              </Avatar>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium truncate">
-                  {course.profiles.full_name || 'Expert Instructor'}
-                </p>
-                <p className="text-xs text-muted-foreground">{t("course_creator", "Course Creator")}</p>
-              </div>
-            </div>
-          )}
+          {/* Title */}
+          <h3 className="text-base font-semibold line-clamp-2 group-hover:text-primary transition-colors">
+            {course.title}
+          </h3>
+
+          {/* Stats */}
+          <div className="flex items-center gap-4 text-xs text-muted-foreground">
+            {course.enrolled_count > 0 && (
+              <span className="flex items-center gap-1">
+                <Users className="h-3.5 w-3.5" />
+                {course.enrolled_count}
+              </span>
+            )}
+            {course.rating_average > 0 && (
+              <span className="flex items-center gap-1">
+                <Star className="h-3.5 w-3.5 fill-yellow-500 text-yellow-500" />
+                {Number(course.rating_average).toFixed(1)}
+              </span>
+            )}
+          </div>
+
+          {/* Creator */}
+          <div className="flex items-center gap-2 border-t border-border/10 pt-3 mt-auto">
+            <Avatar className="h-6 w-6">
+              <AvatarImage
+                src={course.profiles?.avatar_url}
+                alt={creatorName}
+              />
+              <AvatarFallback className="bg-primary/10 text-primary text-xs">
+                {creatorInitials}
+              </AvatarFallback>
+            </Avatar>
+            <span className="text-xs text-muted-foreground truncate">
+              {creatorName}
+            </span>
+          </div>
         </div>
-      </Card>
+      </div>
     </Link>
   );
 }

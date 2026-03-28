@@ -34,11 +34,11 @@ interface AIAssistedScorecardProps {
 
 const RATING_LABELS = ['Poor', 'Below Average', 'Average', 'Good', 'Excellent'];
 const RECOMMENDATION_OPTIONS = [
-  { value: 'strong_yes', label: t('scorecards.aiassistedscorecard.strongYes', 'Strong Yes'), icon: ThumbsUp, color: 'text-green-500' },
-  { value: 'yes', label: t('scorecards.aiassistedscorecard.yes', 'Yes'), icon: ThumbsUp, color: 'text-green-400' },
-  { value: 'maybe', label: t('scorecards.aiassistedscorecard.maybe', 'Maybe'), icon: Minus, color: 'text-amber-500' },
+  { value: 'strong_yes', label: 'Strong Yes', icon: ThumbsUp, color: 'text-green-500' },
+  { value: 'yes', label: 'Yes', icon: ThumbsUp, color: 'text-green-400' },
+  { value: 'maybe', label: 'Maybe', icon: Minus, color: 'text-amber-500' },
   { value: 'no', label: 'No', icon: ThumbsDown, color: 'text-red-400' },
-  { value: 'strong_no', label: t('scorecards.aiassistedscorecard.strongNo', 'Strong No'), icon: ThumbsDown, color: 'text-red-500' }
+  { value: 'strong_no', label: 'Strong No', icon: ThumbsDown, color: 'text-red-500' }
 ];
 
 interface KeyMoment {

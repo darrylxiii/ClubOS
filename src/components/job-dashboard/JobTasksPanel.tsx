@@ -85,7 +85,7 @@ export const JobTasksPanel = ({ jobId, companyId, jobTitle }: JobTasksPanelProps
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["job-tasks", jobId] });
-      toast.success("Task updated");
+      toast.success(t('jobTasksPanel.taskUpdated', 'Task updated'));
     },
   });
 
@@ -133,12 +133,12 @@ export const JobTasksPanel = ({ jobId, companyId, jobTitle }: JobTasksPanelProps
           </Badge>
           {task.task_type === "partner_request" && (
             <Badge variant="outline" className="text-[10px] px-1.5 h-4 text-accent bg-accent/10 border-accent/20">
-              Partner Request
+              {t('jobTasksPanel.partnerRequest', 'Partner Request')}
             </Badge>
           )}
           {task.due_date && (
             <span className="text-[10px] text-muted-foreground">
-              Due {format(new Date(task.due_date), "MMM d")}
+              {t('jobTasksPanel.due', 'Due')} {format(new Date(task.due_date), "MMM d")}
             </span>
           )}
         </div>
@@ -159,7 +159,7 @@ export const JobTasksPanel = ({ jobId, companyId, jobTitle }: JobTasksPanelProps
           className="h-6 text-[10px] opacity-0 group-hover:opacity-100 transition-opacity"
           onClick={() => updateStatusMutation.mutate({ taskId: task.id, status: "in_progress" })}
         >
-          Start
+          {t('jobTasksPanel.start', 'Start')}
         </Button>
       )}
     </div>
@@ -170,7 +170,7 @@ export const JobTasksPanel = ({ jobId, companyId, jobTitle }: JobTasksPanelProps
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <CardTitle className="text-base font-medium">
-            Tasks
+            {t('jobTasksPanel.tasks', 'Tasks')}
             {tasks.length > 0 && (
               <Badge variant="secondary" className="ml-2 h-5 text-[10px]">
                 {completedTasks.length}/{tasks.length}
@@ -181,13 +181,13 @@ export const JobTasksPanel = ({ jobId, companyId, jobTitle }: JobTasksPanelProps
             {isPartner && (
               <Button variant="outline" size="sm" className="h-7 text-xs" onClick={() => setShowPartnerRequest(true)}>
                 <Plus className="h-3 w-3 mr-1" />
-                Request Task
+                {t('jobTasksPanel.requestTask', 'Request Task')}
               </Button>
             )}
             {isAdmin && (
               <Button variant="outline" size="sm" className="h-7 text-xs" onClick={() => setShowCreateTask(true)}>
                 <Plus className="h-3 w-3 mr-1" />
-                Add Task
+                {t('jobTasksPanel.addTask', 'Add Task')}
               </Button>
             )}
           </div>
@@ -199,33 +199,33 @@ export const JobTasksPanel = ({ jobId, companyId, jobTitle }: JobTasksPanelProps
             <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
           </div>
         ) : tasks.length === 0 ? (
-          <p className="text-sm text-muted-foreground text-center py-6">No tasks linked to this job yet.</p>
+          <p className="text-sm text-muted-foreground text-center py-6">{t('jobTasksPanel.noTasksYet', 'No tasks linked to this job yet.')}</p>
         ) : (
           <Tabs defaultValue="pending" className="w-full">
             <TabsList className="w-full justify-start bg-transparent p-0 h-auto gap-2 mb-3">
               <TabsTrigger value="pending" className="text-xs h-7 data-[state=active]:bg-muted/30 rounded-md px-3">
-                Pending ({pendingTasks.length})
+                {t('jobTasksPanel.pending', 'Pending')} ({pendingTasks.length})
               </TabsTrigger>
               <TabsTrigger value="in_progress" className="text-xs h-7 data-[state=active]:bg-muted/30 rounded-md px-3">
-                In Progress ({inProgressTasks.length})
+                {t('jobTasksPanel.inProgress', 'In Progress')} ({inProgressTasks.length})
               </TabsTrigger>
               <TabsTrigger value="completed" className="text-xs h-7 data-[state=active]:bg-muted/30 rounded-md px-3">
-                Done ({completedTasks.length})
+                {t('jobTasksPanel.done', 'Done')} ({completedTasks.length})
               </TabsTrigger>
             </TabsList>
             <TabsContent value="pending" className="space-y-2 mt-0">
               {pendingTasks.length === 0 ? (
-                <p className="text-xs text-muted-foreground text-center py-4">No pending tasks.</p>
+                <p className="text-xs text-muted-foreground text-center py-4">{t('jobTasksPanel.noPendingTasks', 'No pending tasks.')}</p>
               ) : pendingTasks.map(renderTask)}
             </TabsContent>
             <TabsContent value="in_progress" className="space-y-2 mt-0">
               {inProgressTasks.length === 0 ? (
-                <p className="text-xs text-muted-foreground text-center py-4">No tasks in progress.</p>
+                <p className="text-xs text-muted-foreground text-center py-4">{t('jobTasksPanel.noTasksInProgress', 'No tasks in progress.')}</p>
               ) : inProgressTasks.map(renderTask)}
             </TabsContent>
             <TabsContent value="completed" className="space-y-2 mt-0">
               {completedTasks.length === 0 ? (
-                <p className="text-xs text-muted-foreground text-center py-4">No completed tasks.</p>
+                <p className="text-xs text-muted-foreground text-center py-4">{t('jobTasksPanel.noCompletedTasks', 'No completed tasks.')}</p>
               ) : completedTasks.map(renderTask)}
             </TabsContent>
           </Tabs>

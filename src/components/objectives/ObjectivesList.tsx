@@ -164,7 +164,7 @@ export const ObjectivesList = () => {
         <CreateObjectiveDialog open={dialogOpen} onOpenChange={setDialogOpen} onCreated={loadObjectives}>
           <Button size="lg" className="gap-2">
             <Plus className="h-5 w-5" />
-            New Objective
+            {t('objectives.newObjective', 'New Objective')}
           </Button>
         </CreateObjectiveDialog>
       </div>
@@ -174,23 +174,23 @@ export const ObjectivesList = () => {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Title</TableHead>
-              <TableHead>Owners</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Priority</TableHead>
-              <TableHead>Progress</TableHead>
-              <TableHead>Tasks</TableHead>
-              <TableHead className="text-center">Blocking</TableHead>
-              <TableHead className="text-center">Blocked By</TableHead>
-              <TableHead>Due Date</TableHead>
-              <TableHead>Tags</TableHead>
+              <TableHead>{t('objectives.title', 'Title')}</TableHead>
+              <TableHead>{t('objectives.owners', 'Owners')}</TableHead>
+              <TableHead>{t('common:fields.status', 'Status')}</TableHead>
+              <TableHead>{t('objectives.priority', 'Priority')}</TableHead>
+              <TableHead>{t('objectives.progress', 'Progress')}</TableHead>
+              <TableHead>{t('objectives.tasks', 'Tasks')}</TableHead>
+              <TableHead className="text-center">{t('objectives.blocking', 'Blocking')}</TableHead>
+              <TableHead className="text-center">{t('objectives.blockedBy', 'Blocked By')}</TableHead>
+              <TableHead>{t('objectives.dueDate', 'Due Date')}</TableHead>
+              <TableHead>{t('objectives.tags', 'Tags')}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {objectives.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={10} className="text-center py-12 text-muted-foreground">
-                  No objectives found. Create your first objective to get started.
+                  {t('objectives.noObjectivesFound', 'No objectives found. Create your first objective to get started.')}
                 </TableCell>
               </TableRow>
             ) : (

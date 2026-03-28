@@ -1,101 +1,84 @@
-import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
+import { createHandler } from '../_shared/handler.ts';
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { baseEmailTemplate } from "../_shared/email-templates/base-template.ts";
 import { Button, Card, Heading, Paragraph, Spacer, InfoRow, StatusBadge } from "../_shared/email-templates/components.ts";
-import { EMAIL_SENDERS, EMAIL_COLORS, getEmailAppUrl } from "../_shared/email-config.ts";
+import { EMAIL_SENDERS, EMAIL_COLORS, getEmailAppUrl, getEmailHeaders } from "../_shared/email-config.ts";
 import { sendEmail } from '../_shared/resend-client.ts';
+import { z, parseBody, emailSchema, nameSchema } from '../_shared/validation.ts';
+import { sanitizeForEmail } from '../_shared/sanitize.ts';
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
+const bodySchema = z.object({
+  inviteCode: z.string().min(1).max(50),
+  friendEmail: emailSchema,
+  friendName: nameSchema,
+  jobTitle: z.string().min(1).max(300).trim(),
+  companyName: nameSchema,
+  referrerName: nameSchema,
+});
 
-interface ReferralInviteRequest {
-  inviteCode: string;
-  friendEmail: string;
-  friendName: string;
-  jobTitle: string;
-  companyName: string;
-  referrerName: string;
-}
+Deno.serve(createHandler(async (req, ctx) => {
+  const parsed = await parseBody(req, bodySchema, ctx.corsHeaders);
+  if ('error' in parsed) return parsed.error;
+  const { inviteCode, friendEmail, friendName, jobTitle, companyName, referrerName } = parsed.data;
 
-const handler = async (req: Request): Promise<Response> => {
-  if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
-  }
+  const appUrl = getEmailAppUrl();
+  const inviteLink = `${appUrl}/auth?invite=${inviteCode}`;
 
-  try {
-    const { inviteCode, friendEmail, friendName, jobTitle, companyName, referrerName }: ReferralInviteRequest = await req.json();
+  const emailContent = `
+    ${StatusBadge({ status: 'new', text: 'YOU\'VE BEEN REFERRED' })}
+    ${Heading({ text: `${sanitizeForEmail(referrerName)} thinks you would be a great fit for this role`, level: 1, align: 'center' })}
+    ${Spacer(24)}
+    ${Paragraph(`Hi ${sanitizeForEmail(friendName)},`, 'primary')}
+    ${Spacer(8)}
+    ${Paragraph(`<strong>${sanitizeForEmail(referrerName)}</strong> believes you'd be a great fit for an exciting opportunity at <strong>${sanitizeForEmail(companyName)}</strong>.`, 'secondary')}
+    ${Spacer(32)}
+    ${Card({
+      variant: 'highlight',
+      content: `
+        ${Heading({ text: sanitizeForEmail(jobTitle), level: 2 })}
+        ${Spacer(16)}
+        ${InfoRow({ icon: '🏢', label: 'Company', value: sanitizeForEmail(companyName) })}
+        ${InfoRow({ icon: '👤', label: 'Referred by', value: sanitizeForEmail(referrerName) })}
+        ${Spacer(16)}
+        ${Paragraph('Your friend has already filled in some of your professional details to help speed up your application. You\'ll be able to review and edit everything during signup.', 'secondary')}
+      `
+    })}
+    ${Spacer(32)}
+    <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+      <tr>
+        <td align="center">
+          ${Button({ url: inviteLink, text: 'Get Started →', variant: 'primary' })}
+        </td>
+      </tr>
+    </table>
+    ${Spacer(32)}
+    ${Paragraph('This invite link expires in 30 days. Your information is kept secure and you can edit or delete it at any time.', 'muted')}
+    ${Spacer(16)}
+    ${Paragraph('If you didn\'t expect this email, you can safely ignore it.', 'muted')}
+  `;
 
-    const appUrl = getEmailAppUrl();
-    const inviteLink = `${appUrl}/auth?invite=${inviteCode}`;
+  const html = baseEmailTemplate({
+    preheader: `${sanitizeForEmail(referrerName)} referred you to ${sanitizeForEmail(jobTitle)} at ${sanitizeForEmail(companyName)}`,
+    content: emailContent,
+    showHeader: true,
+    showFooter: true,
+  });
 
-    const emailContent = `
-      ${StatusBadge({ status: 'new', text: 'YOU\'VE BEEN REFERRED' })}
-      ${Heading({ text: `${referrerName} thinks you would be a great fit for this role`, level: 1, align: 'center' })}
-      ${Spacer(24)}
-      ${Paragraph(`Hi ${friendName},`, 'primary')}
-      ${Spacer(8)}
-      ${Paragraph(`<strong>${referrerName}</strong> believes you'd be a great fit for an exciting opportunity at <strong>${companyName}</strong>.`, 'secondary')}
-      ${Spacer(32)}
-      ${Card({
-        variant: 'highlight',
-        content: `
-          ${Heading({ text: jobTitle, level: 2 })}
-          ${Spacer(16)}
-          ${InfoRow({ icon: '🏢', label: 'Company', value: companyName })}
-          ${InfoRow({ icon: '👤', label: 'Referred by', value: referrerName })}
-          ${Spacer(16)}
-          ${Paragraph('Your friend has already filled in some of your professional details to help speed up your application. You\'ll be able to review and edit everything during signup.', 'secondary')}
-        `
-      })}
-      ${Spacer(32)}
-      <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
-        <tr>
-          <td align="center">
-            ${Button({ url: inviteLink, text: 'Get Started →', variant: 'primary' })}
-          </td>
-        </tr>
-      </table>
-      ${Spacer(32)}
-      ${Paragraph('This invite link expires in 30 days. Your information is kept secure and you can edit or delete it at any time.', 'muted')}
-      ${Spacer(16)}
-      ${Paragraph('If you didn\'t expect this email, you can safely ignore it.', 'muted')}
-    `;
+  const result = await sendEmail({
+    from: EMAIL_SENDERS.referrals,
+    to: [friendEmail],
+    subject: `${sanitizeForEmail(referrerName)} thinks you would be a great fit for ${sanitizeForEmail(jobTitle)} at ${sanitizeForEmail(companyName)}`,
+    html,
+    headers: getEmailHeaders(),
+  });
 
-    const html = baseEmailTemplate({
-      preheader: `${referrerName} referred you to ${jobTitle} at ${companyName}`,
-      content: emailContent,
-      showHeader: true,
-      showFooter: true,
-    });
+  console.log("[send-referral-invite] Referral email sent successfully:", result);
 
-    const result = await sendEmail({
-      from: EMAIL_SENDERS.referrals,
-      to: [friendEmail],
-      subject: `${referrerName} thinks you would be a great fit for ${jobTitle} at ${companyName}`,
-      html,
-    });
-
-    console.log("Referral email sent successfully:", result);
-
-    return new Response(JSON.stringify(result), {
-      status: 200,
-      headers: {
-        "Content-Type": "application/json",
-        ...corsHeaders,
-      },
-    });
-  } catch (error: any) {
-    console.error("Error in send-referral-invite function:", error);
-    return new Response(
-      JSON.stringify({ error: error.message }),
-      {
-        status: 500,
-        headers: { "Content-Type": "application/json", ...corsHeaders },
-      }
-    );
-  }
-};
-
-serve(handler);
+  return new Response(JSON.stringify(result), {
+    status: 200,
+    headers: {
+      "Content-Type": "application/json",
+      ...ctx.corsHeaders,
+    },
+  });
+}));

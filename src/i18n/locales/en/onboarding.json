@@ -55,7 +55,8 @@
       "uploadResume": "Upload",
       "removeResume": "Remove",
       "uploading": "Uploading...",
-      "clickToUpload": "Click to upload PDF or Word document"
+      "clickToUpload": "Click to upload PDF or Word document",
+      "resumePrivacyNotice": "Your resume will be securely stored and may be analyzed by AI to improve job matching. See our"
     },
     "career": {
       "title": "Career Goals",
@@ -148,16 +149,16 @@
       "accountCreated": "Account will be created after submission"
     },
     "complete": {
-      "title": "Welcome to The Quantum Club!",
-      "message": "Your account has been created successfully. Your Talent Strategist will review your profile soon.",
-      "redirecting": "Redirecting to pending approval...",
-      "viewStatus": "View Application Status"
+      "title": "Welcome to The Quantum Club",
+      "message": "Your profile has been secured. The Syndicate Review Committee will assess your dossier shortly.",
+      "redirecting": "Redirecting to your portal...",
+      "viewStatus": "View Syndicate Status"
     },
     "applicationPending": {
-      "title": "Application Under Review",
-      "message": "Your profile is being reviewed",
-      "avgResponseTime": "Average response time: 19 minutes",
-      "nextSteps": "You'll receive an email once reviewed",
+      "title": "Dossier Under Review",
+      "message": "Your profile is being assessed by the Syndicate",
+      "avgResponseTime": "Average review time: 19 minutes",
+      "nextSteps": "You'll receive a secure communication once reviewed",
       "thankYou": "Thank you for your patience"
     },
     "validation": {
@@ -171,15 +172,18 @@
       "pleaseVerifyEmail": "Please verify your email address first",
       "pleaseVerifyPhone": "Please verify your phone number first",
       "consentRequired": "Consent required",
-      "consentRequiredDescription": "Please accept the Privacy Policy and Terms of Service"
+      "consentRequiredDescription": "Please accept the Privacy Policy and Terms of Service",
+      "ageVerificationRequired": "Age verification required",
+      "mustConfirmAge": "You must confirm that you are at least 16 years old to use this platform",
+      "acceptBothRequired": "Please accept both the Terms of Service and Privacy Policy to continue"
     },
     "messages": {
       "missingInfo": "Missing information",
       "fillRequiredFields": "Please fill in all required fields",
-      "savingProgress": "Saving progress...",
-      "progressSaved": "Progress saved",
-      "submitting": "Submitting application...",
-      "submitted": "Application submitted successfully!",
+      "savingProgress": "Securing progress...",
+      "progressSaved": "Progress secured",
+      "submitting": "Submitting dossier...",
+      "submitted": "Dossier submitted securely!",
       "error": "An error occurred. Please try again.",
       "phoneVerificationRequired": "Please verify your phone number",
       "emailVerificationRequired": "Please verify your email",
@@ -187,9 +191,9 @@
       "checkEmailForCode": "Please check your email and enter the code below",
       "checkPhoneForCode": "Please check your phone and enter the code below",
       "resumeUploaded": "Resume uploaded successfully",
-      "accountCreationFailed": "Account creation failed",
-      "applicationSubmitted": "Application submitted!",
-      "reviewTime": "Darryl will review your application within 24-48 hours",
+      "accountCreationFailed": "Access creation failed",
+      "applicationSubmitted": "Dossier submitted!",
+      "reviewTime": "The Syndicate will review your profile within 24-48 hours",
       "invalidCode": "Invalid code",
       "phoneVerified": "Phone verified successfully!",
       "pleaseEnterPhone": "Please enter your phone number",
@@ -197,7 +201,7 @@
       "enterDreamJob": "Please enter your dream job title",
       "invalidPassword": "Invalid password",
       "meetPasswordRequirements": "Please meet all password requirements",
-      "emailAlreadyLinked": "This email is already associated with another account. Please contact support@thequantumclub.com",
+      "emailAlreadyLinked": "This email is already associated with another account. Please contact info@thequantumclub.com",
       "profileMergeFailed": "We found your profile but couldn't complete the merge. Please try again or contact support.",
       "unexpectedError": "An unexpected error occurred. Please try again or contact support."
     },
@@ -211,14 +215,14 @@
     },
     "header": {
       "onlyAccepted": "Only 3% of applicants are accepted",
-      "applyForMembership": "Apply for Elite Membership",
-      "joinProfessionals": "Join 2,500+ exceptional professionals in The Quantum Club",
-      "timeToComplete": "~5 minutes to complete • Your data is encrypted and secure",
+      "applyForMembership": "Request Access to the Syndicate",
+      "joinProfessionals": "Join the private syndicate of exceptional operators",
+      "timeToComplete": "~5 minutes to submit dossier • End-to-end encrypted",
       "backToLogin": "Back to Login"
     },
     "paused": {
-      "title": "Applications Temporarily Paused",
-      "message": "We're currently at capacity and not accepting new applications. Please check back soon or join our waitlist."
+      "title": "Intake Temporarily Paused",
+      "message": "The syndicate is currently at capacity and not accepting new dossiers. Please check back soon or join the private waitlist."
     },
     "dialog": {
       "accountExists": "Account Already Exists",

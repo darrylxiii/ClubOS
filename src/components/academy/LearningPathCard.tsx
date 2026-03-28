@@ -19,14 +19,14 @@ export function LearningPathCard({ path }: LearningPathCardProps) {
 
   return (
     <Link to={`/academy/paths/${path.slug}`}>
-      <Card className="group squircle hover-lift transition-all duration-300 p-6 h-full">
+      <Card className="group rounded-2xl hover-lift transition-all duration-300 p-6 h-full">
         <div className="space-y-4">
           <div className="flex items-start justify-between">
             <div className="p-3 rounded-xl bg-primary/10">
               <Target className="h-6 w-6 text-primary" />
             </div>
             {path.difficulty_level && (
-              <Badge className={`squircle-sm ${difficultyColors[path.difficulty_level as keyof typeof difficultyColors]}`}>
+              <Badge className={`rounded-xl ${difficultyColors[path.difficulty_level as keyof typeof difficultyColors]}`}>
                 {path.difficulty_level}
               </Badge>
             )}

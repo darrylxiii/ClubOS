@@ -25,7 +25,7 @@ export const CandidateWorkAuthCard = ({ candidate }: Props) => {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <FileCheck className="w-5 h-5" />
-            Work Authorization
+            {t('candidateWorkAuthCard.workAuthorization', 'Work Authorization')}
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -33,7 +33,7 @@ export const CandidateWorkAuthCard = ({ candidate }: Props) => {
             <>
               {workAuth.countries && (
                 <div>
-                  <p className="text-sm font-medium mb-2">Authorized Countries:</p>
+                  <p className="text-sm font-medium mb-2">{t('candidateWorkAuthCard.authorizedCountries', 'Authorized Countries')}:</p>
                   <div className="flex flex-wrap gap-2">
                     {workAuth.countries.map((country: string, idx: number) => (
                       <Badge key={idx} variant="secondary">
@@ -47,7 +47,7 @@ export const CandidateWorkAuthCard = ({ candidate }: Props) => {
               
               {workAuth.visa_type && (
                 <div>
-                  <p className="text-sm font-medium mb-1">Visa Type:</p>
+                  <p className="text-sm font-medium mb-1">{t('candidateWorkAuthCard.visaType', 'Visa Type')}:</p>
                   <p className="text-sm text-muted-foreground">{workAuth.visa_type}</p>
                 </div>
               )}
@@ -80,12 +80,12 @@ export const CandidateWorkAuthCard = ({ candidate }: Props) => {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <DollarSign className="w-5 h-5" />
-              Compensation Expectations
+              {t('candidateWorkAuthCard.compensationExpectations', 'Compensation Expectations')}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             <div className="flex items-center justify-between">
-              <span className="text-sm text-muted-foreground">Salary Range:</span>
+              <span className="text-sm text-muted-foreground">{t('candidateWorkAuthCard.salaryRange', 'Salary Range')}:</span>
               <span className="text-lg font-bold">
                 {candidate.preferred_currency || 'EUR'}{' '}
                 {candidate.desired_salary_min?.toLocaleString()} -{' '}
@@ -94,7 +94,7 @@ export const CandidateWorkAuthCard = ({ candidate }: Props) => {
             </div>
             {candidate.preferred_currency && candidate.preferred_currency !== 'EUR' && (
               <p className="text-xs text-muted-foreground">
-                Currency: {candidate.preferred_currency}
+                {t('candidateWorkAuthCard.currency', 'Currency')}: {candidate.preferred_currency}
               </p>
             )}
           </CardContent>
@@ -107,12 +107,12 @@ export const CandidateWorkAuthCard = ({ candidate }: Props) => {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Clock className="w-5 h-5" />
-              Availability
+              {t('candidateWorkAuthCard.availability', 'Availability')}
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="flex items-center justify-between">
-              <span className="text-sm text-muted-foreground">Notice Period:</span>
+              <span className="text-sm text-muted-foreground">{t('candidateWorkAuthCard.noticePeriod', 'Notice Period')}:</span>
               <span className="text-lg font-semibold">{candidate.notice_period}</span>
             </div>
           </CardContent>
@@ -125,7 +125,7 @@ export const CandidateWorkAuthCard = ({ candidate }: Props) => {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <MapPin className="w-5 h-5" />
-              Location Preferences
+              {t('candidateWorkAuthCard.locationPreferences', 'Location Preferences')}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
@@ -139,7 +139,7 @@ export const CandidateWorkAuthCard = ({ candidate }: Props) => {
             {candidate.remote_preference && (
               <div className="pt-2 border-t">
                 <p className="text-sm text-muted-foreground">
-                  Remote Preference:{' '}
+                  {t('candidateWorkAuthCard.remotePreference', 'Remote Preference')}:{' '}
                   <span className="font-medium capitalize text-foreground">
                     {candidate.remote_preference.replace(/_/g, ' ')}
                   </span>
