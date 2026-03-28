@@ -10,8 +10,8 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Badge } from '@/components/ui/badge';
 import { useDepartments } from '@/hooks/useDepartments';
 import { Department } from '@/types/organization';
-import { Plus, Edit2, Archive, Loader2, Sparkles } from 'lucide-react';
-import * as Icons from 'lucide-react';
+import { Plus, Edit2, Archive, Loader2, Sparkles, Users } from 'lucide-react';
+import { resolveIcon } from '@/lib/iconResolver';
 
 interface DepartmentManagerProps {
   companyId: string;
@@ -93,7 +93,7 @@ export function DepartmentManager({ companyId }: DepartmentManagerProps) {
     await seedStandardDepartments();
   };
 
-  const IconComponent = (Icons as any)[formData.icon_name] || Icons.Users;
+  const IconComponent = resolveIcon(formData.icon_name, Users);
 
   if (loading) {
     return (
@@ -187,7 +187,7 @@ export function DepartmentManager({ companyId }: DepartmentManagerProps) {
                       </SelectTrigger>
                       <SelectContent>
                         {ICON_OPTIONS.map(icon => {
-                          const Icon = (Icons as any)[icon];
+                          const Icon = resolveIcon(icon);
                           return (
                             <SelectItem key={icon} value={icon}>
                               <div className="flex items-center gap-2">
@@ -242,7 +242,7 @@ export function DepartmentManager({ companyId }: DepartmentManagerProps) {
         ) : (
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {departments.map((dept) => {
-              const DeptIcon = (Icons as any)[dept.icon_name] || Icons.Users;
+              const DeptIcon = resolveIcon(dept.icon_name, Users);
               const typeInfo = DEPARTMENT_TYPES.find(t => t.value === dept.department_type);
               
               return (

@@ -595,6 +595,14 @@ const Jobs = () => {
                   <TabsTrigger value="saved" className="gap-1.5">
                     Saved ({savedJobs.length})
                   </TabsTrigger>
+                  <TabsTrigger value="map" className="gap-1.5">
+                    <Map className="w-3.5 h-3.5" />
+                    {t('text.jobs.map', 'Map')}
+                  </TabsTrigger>
+                  <TabsTrigger value="interview-prep" className="gap-1.5">
+                    <Brain className="w-3.5 h-3.5" />
+                    {t('text.jobs.interviewPrep', 'Interview Prep')}
+                  </TabsTrigger>
                 </TabsList>
 
                 {/* Sort Dropdown - only for job browsing tabs */}

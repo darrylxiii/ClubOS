@@ -229,5 +229,19 @@
     "emptyDescription": "أنشئ عقدك الأول لبدء توظيف المستقلين",
     "contractInvoices": "فواتير العقود",
     "noInvoices": "لم يتم إنشاء فواتير بعد"
+  },
+  "text": {
+    "contractdetailpage": {
+      "signContract": "Sign Contract",
+      "milestoneStarted": "Milestone started!",
+      "milestoneSubmittedForReview": "Milestone submitted for review!",
+      "milestoneApprovedButPaymentReleaseFailed": "Milestone approved, but payment release failed. Please contact support.",
+      "milestoneApprovedPaymentReleasedSuccessfully": "Milestone approved! Payment released successfully.",
+      "youAreTheFreelancer": "You are the freelancer",
+      "youAreTheClient": "You are the client",
+      "client": "Client",
+      "freelancer": "Freelancer",
+      "anErrorOccurred": "An error occurred"
+    }
   }
 }

@@ -29,7 +29,7 @@ export const MigrationBanner = () => {
                 <ShieldCheck className="w-5 h-5" />
               </div>
               <p className="text-sm sm:text-base font-medium text-foreground/90 leading-tight">
-                <strong className="text-foreground">{t('systemUpgraded', 'System Upgraded.')}</strong>{t('forYourAbsolutePrivacyWe', 'For your absolute privacy, we securely zeroed out all legacy passwords during the migration. Please enjoy seamless access via')}<strong className="text-primary">{t('magicLink', 'Magic Link')}</strong> or connect your <strong className="text-primary">{t('oauthProvider', 'OAuth Provider')}</strong> to enter.
+                <strong className="text-foreground">{t('systemUpgraded', 'System Upgraded.')}</strong>{' '}{t('forYourAbsolutePrivacyWe', 'Your security infrastructure has been elevated. All legacy credentials were cryptographically purged during the transition. Sign in effortlessly via')}{' '}<strong className="text-primary">{t('magicLink', 'Magic Link')}</strong>{' '}or connect your{' '}<strong className="text-primary">{t('oauthProvider', 'OAuth Provider')}</strong>{' '}to continue.
               </p>
             </div>
             <button 

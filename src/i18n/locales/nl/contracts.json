@@ -229,5 +229,19 @@
     "emptyDescription": "Maak uw eerste contract aan om freelancers in te huren",
     "contractInvoices": "Contractfacturen",
     "noInvoices": "Nog geen facturen gegenereerd"
+  },
+  "text": {
+    "contractdetailpage": {
+      "signContract": "Sign Contract",
+      "milestoneStarted": "Milestone started!",
+      "milestoneSubmittedForReview": "Milestone submitted for review!",
+      "milestoneApprovedButPaymentReleaseFailed": "Milestone approved, but payment release failed. Please contact support.",
+      "milestoneApprovedPaymentReleasedSuccessfully": "Milestone approved! Payment released successfully.",
+      "youAreTheFreelancer": "You are the freelancer",
+      "youAreTheClient": "You are the client",
+      "client": "Klant",
+      "freelancer": "Freelancer",
+      "anErrorOccurred": "An error occurred"
+    }
   }
 }

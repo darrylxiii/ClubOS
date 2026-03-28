@@ -190,28 +190,11 @@ const roleSpecificGroups: Record<'candidate' | 'partner' | 'admin', NavigationGr
         { name: "common:navigation.referralsInvites", icon: Gift, path: "/referrals" },
         { name: "common:navigation.assessments", icon: ClipboardCheck, path: "/assessments" },
         { name: "common:navigation.myCommunications", icon: MessageSquare, path: "/profile?tab=communications" },
-      ],
-    },
-    {
-      title: "common:navigationGroups.clubProjects",
-      icon: Layers,
-      badge: "common:navigation.badges.soon",
-      items: [
-        { name: "common:navigation.browseProjects", icon: Layers, path: "/projects", locked: true, lockedMessage: "common:navigation.lockedMessages.releasingSoon" },
-        { name: "common:navigation.freelancerSetup", icon: User, path: "/projects/freelancer/setup", locked: true, lockedMessage: "common:navigation.lockedMessages.releasingSoon" },
-        { name: "common:navigation.gigMarketplace", icon: Briefcase, path: "/projects/gigs", locked: true, lockedMessage: "common:navigation.lockedMessages.releasingSoon" },
-        { name: "common:navigation.myProposals", icon: FileText, path: "/projects/proposals", locked: true, lockedMessage: "common:navigation.lockedMessages.releasingSoon" },
-        { name: "common:navigation.myContracts", icon: FileSignature, path: "/contracts", locked: true, lockedMessage: "common:navigation.lockedMessages.releasingSoon" },
-        { name: "common:navigation.timeTracking", icon: Timer, path: "/time-tracking", locked: true, lockedMessage: "common:navigation.lockedMessages.releasingSoon" },
-      ],
-    },
-    {
-      title: "common:navigationGroups.social",
-      icon: Share2,
-      items: [
         { name: "common:navigation.socialFeed", icon: Share2, path: "/social-feed" },
       ],
     },
+    // Club Projects removed from candidate nav — all items were locked/Coming Soon
+    // Social Feed merged into Career group above
   ],
   partner: [
     {

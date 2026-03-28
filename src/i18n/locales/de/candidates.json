@@ -113,7 +113,7 @@
     "title": "Kommunikation",
     "emails": "E-Mails",
     "calls": "Anrufe",
-    "meetings": "Meetings",
+    "meetings": "Besprechungen",
     "lastContact": "Letzter Kontakt",
     "sendEmail": "E-Mail senden",
     "logCall": "Anruf protokollieren"
@@ -304,7 +304,7 @@
     "text3": "Dokumente & Dateien",
     "text4": "TQC Interne Bewertung",
     "text5": "Datenvollstaendigkeit",
-    "text6": "Score",
+    "text6": "Punktzahl",
     "text7": "Talent-Pool-Status",
     "text8": "Karrierepraeferenzen",
     "text9": "Gehalt:",
@@ -340,5 +340,33 @@
     "interviews": "Vorstellungsgespraeche",
     "strengths": "Staerken",
     "concerns": "Bedenken"
+  },
+  "text": {
+    "admincandidates": {
+      "next": "Weiter",
+      "failedToLoadCandidates": "Failed to load candidates",
+      "exportFailed": "Export failed",
+      "exportedSuccessfully": "Exported successfully",
+      "failedToAssignStrategist": "Failed to assign strategist"
+    },
+    "talentpoollists": {
+      "areYouSureYouWantTo": "Are you sure you want to delete this list? This action cannot be undone.",
+      "cancel": "Abbrechen",
+      "delete": "Löschen",
+      "listIsNowPrivate": "List is now private",
+      "listIsNowSharedWithYour": "List is now shared with your team",
+      "unshare": "Unshare",
+      "share": "Share",
+      "thisListIsCurrentlySharedWith": "This list is currently shared with your team. Would you like to make it private?",
+      "shareThisListWithYourTeam": "Share this list with your team so they can view the candidates.",
+      "makePrivate": "Make Private",
+      "shareWithTeam": "Share with Team"
+    },
+    "unifiedcandidateprofile": {
+      "collaborationNotes": "Collaboration Notes",
+      "teamNotes": "Team Notes",
+      "shareNotesWithTqcAndYour": "Share notes with TQC and your team about this candidate",
+      "internalNotesAndObservationsAboutThis": "Internal notes and observations about this candidate"
+    }
   }
 }

@@ -13,7 +13,7 @@ import { useToast } from "@/lib/notify";
 import { Award, Plus, Trash2, Edit, UserPlus, Building2, Search, Filter, Eye, EyeOff, Users, TrendingUp, Calendar, Activity, Sparkles } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import * as LucideIcons from "lucide-react";
+import { resolveIcon } from "@/lib/iconResolver";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useTranslation } from 'react-i18next';
@@ -580,7 +580,7 @@ export const AdminAchievementsManager = () => {
   };
 
   const getIconComponent = (iconName: string) => {
-    const Icon = (LucideIcons as any)[iconName] || Award;
+    const Icon = resolveIcon(iconName, Award);
     return Icon;
   };
 

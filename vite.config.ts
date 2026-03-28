@@ -109,6 +109,9 @@ export default defineConfig(({ mode, command }) => ({
         // CRITICAL: Do NOT precache HTML - use NetworkFirst at runtime
         // This prevents stale index.html from bricking the app after deploy
         globPatterns: ['**/*.{js,css,ico,png,svg,woff2}'],
+        // PERF: Exclude the monolithic index chunk from precache — it's too large
+        // and will be handled by runtime CacheFirst strategy instead
+        globIgnores: ['**/index-*.js'],
         
         // CRITICAL: Auto-activate new service worker immediately
         // Prevents users from being stuck on old cached version
@@ -118,8 +121,8 @@ export default defineConfig(({ mode, command }) => ({
         // Clean up old caches
         cleanupOutdatedCaches: true,
         
-        // Allow large hashed bundles + og-image (main index chunk can exceed 5MB until split further)
-        maximumFileSizeToCacheInBytes: 10 * 1024 * 1024,
+        // Allow hashed bundles up to 3MB for precaching; larger chunks use runtime caching
+        maximumFileSizeToCacheInBytes: 3 * 1024 * 1024,
         
         // Runtime caching strategies
         runtimeCaching: [
@@ -204,16 +207,18 @@ export default defineConfig(({ mode, command }) => ({
               }
             }
           },
-          // Hashed JS/CSS bundles use NetworkFirst to prevent stale asset errors
-          // when service worker serves outdated chunks after a new deployment
+          // PERF: Hashed JS/CSS bundles use CacheFirst — content-hash in filename
+          // guarantees uniqueness, so cache hits are always valid. New deploys
+          // produce new filenames automatically. This eliminates redundant
+          // network requests on every navigation.
           {
             urlPattern: /\.(?:js|css)$/i,
-            handler: 'NetworkFirst',
+            handler: 'CacheFirst',
             options: {
               cacheName: 'static-resources',
               expiration: {
-                maxEntries: 200,
-                maxAgeSeconds: 60 * 60 * 24 * 30 // 30 days
+                maxEntries: 300,
+                maxAgeSeconds: 60 * 60 * 24 * 90 // 90 days (safe with hashed names)
               },
               cacheableResponse: {
                 statuses: [0, 200]
@@ -247,8 +252,19 @@ export default defineConfig(({ mode, command }) => ({
     target: 'esnext',
     cssCodeSplit: true,
 
+    // PERF: Strip console.* and debugger in production — saves ~50KB+ and prevents GC leaks
+    ...(mode === 'production' && {
+      minify: 'esbuild',
+    }),
+    ...(mode === 'production' && {
+      esbuild: {
+        drop: ['console', 'debugger'],
+        legalComments: 'none',
+      },
+    }),
+
     rollupOptions: {
-      maxParallelFileOps: 1,
+      // PERF: Removed maxParallelFileOps: 1 throttle — let Rollup use all cores
       treeshake: true,
       output: {
         manualChunks: {
@@ -271,6 +287,11 @@ export default defineConfig(({ mode, command }) => ({
           'vendor-motion': ['framer-motion'],
           'vendor-i18n': ['i18next', 'react-i18next', 'i18next-browser-languagedetector'],
           'vendor-forms': ['zod', 'react-hook-form', '@hookform/resolvers'],
+          // PERF: Isolate heavy libs that should only load on-demand
+          'vendor-pdf': ['jspdf', 'jspdf-autotable'],
+          'vendor-date': ['date-fns', 'date-fns-tz'],
+          'vendor-dnd': ['@dnd-kit/core', '@dnd-kit/sortable', '@dnd-kit/utilities'],
+          'vendor-sentry': ['@sentry/react'],
         },
       },
     },

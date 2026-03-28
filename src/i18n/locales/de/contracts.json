@@ -229,5 +229,19 @@
     "emptyDescription": "your first contract to start hiring freelancers erstellen",
     "contractInvoices": "Vertragsrechnungen",
     "noInvoices": "Noch keine invoices generated"
+  },
+  "text": {
+    "contractdetailpage": {
+      "signContract": "Sign Contract",
+      "milestoneStarted": "Milestone started!",
+      "milestoneSubmittedForReview": "Milestone submitted for review!",
+      "milestoneApprovedButPaymentReleaseFailed": "Milestone approved, but payment release failed. Please contact support.",
+      "milestoneApprovedPaymentReleasedSuccessfully": "Milestone approved! Payment released successfully.",
+      "youAreTheFreelancer": "You are the freelancer",
+      "youAreTheClient": "You are the client",
+      "client": "Client",
+      "freelancer": "Freelancer",
+      "anErrorOccurred": "An error occurred"
+    }
   }
 }

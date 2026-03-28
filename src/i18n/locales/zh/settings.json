@@ -678,5 +678,25 @@
     "text39": "嵌入",
     "text40": "工作流",
     "text41": "暂无团队预约链接"
+  },
+  "settings": {
+    "connectionssettings": {
+      "nameYourCalendar": "Name Your Calendar",
+      "cancel": "取消",
+      "connect": "Connect",
+      "setAsPrimary": "Set as primary",
+      "preview": "Preview",
+      "download": "下载",
+      "delete": "删除",
+      "resumePreview": "Resume Preview",
+      "google": "Google",
+      "microsoft": "Microsoft",
+      "gmail": "Gmail",
+      "outlook": "Outlook",
+      "failedToCompleteConnection": "Failed to complete connection",
+      "we": "We\\",
+      "unknownError": "Unknown error",
+      "failedToConnectEmail": "Failed to connect email"
+    }
   }
 }

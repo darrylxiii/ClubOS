@@ -229,5 +229,19 @@
     "emptyDescription": "Créez votre premier contrat pour commencer à recruter des freelances",
     "contractInvoices": "Factures de contrats",
     "noInvoices": "Aucune facture générée pour le moment"
+  },
+  "text": {
+    "contractdetailpage": {
+      "signContract": "Sign Contract",
+      "milestoneStarted": "Milestone started!",
+      "milestoneSubmittedForReview": "Milestone submitted for review!",
+      "milestoneApprovedButPaymentReleaseFailed": "Milestone approved, but payment release failed. Please contact support.",
+      "milestoneApprovedPaymentReleasedSuccessfully": "Milestone approved! Payment released successfully.",
+      "youAreTheFreelancer": "You are the freelancer",
+      "youAreTheClient": "You are the client",
+      "client": "Client",
+      "freelancer": "Freelancer",
+      "anErrorOccurred": "An error occurred"
+    }
   }
 }

@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { migrateToast as toast } from "@/lib/notify";
 import { Award, Plus, Trash2, Edit, Users, Loader2, BarChart3, TrendingUp } from "lucide-react";
-import * as LucideIcons from "lucide-react";
+import { resolveIcon } from "@/lib/iconResolver";
 import { Badge } from "@/components/ui/badge";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Switch } from "@/components/ui/switch";
@@ -174,7 +174,7 @@ export const CompanyAchievements = ({ companyId }: CompanyAchievementsProps) => 
   const platformAchievements = achievements.filter(a => a.achievement_type === 'platform_generated');
 
   const getIconComponent = (iconName: string) => {
-    const Icon = (LucideIcons as any)[iconName] || Award;
+    const Icon = resolveIcon(iconName, Award);
     return Icon;
   };
 

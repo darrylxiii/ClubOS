@@ -678,5 +678,25 @@
     "text39": "Einbetten",
     "text40": "Arbeitsablaeufe",
     "text41": "Keine Team-Buchungslinks"
+  },
+  "settings": {
+    "connectionssettings": {
+      "nameYourCalendar": "Name Your Calendar",
+      "cancel": "Abbrechen",
+      "connect": "Connect",
+      "setAsPrimary": "Set as primary",
+      "preview": "Preview",
+      "download": "Herunterladen",
+      "delete": "Löschen",
+      "resumePreview": "Resume Preview",
+      "google": "Google",
+      "microsoft": "Microsoft",
+      "gmail": "Gmail",
+      "outlook": "Outlook",
+      "failedToCompleteConnection": "Failed to complete connection",
+      "we": "We\\",
+      "unknownError": "Unknown error",
+      "failedToConnectEmail": "Failed to connect email"
+    }
   }
 }

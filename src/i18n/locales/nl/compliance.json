@@ -1,5 +1,5 @@
 {
-  "title": "Compliance",
+  "title": "Naleving",
   "subtitle": "Gegevensbescherming en juridische naleving",
   "gdpr": {
     "title": "AVG-naleving",
@@ -164,7 +164,7 @@
     "priority": "Prioriteit",
     "selectPriority": "Selecteer prioriteit",
     "low": "Laag",
-    "medium": "Medium",
+    "medium": "Gemiddeld",
     "high": "Hoog",
     "urgent": "Urgent",
     "auditScope": "Auditscope",

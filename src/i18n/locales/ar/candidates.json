@@ -340,5 +340,33 @@
     "interviews": "المقابلات",
     "strengths": "نقاط القوة",
     "concerns": "الملاحظات"
+  },
+  "text": {
+    "admincandidates": {
+      "next": "التالي",
+      "failedToLoadCandidates": "Failed to load candidates",
+      "exportFailed": "Export failed",
+      "exportedSuccessfully": "Exported successfully",
+      "failedToAssignStrategist": "Failed to assign strategist"
+    },
+    "talentpoollists": {
+      "areYouSureYouWantTo": "Are you sure you want to delete this list? This action cannot be undone.",
+      "cancel": "إلغاء",
+      "delete": "حذف",
+      "listIsNowPrivate": "List is now private",
+      "listIsNowSharedWithYour": "List is now shared with your team",
+      "unshare": "Unshare",
+      "share": "Share",
+      "thisListIsCurrentlySharedWith": "This list is currently shared with your team. Would you like to make it private?",
+      "shareThisListWithYourTeam": "Share this list with your team so they can view the candidates.",
+      "makePrivate": "Make Private",
+      "shareWithTeam": "Share with Team"
+    },
+    "unifiedcandidateprofile": {
+      "collaborationNotes": "Collaboration Notes",
+      "teamNotes": "Team Notes",
+      "shareNotesWithTqcAndYour": "Share notes with TQC and your team about this candidate",
+      "internalNotesAndObservationsAboutThis": "Internal notes and observations about this candidate"
+    }
   }
 }

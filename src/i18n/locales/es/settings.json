@@ -678,5 +678,25 @@
     "text39": "Insertar",
     "text40": "Flujos de trabajo",
     "text41": "Sin enlaces de reserva de equipo"
+  },
+  "settings": {
+    "connectionssettings": {
+      "nameYourCalendar": "Name Your Calendar",
+      "cancel": "Cancelar",
+      "connect": "Connect",
+      "setAsPrimary": "Set as primary",
+      "preview": "Preview",
+      "download": "Descargar",
+      "delete": "Eliminar",
+      "resumePreview": "Resume Preview",
+      "google": "Google",
+      "microsoft": "Microsoft",
+      "gmail": "Gmail",
+      "outlook": "Outlook",
+      "failedToCompleteConnection": "Failed to complete connection",
+      "we": "We\\",
+      "unknownError": "Unknown error",
+      "failedToConnectEmail": "Failed to connect email"
+    }
   }
 }

@@ -3,7 +3,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
-import * as Icons from "lucide-react";
+import { resolveIcon } from "@/lib/iconResolver";
 import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { useTranslation } from 'react-i18next';
@@ -24,7 +24,7 @@ const categoryLabels: Record<string, string> = {
 export function TipCard({ tip, index }: TipCardProps) {
   const { t } = useTranslation('candidates');
   const navigate = useNavigate();
-  const IconComponent = (Icons as any)[tip.icon] || Icons.Sparkles;
+  const IconComponent = resolveIcon(tip.icon);
 
   // Check if link is a placeholder (resources page doesn't exist yet)
   const isPlaceholder = tip.actionLink?.startsWith('/resources/');

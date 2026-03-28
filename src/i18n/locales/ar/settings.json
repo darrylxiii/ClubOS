@@ -678,5 +678,25 @@
     "text39": "التضمين",
     "text40": "سير العمل",
     "text41": "لا توجد روابط حجز جماعية"
+  },
+  "settings": {
+    "connectionssettings": {
+      "nameYourCalendar": "Name Your Calendar",
+      "cancel": "إلغاء",
+      "connect": "Connect",
+      "setAsPrimary": "Set as primary",
+      "preview": "Preview",
+      "download": "تنزيل",
+      "delete": "حذف",
+      "resumePreview": "Resume Preview",
+      "google": "Google",
+      "microsoft": "Microsoft",
+      "gmail": "Gmail",
+      "outlook": "Outlook",
+      "failedToCompleteConnection": "Failed to complete connection",
+      "we": "We\\",
+      "unknownError": "Unknown error",
+      "failedToConnectEmail": "Failed to connect email"
+    }
   }
 }

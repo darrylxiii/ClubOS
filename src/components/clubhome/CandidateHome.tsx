@@ -7,7 +7,7 @@ import { DiscoveryGrid } from "./DiscoveryGrid";
 import { CompactProfileStrength } from "./CompactProfileStrength";
 import { UpcomingMeetingsWidget } from "./UpcomingMeetingsWidget";
 import { ApplicationActivityFeed } from "./ApplicationActivityFeed";
-import { ReferralNetworkWidget } from "./ReferralNetworkWidget";
+
 import { ScrollReveal } from "@/components/ui/scroll-reveal";
 
 export const CandidateHome = () => {
@@ -48,10 +48,7 @@ export const CandidateHome = () => {
         <DiscoveryGrid />
       </ScrollReveal>
 
-      {/* 5.5. Referral Network */}
-      <ScrollReveal variant="fade-up" delay={0.18}>
-        <ReferralNetworkWidget />
-      </ScrollReveal>
+      {/* Referral Network — widget re-enabled once candidate_referrals table ships */}
 
       {/* 6. Profile strength (hidden at 100%) */}
       <CompactProfileStrength />

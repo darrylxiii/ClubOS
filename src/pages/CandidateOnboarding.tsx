@@ -125,7 +125,7 @@ export default function CandidateOnboarding() {
                   <Home className="w-4 h-4" />
                   {'Go to Dashboard'}
                 </Button>
-                <Button variant="outline" onClick={() => navigate('/invite')}>
+                <Button variant="outline" onClick={() => navigate('/referrals')}>
                   <UserPlus className="w-4 h-4" />
                   {'Invite a Friend'}
                 </Button>

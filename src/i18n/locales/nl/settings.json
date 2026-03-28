@@ -220,11 +220,11 @@
     "connections": "Connecties",
     "calendar": "Kalender",
     "communication": "Comms",
-    "notifications": "Alerts",
+    "notifications": "Meldingen",
     "privacy": "Privacy",
     "security": "Beveiliging",
     "api": "API",
-    "preferences": "Preferences",
+    "preferences": "Voorkeuren",
     "company": "Bedrijf"
   },
   "aiPersona": {
@@ -597,7 +597,7 @@
     "every30min": "Every 30 minutes",
     "blurScreenshots": "Blur Screenshots",
     "blurScreenshotsDesc": "Blur sensitive content in screenshots",
-    "reminders": "Reminders",
+    "reminders": "Herinneringen",
     "remindersDesc": "Get reminded to Verzenden your timesheets",
     "timesheetReminders": "Timesheet Reminders",
     "timesheetRemindersDesc": "Weekly reminder to Verzenden your timesheet",
@@ -678,5 +678,25 @@
     "text39": "Insluiten",
     "text40": "Werkstromen",
     "text41": "Geen teamboekingslinks"
+  },
+  "settings": {
+    "connectionssettings": {
+      "nameYourCalendar": "Name Your Calendar",
+      "cancel": "Annuleren",
+      "connect": "Connect",
+      "setAsPrimary": "Set as primary",
+      "preview": "Voorbeeld",
+      "download": "Downloaden",
+      "delete": "Verwijderen",
+      "resumePreview": "Resume Preview",
+      "google": "Google",
+      "microsoft": "Microsoft",
+      "gmail": "Gmail",
+      "outlook": "Outlook",
+      "failedToCompleteConnection": "Failed to complete connection",
+      "we": "We\\",
+      "unknownError": "Unknown error",
+      "failedToConnectEmail": "Failed to connect email"
+    }
   }
 }

@@ -208,6 +208,7 @@ export default function Referrals() {
 }
 
 function EmptyState({ icon: Icon, title, description, onAction, showAction }: { icon: React.ElementType; title: string; description: string; onAction: () => void; showAction?: boolean }) {
+  const { t } = useTranslation('common');
   return (
     <div className="flex flex-col items-center justify-center py-12 text-center glass-card rounded-xl col-span-full">
       <div className="p-4 rounded-full bg-muted/50 mb-4"><Icon className="h-8 w-8 text-muted-foreground" /></div>
