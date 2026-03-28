@@ -300,11 +300,11 @@
   "partnerFunnel": {
     "desc": "Beschrijf de rol. Wij regelen de rest.",
     "desc2": "Geen kosten tot u iemand aanneemt. Geen langlopende contracten.",
-    "text3": "Quantum Club",
-    "text4": "Quantum Club",
+    "text3": "The Quantum Club",
+    "text4": "The Quantum Club",
     "text5": "Partnerschapsaanvragen tijdelijk gepauzeerd",
-    "text6": "Quantum Club",
-    "text7": "Quantum Club",
+    "text6": "The Quantum Club",
+    "text7": "The Quantum Club",
     "text8": "Deel uw briefing",
     "text9": "Spreek met een strateeg",
     "text10": "Bekijk uw shortlist"
@@ -976,7 +976,7 @@
     },
     "label": {
       "addToGoogleCalendar": "to Google Calendar toevoegen",
-      "interviewType": "Interview Type *",
+      "interviewType": "Interviewtype *",
       "meetingTitle": "Vergaderingstitel *",
       "description": "Beschrijving",
       "date": "Datum *",
@@ -1126,7 +1126,7 @@
   },
   "enhancedAnalytics": {
     "title": "Totaal sollicitaties",
-    "enhancedAnalytics": "Enhanced Analytics"
+    "enhancedAnalytics": "Verbeterde analyses"
   },
   "internalReviewPanel": {
     "toast": {
@@ -1143,7 +1143,7 @@
     "dialogDescription": "Geef een reden op voor het afwijzen van deze kandidaat uit de pijplijn."
   },
   "interviewFeedbackDialog": {
-    "dialogTitle": "Interview Feedback",
+    "dialogTitle": "Interviewfeedback",
     "toast": {
       "pleaseSelectARecommendation": "Selecteer alstublieft een aanbeveling",
       "feedbackSubmittedSuccessfully": "Feedback succesvol ingediend"
@@ -1181,7 +1181,7 @@
     "engagementRate": "Betrokkenheidspercentage",
     "interviewPass": "Interview Pass",
     "offerAcceptance": "Aanbieding Acceptatie",
-    "clubSync": "Club Sync",
+    "clubSync": "ClubSync",
     "directApply": "Direct Solliciteren",
     "referrals": "Verwijzingen",
     "description": "Waar kandidaten vandaan komen"
@@ -1261,7 +1261,7 @@
     "title": "Totaal kandidaten",
     "tab": {
       "pipelineHealth": "Pipeline Health",
-      "conversionRates": "Conversion Rates"
+      "conversionRates": "Conversiepercentages"
     },
     "description": "Huidige verdeling over de pipelinefasen"
   },
@@ -1525,7 +1525,7 @@
     "beheerBedrijvenVoorHeadhuntingKandidaten": "Beheer bedrijven voor headhunting kandidaten"
   },
   "targetCompanyDetailDialog": {
-    "nogGeenComments": "Nog geen comments"
+    "nogGeenComments": "Nog geen opmerkingen"
   },
   "targetCompanyDialog": {
     "zoekBestaandeBedrijvenNaamEnWebsiteWorde": "Zoek bestaande bedrijven - naam en website worden automatisch ingevuld",
@@ -1641,7 +1641,7 @@
     }
   },
   "jobsInlineStats": {
-    "clubSync": "Club Sync"
+    "clubSync": "ClubSync"
   },
   "liveInterview": {
     "title": "Interview Sentinel",

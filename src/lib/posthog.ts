@@ -40,14 +40,7 @@ const BLOCKED_ROUTES = [
   '/admin/users',
 ];
 
-// Low-value pages to reduce autocapture (save events)
-const AUTOCAPTURE_EXCLUDED_PATHS = [
-  '/docs',
-  '/help',
-  '/privacy',
-  '/terms',
-  '/legal',
-];
+
 
 // ---------------------------------------------------------------------------
 // Lazy-loaded PostHog instance

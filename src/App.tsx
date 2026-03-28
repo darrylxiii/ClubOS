@@ -2,9 +2,9 @@
 
 import { lazy, Suspense, memo, useEffect } from "react";
 import { TracingProvider } from "@/lib/tracing/TracingProvider";
-import { Toaster } from "@/components/ui/toaster";
+
 import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
+
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { PublicProviders } from "@/contexts/PublicProviders";
@@ -97,13 +97,7 @@ const ClubHome = lazy(() => import("./pages/ClubHome"));
 // Legal & Public Pages
 const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
 const TermsOfService = lazy(() => import("./pages/TermsOfService"));
-const LegalHub = lazy(() => import("./pages/legal/LegalHub"));
-const CookiePolicy = lazy(() => import("./pages/legal/CookiePolicy"));
-const AcceptableUsePolicy = lazy(() => import("./pages/legal/AcceptableUsePolicy"));
-const SecurityPolicy = lazy(() => import("./pages/legal/SecurityPolicy"));
-const ReferralTerms = lazy(() => import("./pages/legal/ReferralTerms"));
-const AccessibilityStatement = lazy(() => import("./pages/legal/AccessibilityStatement"));
-const DataProcessingAgreement = lazy(() => import("./pages/legal/DataProcessingAgreement"));
+
 
 // Misc Protected Pages
 const ClubAI = lazy(() => import("./pages/ClubAI"));
@@ -111,7 +105,7 @@ const ClubAI = lazy(() => import("./pages/ClubAI"));
 
 const PartnerWelcome = lazy(() => import("./pages/PartnerWelcome"));
 const PartnerSetup = lazy(() => import("./pages/PartnerSetup"));
-const WhatsAppImport = lazy(() => import("./pages/WhatsAppImport"));
+
 // SalaryInsights redirects to /analytics?tab=salary (handled in analytics.routes.tsx)
 // CareerPath redirects to /analytics?tab=career-path (handled in analytics.routes.tsx)
 const Subscription = lazy(() => import("./pages/Subscription"));
@@ -134,15 +128,14 @@ const ChangePassword = lazy(() => import("./pages/ChangePassword"));
 
 // Live Hub
 const LiveHub = lazy(() => import("./pages/LiveHub"));
-// MyCommunications redirects to /profile?tab=communications (handled in App.tsx routes below)
-const MyCommunications = lazy(() => import("./pages/MyCommunications"));
+
 const PartnerRelationships = lazy(() => import("./pages/PartnerRelationships"));
 
 // Blog Pages
 const Blog = lazy(() => import("./pages/Blog"));
 const BlogPost = lazy(() => import("./pages/BlogPost"));
 const BlogCategory = lazy(() => import("./pages/BlogCategory"));
-const BlogEngine = lazy(() => import("./pages/BlogEngine"));
+
 
 // PageLoader is now imported from @/components/PageLoader
 

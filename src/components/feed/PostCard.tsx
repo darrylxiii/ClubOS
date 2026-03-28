@@ -7,7 +7,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { MessageCircle, Share2, MoreHorizontal, FileText, Bookmark, Trash2, Edit, Copy, Flag, Mail, ChevronLeft, ChevronRight, Sparkles, ChevronDown, Twitter, Linkedin, Send, Flame } from "lucide-react";
+import { MessageCircle, Share2, MoreHorizontal, FileText, Bookmark, Trash2, Edit, Copy, Flag, Mail, ChevronLeft, ChevronRight, Sparkles, ChevronDown, Flame } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { PostComments } from "./PostComments";
 import { CreateConversationDialog } from "@/components/messages/CreateConversationDialog";
@@ -60,13 +60,13 @@ export function PostCard({ post, onUpdate }: PostCardProps) {
   const [userStreak, setUserStreak] = useState<number | null>(null);
   const [shareDialogOpen, setShareDialogOpen] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(true);
-  const [showFullPost, setShowFullPost] = useState(false);
+
   const [isPinned, setIsPinned] = useState(false);
   const [repostCount, setRepostCount] = useState(0);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   
   // Engagement tracking
-  const { trackLike, trackComment, trackShare, trackSave: trackSaveEngagement } = useEngagementTracking({
+  const { trackShare, trackSave: trackSaveEngagement } = useEngagementTracking({
     postId: post.id,
     postAuthorId: post.user_id,
   });
@@ -232,7 +232,7 @@ export function PostCard({ post, onUpdate }: PostCardProps) {
     try {
       await supabase.from('post_shares').insert({
         post_id: post.id,
-        shared_by: user?.id || null,
+        shared_by: user?.id ?? '',
         share_platform: platform
       });
       trackShare(); // Also track in engagement signals
@@ -644,7 +644,7 @@ export function PostCard({ post, onUpdate }: PostCardProps) {
         open={messageDialogOpen}
         onOpenChange={setMessageDialogOpen}
         preselectedUserId={post.user_id}
-        onConversationCreated={(conversationId) => {
+        onConversationCreated={() => {
           navigate('/messages');
         }}
       />

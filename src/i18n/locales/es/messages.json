@@ -19,7 +19,7 @@
     "unread": "No leídos",
     "starred": "Destacados",
     "archived": "Archivados",
-    "spam": "Spam",
+    "spam": "Correo no deseado",
     "trash": "Papelera",
     "empty": "Su bandeja de entrada está vacía"
   },
@@ -58,7 +58,7 @@
     "send": "Enviar",
     "sendMessage": "Enviar mensaje",
     "loadMore": "Cargar más mensajes",
-    "noMessages": "No messages yet",
+    "noMessages": "Aún no hay mensajes",
     "startConversation": "Inicie la conversación"
   },
   "attachments": {
@@ -123,10 +123,10 @@
     "sent": "Enviado",
     "delivered": "Entregado",
     "read": "Leído",
-    "failed": "Failed to send"
+    "failed": "Error al enviar"
   },
   "empty": {
-    "noConversations": "No conversations yet",
+    "noConversations": "Aún no hay conversaciones",
     "startNew": "Inicie una nueva conversación",
     "noResults": "Ningún mensaje coincide con su búsqueda"
   },
@@ -153,7 +153,7 @@
     "joinedNoMedia": "Se unió sin cámara/micrófono. Puede intentar reconectarse desde la configuración.",
     "dbError": "Error de base de datos. Reintentando...",
     "connectFailed": "Could no connect to meeting room. Please try again.",
-    "joinFailed": "Failed to join call. Please try again.",
+    "joinFailed": "Error al unirse a la llamada. Inténtelo de nuevo.",
     "cameraRequired": "Se requiere acceso a cámara/micrófono",
     "enablePermissions": "Active los permisos de cámara y micrófono en su navegador para iniciar una videollamada.",
     "howToEnable": "Cómo activar los permisos:",
@@ -266,7 +266,7 @@
   },
   "sharedMedia": {
     "loading": "Cargando medios...",
-    "noFiles": "No files shared yet",
+    "noFiles": "Aún no se han compartido archivos",
     "images": "Imágenes",
     "videos": "Videos",
     "documents": "Documentos",
@@ -285,7 +285,7 @@
     "text9": "En riesgo",
     "text10": "Crítico",
     "text11": "Cronología de comunicación",
-    "text12": "No relationships tracked yet",
+    "text12": "Aún no se han rastreado relaciones",
     "text13": "Patrones detectados",
     "text14": "No se detectaron patrones"
   },

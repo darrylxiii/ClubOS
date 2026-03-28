@@ -195,11 +195,11 @@
       "pleaseEnterPhone": "Ingrese su número de teléfono",
       "enterCurrentTitle": "Ingrese su cargo actual",
       "enterDreamJob": "Ingrese su cargo ideal",
-      "invalidPassword": "Invalid password",
+      "invalidPassword": "Contraseña no válida",
       "meetPasswordRequirements": "Cumpla todos los requisitos de la contraseña",
       "emailAlreadyLinked": "Este correo electrónico ya está asociado con otra cuenta. Contacte a support@thequantumclub.com",
       "profileMergeFailed": "We found su profile but couldn't complete el merge. Please try again or contact support.",
-      "unexpectedError": "An unexpected error occurred. Please try again or contact support."
+      "unexpectedError": "Ocurrió un error inesperado. Inténtelo de nuevo o póngase en contacto con el soporte."
     },
     "navigation": {
       "back": "Atrás",

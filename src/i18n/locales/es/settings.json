@@ -300,8 +300,8 @@
     "systemDefault": "Predeterminado del sistema",
     "videoQuality": "Calidad de video",
     "autoRecommended": "Automática (recomendada)",
-    "hd720": "720p HD",
-    "fullHd1080": "1080p Full HD",
+    "hd720": "HD de 720p",
+    "fullHd1080": "Full HD de 1080p",
     "mirrorVideo": "Espejo de video",
     "mirrorVideoDesc": "Refleje la vista previa de su cámara (no afecta lo que otros ven)",
     "backgroundBlur": "Desenfoque de fondo",
@@ -398,7 +398,7 @@
     "description": "Un registro de lo que ha compartido, cuándo y con quién.",
     "active": "activo",
     "loading": "Cargando...",
-    "noRecords": "No consent records yet.",
+    "noRecords": "Aún no hay registros de consentimiento.",
     "activeLabel": "Activo",
     "revokedLabel": "Revocado",
     "revoke": "Revocar",
@@ -424,10 +424,10 @@
     "enableBiometric": "Activar inicio de sesión biométrico",
     "biometricEnabled": "{{name}} activado",
     "biometricDisabled": "{{name}} desactivado",
-    "verifyFailed": "Failed to verify biometrics",
+    "verifyFailed": "Error al verificar la biometría",
     "saveFailed": "Error al guardar la configuración",
     "authSuccess": "Autenticación exitosa",
-    "authFailed": "Authentication failed",
+    "authFailed": "Error de autenticación",
     "timeoutUpdated": "Tiempo de bloqueo automático actualizado",
     "nativeOnlyNote": "Sus datos biométricos nunca salen de su dispositivo.",
     "webNote": "La autenticación biométrica solo está disponible en la aplicación móvil nativa."
@@ -456,7 +456,7 @@
     "connectPrivateEmail": "Conectar correo privado",
     "connectPrivateEmailDesc": "Configuración IMAP/SMTP para cualquier proveedor de correo",
     "comingSoon": "Próximamente",
-    "noEmailsConnected": "No email accounts connected yet",
+    "noEmailsConnected": "Aún no se han conectado cuentas de correo electrónico",
     "getStarted": "Conecte Gmail u Outlook para comenzar"
   },
   "enhancedFreelance": {
@@ -681,22 +681,22 @@
   },
   "settings": {
     "connectionssettings": {
-      "nameYourCalendar": "Name Your Calendar",
+      "nameYourCalendar": "Nombre de su calendario",
       "cancel": "Cancelar",
-      "connect": "Connect",
-      "setAsPrimary": "Set as primary",
-      "preview": "Preview",
+      "connect": "Conectar",
+      "setAsPrimary": "Establecer como principal",
+      "preview": "Vista previa",
       "download": "Descargar",
       "delete": "Eliminar",
-      "resumePreview": "Resume Preview",
+      "resumePreview": "Reanudar vista previa",
       "google": "Google",
       "microsoft": "Microsoft",
       "gmail": "Gmail",
       "outlook": "Outlook",
-      "failedToCompleteConnection": "Failed to complete connection",
-      "we": "We\\",
-      "unknownError": "Unknown error",
-      "failedToConnectEmail": "Failed to connect email"
+      "failedToCompleteConnection": "Error al completar la conexión",
+      "we": "Nosotros\\",
+      "unknownError": "Error desconocido",
+      "failedToConnectEmail": "Error al conectar el correo electrónico"
     }
   }
 }

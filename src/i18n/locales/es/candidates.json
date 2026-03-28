@@ -153,7 +153,7 @@
   },
   "empty": {
     "noCandidates": "No se encontraron candidatos",
-    "noApplications": "No applications yet",
+    "noApplications": "Aún no hay solicitudes",
     "addFirst": "Agregue su primer candidato"
   },
   "adminCandidates": {
@@ -271,7 +271,7 @@
   "talentPoolListDetail": {
     "text1": "Lista no encontrada",
     "text2": "Lista inteligente",
-    "text3": "No candidates yet",
+    "text3": "Aún no hay candidatos",
     "text4": "Candidato",
     "text5": "Empresa",
     "text6": "Nivel",
@@ -283,7 +283,7 @@
     "btn2": "Crear lista",
     "text3": "Listas de talento",
     "text4": "Organice candidatos en listas curadas",
-    "text5": "No lists yet",
+    "text5": "Aún no hay listas",
     "text6": "Creación rápida desde plantillas",
     "text7": "Ya creada",
     "text8": "Crear nueva lista",
@@ -344,29 +344,29 @@
   "text": {
     "admincandidates": {
       "next": "Siguiente",
-      "failedToLoadCandidates": "Failed to load candidates",
-      "exportFailed": "Export failed",
-      "exportedSuccessfully": "Exported successfully",
-      "failedToAssignStrategist": "Failed to assign strategist"
+      "failedToLoadCandidates": "Error al cargar candidatos",
+      "exportFailed": "Error al exportar",
+      "exportedSuccessfully": "Exportado exitosamente",
+      "failedToAssignStrategist": "Error al asignar estratega"
     },
     "talentpoollists": {
-      "areYouSureYouWantTo": "Are you sure you want to delete this list? This action cannot be undone.",
+      "areYouSureYouWantTo": "¿Está seguro de que desea eliminar esta lista? Esta acción no se puede deshacer.",
       "cancel": "Cancelar",
       "delete": "Eliminar",
-      "listIsNowPrivate": "List is now private",
-      "listIsNowSharedWithYour": "List is now shared with your team",
-      "unshare": "Unshare",
-      "share": "Share",
-      "thisListIsCurrentlySharedWith": "This list is currently shared with your team. Would you like to make it private?",
-      "shareThisListWithYourTeam": "Share this list with your team so they can view the candidates.",
-      "makePrivate": "Make Private",
-      "shareWithTeam": "Share with Team"
+      "listIsNowPrivate": "La lista ahora es privada",
+      "listIsNowSharedWithYour": "La lista ahora se comparte con su equipo",
+      "unshare": "Dejar de compartir",
+      "share": "Compartir",
+      "thisListIsCurrentlySharedWith": "Esta lista se comparte actualmente con su equipo. ¿Le gustaría hacerla privada?",
+      "shareThisListWithYourTeam": "Comparta esta lista con su equipo para que puedan ver a los candidatos.",
+      "makePrivate": "Hacer Privada",
+      "shareWithTeam": "Compartir con el equipo"
     },
     "unifiedcandidateprofile": {
-      "collaborationNotes": "Collaboration Notes",
-      "teamNotes": "Team Notes",
-      "shareNotesWithTqcAndYour": "Share notes with TQC and your team about this candidate",
-      "internalNotesAndObservationsAboutThis": "Internal notes and observations about this candidate"
+      "collaborationNotes": "Notas de colaboración",
+      "teamNotes": "Notas del equipo",
+      "shareNotesWithTqcAndYour": "Comparta notas con The Quantum Club y su equipo sobre este candidato",
+      "internalNotesAndObservationsAboutThis": "Notas internas y observaciones sobre este candidato"
     }
   }
 }

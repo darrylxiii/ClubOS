@@ -132,7 +132,7 @@
     "advanced": "Búsqueda avanzada"
   },
   "empty": {
-    "noContracts": "No contracts yet",
+    "noContracts": "Aún no hay contratos",
     "createFirst": "Cree su primer contrato",
     "noTemplates": "No hay plantillas disponibles"
   },
@@ -162,7 +162,7 @@
     "desc": "Administre sus contratos de proyectos freelance y pagos",
     "text2": "Como freelancer",
     "text3": "Como cliente",
-    "text4": "Total Contracts",
+    "text4": "Total de contratos",
     "text5": "Activos",
     "text6": "Firma pendiente",
     "text7": "Completados",
@@ -175,7 +175,7 @@
   "contractSignaturePage": {
     "title": "Términos clave",
     "desc": "Revise los términos del contrato y agregue su firma para continuar",
-    "text2": "Total Value",
+    "text2": "Valor total",
     "text3": "Calendario de pagos",
     "text4": "Tarifa de la plataforma",
     "text5": "Protección de custodia",
@@ -224,24 +224,24 @@
     "filterPending": "Pendientes",
     "filterActive": "Activos",
     "filterCompleted": "Completados",
-    "noContracts": "No contracts yet",
+    "noContracts": "Aún no hay contratos",
     "noFilterMatch": "Ningún contrato coincide con sus filtros",
     "emptyDescription": "Cree su primer contrato para comenzar a contratar freelancers",
     "contractInvoices": "Facturas del contrato",
-    "noInvoices": "No invoices generated yet"
+    "noInvoices": "Aún no se han generado facturas"
   },
   "text": {
     "contractdetailpage": {
-      "signContract": "Sign Contract",
-      "milestoneStarted": "Milestone started!",
-      "milestoneSubmittedForReview": "Milestone submitted for review!",
-      "milestoneApprovedButPaymentReleaseFailed": "Milestone approved, but payment release failed. Please contact support.",
-      "milestoneApprovedPaymentReleasedSuccessfully": "Milestone approved! Payment released successfully.",
-      "youAreTheFreelancer": "You are the freelancer",
-      "youAreTheClient": "You are the client",
-      "client": "Client",
+      "signContract": "Firmar contrato",
+      "milestoneStarted": "¡Hito iniciado!",
+      "milestoneSubmittedForReview": "¡Hito enviado para revisión!",
+      "milestoneApprovedButPaymentReleaseFailed": "Hito aprobado, pero la liberación del pago falló. Por favor, póngase en contacto con soporte.",
+      "milestoneApprovedPaymentReleasedSuccessfully": "¡Hito aprobado! Pago liberado con éxito.",
+      "youAreTheFreelancer": "Usted es el freelancer",
+      "youAreTheClient": "Usted es el cliente",
+      "client": "Cliente",
       "freelancer": "Freelancer",
-      "anErrorOccurred": "An error occurred"
+      "anErrorOccurred": "Ocurrió un error"
     }
   }
 }

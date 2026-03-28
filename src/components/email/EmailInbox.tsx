@@ -10,9 +10,9 @@ import { notify } from "@/lib/notify";
 import { EmailSidebar } from "./EmailSidebar";
 import { EmailList } from "./EmailList";
 import { EmailDetail } from "./EmailDetail";
-import { EmailDetailDrawer } from "./EmailDetailDrawer";
+
 import { EmailComposer } from "./EmailComposer";
-import { useIsMobile } from "@/hooks/use-mobile";
+
 import { KeyboardShortcutsDialog } from "./KeyboardShortcutsDialog";
 import { AdvancedSearchInput } from "./AdvancedSearchInput";
 import { PriorityInboxTabs } from "./intelligence/PriorityInboxTabs";
@@ -39,7 +39,7 @@ export function EmailInbox() {
   const { user } = useAuth();
   const { executeWithUndo } = useUndoableAction();
   const { open: commandPaletteOpen, setOpen: setCommandPaletteOpen } = useCommandPalette();
-  const isMobile = useIsMobile();
+
 
   const {
     emails,

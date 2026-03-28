@@ -3069,7 +3069,7 @@
       "stageName": "Fase Naam",
       "color": "Kleur",
       "winProbability": "Win Probability (%)",
-      "probability": "Probability",
+      "probability": "Waarschijnlijkheid",
       "order": "Volgorde",
       "actions": "Acties",
       "egQualifiedProposalNegotiation": "bijv. Gekwalificeerd, Voorstel, Onderhandeling...",
@@ -3233,7 +3233,7 @@
       "riskDeleted": "Risk Verwijderd"
     },
     "scalingReadinessPanel": {
-      "scaleReadinessScore": "Scale Readiness Score",
+      "scaleReadinessScore": "Schaal Gereedheid Score",
       "overallPreparationFor10xGrowth": "Algehele voorbereiding op 10x groei"
     }
   },

@@ -109,7 +109,7 @@
     "makeHost": "Host maken",
     "makeCoHost": "Co-host maken",
     "latency": "Latentie:",
-    "packetLoss": "Packet Loss:",
+    "packetLoss": "Packetverlies:",
     "jitter": "Jitter:",
     "bitrate": "Bitrate:",
     "fps": "FPS:",

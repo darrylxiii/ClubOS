@@ -235,13 +235,13 @@
       "signContract": "Contract ondertekenen",
       "milestoneStarted": "Mijlpaal gestart!",
       "milestoneSubmittedForReview": "Mijlpaal ingediend ter beoordeling!",
-      "milestoneApprovedButPaymentReleaseFailed": "Milestone approved, but payment release failed. Please contact support.",
-      "milestoneApprovedPaymentReleasedSuccessfully": "Milestone approved! Payment released successfully.",
-      "youAreTheFreelancer": "You are the freelancer",
-      "youAreTheClient": "You are the client",
+      "milestoneApprovedButPaymentReleaseFailed": "Mijlpaal goedgekeurd, maar betaling vrijgeven mislukt. Neem contact op met support.",
+      "milestoneApprovedPaymentReleasedSuccessfully": "Mijlpaal goedgekeurd! Betaling succesvol vrijgegeven.",
+      "youAreTheFreelancer": "U bent de freelancer",
+      "youAreTheClient": "U bent de klant",
       "client": "Klant",
       "freelancer": "Freelancer",
-      "anErrorOccurred": "An error occurred"
+      "anErrorOccurred": "Er is een fout opgetreden"
     }
   }
 }

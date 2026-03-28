@@ -148,7 +148,7 @@
     "filterByStatus": "Filtrar por estado",
     "allStatuses": "Todos los estados",
     "loading": "Cargando solicitudes de auditoría...",
-    "noResults": "No audit requests found",
+    "noResults": "No se encontraron solicitudes de auditoría",
     "startReview": "Iniciar revisión",
     "reject": "Rechazar",
     "markComplete": "Marcar como completada",

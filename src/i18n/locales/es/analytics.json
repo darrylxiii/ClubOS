@@ -133,7 +133,7 @@
   "clientAnalyticsPage": {
     "title": "Analítica de clientes",
     "desc": "Monitoree sus métricas de contratación y proyectos",
-    "desc2": "No projects yet"
+    "desc2": "Aún no hay proyectos"
   },
   "enhancedMLDashboard": {
     "desc": "Monitoree el rendimiento de ML e inteligencia empresarial en toda la plataforma",

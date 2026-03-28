@@ -681,22 +681,22 @@
   },
   "settings": {
     "connectionssettings": {
-      "nameYourCalendar": "Name Your Calendar",
+      "nameYourCalendar": "Назовите Ваш календарь",
       "cancel": "Отмена",
-      "connect": "Connect",
-      "setAsPrimary": "Set as primary",
-      "preview": "Preview",
+      "connect": "Подключить",
+      "setAsPrimary": "Установить как основной",
+      "preview": "Предварительный просмотр",
       "download": "Скачать",
       "delete": "Удалить",
-      "resumePreview": "Resume Preview",
+      "resumePreview": "Возобновить предварительный просмотр",
       "google": "Google",
       "microsoft": "Microsoft",
       "gmail": "Gmail",
       "outlook": "Outlook",
-      "failedToCompleteConnection": "Failed to complete connection",
-      "we": "We\\",
-      "unknownError": "Unknown error",
-      "failedToConnectEmail": "Failed to connect email"
+      "failedToCompleteConnection": "Не удалось завершить подключение",
+      "we": "Мы\\",
+      "unknownError": "Неизвестная ошибка",
+      "failedToConnectEmail": "Не удалось подключить Email"
     }
   }
 }

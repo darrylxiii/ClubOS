@@ -232,16 +232,16 @@
   },
   "text": {
     "contractdetailpage": {
-      "signContract": "Sign Contract",
-      "milestoneStarted": "Milestone started!",
-      "milestoneSubmittedForReview": "Milestone submitted for review!",
-      "milestoneApprovedButPaymentReleaseFailed": "Milestone approved, but payment release failed. Please contact support.",
-      "milestoneApprovedPaymentReleasedSuccessfully": "Milestone approved! Payment released successfully.",
-      "youAreTheFreelancer": "You are the freelancer",
-      "youAreTheClient": "You are the client",
-      "client": "Client",
-      "freelancer": "Freelancer",
-      "anErrorOccurred": "An error occurred"
+      "signContract": "Подписать контракт",
+      "milestoneStarted": "Этап начат!",
+      "milestoneSubmittedForReview": "Этап отправлен на проверку!",
+      "milestoneApprovedButPaymentReleaseFailed": "Этап утвержден, но не удалось осуществить платеж. Пожалуйста, свяжитесь с поддержкой.",
+      "milestoneApprovedPaymentReleasedSuccessfully": "Этап утвержден! Платеж успешно осуществлен.",
+      "youAreTheFreelancer": "Вы - фрилансер",
+      "youAreTheClient": "Вы - клиент",
+      "client": "Клиент",
+      "freelancer": "Фрилансер",
+      "anErrorOccurred": "Произошла ошибка"
     }
   }
 }
