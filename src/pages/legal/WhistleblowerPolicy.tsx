@@ -21,15 +21,16 @@ export default function WhistleblowerPolicy() {
   ];
 
   return (
-    <Helmet>
+    <>
+      <Helmet>
         <title>{t("whistleblower.title", "Whistleblower & Ethics Reporting Policy")} | The Quantum Club</title>
         <meta name="description" content={t('legalPages.whistleblowerPolicyDesc', 'Legal documentation for The Quantum Club recruitment platform.')} />
       </Helmet>
       <LegalPageLayout
-      title={t("whistleblower.title", "Whistleblower & Ethics Reporting Policy")}
-      lastUpdated={lastUpdated}
-      sections={sections}
-    >
+        title={t("whistleblower.title", "Whistleblower & Ethics Reporting Policy")}
+        lastUpdated={lastUpdated}
+        sections={sections}
+      >
       <div className="space-y-8">
         {/* Hero card */}
         <Card className="p-6 bg-primary/5 border-primary/20">
@@ -325,5 +326,6 @@ export default function WhistleblowerPolicy() {
         </div>
       </div>
     </LegalPageLayout>
+    </>
   );
 }

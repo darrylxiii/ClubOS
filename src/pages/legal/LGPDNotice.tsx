@@ -21,15 +21,16 @@ export default function LGPDNotice() {
   ];
 
   return (
-    <Helmet>
+    <>
+      <Helmet>
         <title>{t('lgpd.pageTitle', 'LGPD Notice (Brazil)')} | The Quantum Club</title>
         <meta name="description" content={t('legalPages.lGPDNoticeDesc', 'Legal documentation for The Quantum Club recruitment platform.')} />
       </Helmet>
       <LegalPageLayout
-      title={t('lgpd.pageTitle', 'LGPD Notice (Brazil)')}
-      lastUpdated={lastUpdated}
-      sections={sections}
-    >
+        title={t('lgpd.pageTitle', 'LGPD Notice (Brazil)')}
+        lastUpdated={lastUpdated}
+        sections={sections}
+      >
       <div className="space-y-8">
         <Card className="p-6 bg-primary/5 border-primary/20">
           <div className="flex items-start gap-4">
@@ -258,5 +259,6 @@ export default function LGPDNotice() {
         </div>
       </div>
     </LegalPageLayout>
+    </>
   );
 }

@@ -1,10 +1,12 @@
 import { Helmet } from 'react-helmet-async';
+import { useTranslation } from 'react-i18next';
 import { LegalPageLayout } from "@/components/legal/LegalPageLayout";
 import { LegalSection } from "@/components/legal/LegalSection";
 import { Card } from "@/components/ui/card";
 import { Sparkles, Settings2, ShieldCheck, Scale, Cpu } from "lucide-react";
 
 export default function AITransparencyPolicy() {
+  const { t } = useTranslation('common');
   const lastUpdated = "March 28, 2026";
   
   const sections = [
@@ -19,15 +21,16 @@ export default function AITransparencyPolicy() {
   ];
 
   return (
-    <Helmet>
+    <>
+      <Helmet>
         <title>{t('legalPages.aITransparencyPolicy', 'AI Transparency & Ethics Policy')} | The Quantum Club</title>
         <meta name="description" content={t('legalPages.aITransparencyPolicyDesc', 'Legal documentation for The Quantum Club recruitment platform.')} />
       </Helmet>
       <LegalPageLayout
-      title={t('legalPages.aITransparencyPolicy', 'AI Transparency & Ethics Policy')}
-      lastUpdated={lastUpdated}
-      sections={sections}
-    >
+        title={t('legalPages.aITransparencyPolicy', 'AI Transparency & Ethics Policy')}
+        lastUpdated={lastUpdated}
+        sections={sections}
+      >
       <div className="space-y-8">
         <Card className="p-6 bg-primary/5 border-primary/20">
           <div className="flex items-start gap-4">
@@ -162,5 +165,6 @@ export default function AITransparencyPolicy() {
         </div>
       </div>
     </LegalPageLayout>
+    </>
   );
 }

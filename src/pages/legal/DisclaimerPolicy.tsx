@@ -1,10 +1,12 @@
 import { Helmet } from 'react-helmet-async';
+import { useTranslation } from 'react-i18next';
 import { LegalPageLayout } from "@/components/legal/LegalPageLayout";
 import { LegalSection } from "@/components/legal/LegalSection";
 import { Card } from "@/components/ui/card";
 import { AlertCircle } from "lucide-react";
 
 export default function DisclaimerPolicy() {
+  const { t } = useTranslation('common');
   const lastUpdated = "March 28, 2026";
   
   const sections = [
@@ -17,15 +19,16 @@ export default function DisclaimerPolicy() {
   ];
 
   return (
-    <Helmet>
+    <>
+      <Helmet>
         <title>{t('legalPages.disclaimerPolicy', 'Platform Disclaimers')} | The Quantum Club</title>
         <meta name="description" content={t('legalPages.disclaimerPolicyDesc', 'Legal documentation for The Quantum Club recruitment platform.')} />
       </Helmet>
       <LegalPageLayout
-      title={t('legalPages.disclaimerPolicy', 'Platform Disclaimers')}
-      lastUpdated={lastUpdated}
-      sections={sections}
-    >
+        title={t('legalPages.disclaimerPolicy', 'Platform Disclaimers')}
+        lastUpdated={lastUpdated}
+        sections={sections}
+      >
       <div className="space-y-8">
         <Card className="p-6 bg-primary/5 border-primary/20">
           <div className="flex items-start gap-4">
@@ -103,6 +106,7 @@ export default function DisclaimerPolicy() {
         </div>
 
       </div>
-    </LegalPageLayout>
+      </LegalPageLayout>
+    </>
   );
 }

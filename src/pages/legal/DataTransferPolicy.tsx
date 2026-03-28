@@ -76,15 +76,16 @@ export default function DataTransferPolicy() {
   };
 
   return (
-    <Helmet>
+    <>
+      <Helmet>
         <title>{t("dataTransfer.title", "Cross-Border Data Transfer Policy")} | The Quantum Club</title>
         <meta name="description" content={t('legalPages.dataTransferPolicyDesc', 'Legal documentation for The Quantum Club recruitment platform.')} />
       </Helmet>
       <LegalPageLayout
-      title={t("dataTransfer.title", "Cross-Border Data Transfer Policy")}
-      lastUpdated={lastUpdated}
-      sections={sections}
-    >
+        title={t("dataTransfer.title", "Cross-Border Data Transfer Policy")}
+        lastUpdated={lastUpdated}
+        sections={sections}
+      >
       <div className="space-y-8">
         {/* Hero notice */}
         <Card className="p-6 bg-primary/5 border-primary/20">
@@ -468,5 +469,6 @@ export default function DataTransferPolicy() {
         </div>
       </div>
     </LegalPageLayout>
+    </>
   );
 }

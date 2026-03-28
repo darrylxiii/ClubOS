@@ -417,15 +417,16 @@ export default function ThirdPartyRegistry() {
   ];
 
   return (
-    <Helmet>
+    <>
+      <Helmet>
         <title>{t("thirdParty.title", "Third-Party Integrations Registry")} | The Quantum Club</title>
         <meta name="description" content={t('legalPages.thirdPartyRegistryDesc', 'Legal documentation for The Quantum Club recruitment platform.')} />
       </Helmet>
       <LegalPageLayout
-      title={t("thirdParty.title", "Third-Party Integrations Registry")}
-      lastUpdated={lastUpdated}
-      sections={sections}
-    >
+        title={t("thirdParty.title", "Third-Party Integrations Registry")}
+        lastUpdated={lastUpdated}
+        sections={sections}
+      >
       <div className="space-y-8">
         {/* Intro card */}
         <Card className="p-6 bg-primary/5 border-primary/20">
@@ -551,5 +552,6 @@ export default function ThirdPartyRegistry() {
         </div>
       </div>
     </LegalPageLayout>
+    </>
   );
 }

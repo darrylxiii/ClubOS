@@ -76,7 +76,6 @@ const LanguageSync = memo(() => {
 // PERF: Lazy load Auth and NotFound pages to massively shrink the main index chunk
 // The auth chunk will be fetched immediately after the tiny index chunk executes
 const Auth = lazy(() => import('./pages/Auth'));
-const PublicHome = lazy(() => import('./pages/PublicHome'));
 const NotFound = lazy(() => import('./pages/NotFound'));
 
 // PWA Components
@@ -206,11 +205,7 @@ const App = () => {
                           path="/"
                           element={
                             <PublicProviders>
-                              <RouteErrorBoundary>
-                                <Suspense fallback={<PageLoader />}>
-                                  <PublicHome />
-                                </Suspense>
-                              </RouteErrorBoundary>
+                              <Navigate to="/auth" replace />
                             </PublicProviders>
                           }
                         />

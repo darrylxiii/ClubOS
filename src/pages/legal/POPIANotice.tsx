@@ -21,15 +21,16 @@ export default function POPIANotice() {
   ];
 
   return (
-    <Helmet>
+    <>
+      <Helmet>
         <title>{t('popia.pageTitle', 'POPIA Notice (South Africa)')} | The Quantum Club</title>
         <meta name="description" content={t('legalPages.pOPIANoticeDesc', 'Legal documentation for The Quantum Club recruitment platform.')} />
       </Helmet>
       <LegalPageLayout
-      title={t('popia.pageTitle', 'POPIA Notice (South Africa)')}
-      lastUpdated={lastUpdated}
-      sections={sections}
-    >
+        title={t('popia.pageTitle', 'POPIA Notice (South Africa)')}
+        lastUpdated={lastUpdated}
+        sections={sections}
+      >
       <div className="space-y-8">
         <Card className="p-6 bg-primary/5 border-primary/20">
           <div className="flex items-start gap-4">
@@ -248,5 +249,6 @@ export default function POPIANotice() {
         </div>
       </div>
     </LegalPageLayout>
+    </>
   );
 }

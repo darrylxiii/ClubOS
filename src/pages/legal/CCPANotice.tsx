@@ -1,10 +1,12 @@
 import { Helmet } from 'react-helmet-async';
+import { useTranslation } from 'react-i18next';
 import { LegalPageLayout } from "@/components/legal/LegalPageLayout";
 import { LegalSection } from "@/components/legal/LegalSection";
 import { Card } from "@/components/ui/card";
 import { MapPin, EyeOff } from "lucide-react";
 
 export default function CCPANotice() {
+  const { t } = useTranslation('common');
   const lastUpdated = "March 28, 2026";
   
   const sections = [
@@ -20,15 +22,16 @@ export default function CCPANotice() {
   ];
 
   return (
-    <Helmet>
+    <>
+      <Helmet>
         <title>{t('legalPages.cCPANotice', 'California Privacy Rights Notice (CCPA/CPRA)')} | The Quantum Club</title>
         <meta name="description" content={t('legalPages.cCPANoticeDesc', 'Legal documentation for The Quantum Club recruitment platform.')} />
       </Helmet>
       <LegalPageLayout
-      title={t('legalPages.cCPANotice', 'California Privacy Rights Notice (CCPA/CPRA)')}
-      lastUpdated={lastUpdated}
-      sections={sections}
-    >
+        title={t('legalPages.cCPANotice', 'California Privacy Rights Notice (CCPA/CPRA)')}
+        lastUpdated={lastUpdated}
+        sections={sections}
+      >
       <div className="space-y-8">
         <Card className="p-6 bg-primary/5 border-primary/20">
           <div className="flex items-start gap-4">
@@ -187,5 +190,6 @@ export default function CCPANotice() {
 
       </div>
     </LegalPageLayout>
+    </>
   );
 }

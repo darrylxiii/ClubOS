@@ -1,10 +1,12 @@
 import { Helmet } from 'react-helmet-async';
+import { useTranslation } from 'react-i18next';
 import { LegalPageLayout } from "@/components/legal/LegalPageLayout";
 import { LegalSection } from "@/components/legal/LegalSection";
 import { Card } from "@/components/ui/card";
 import { Users, ShieldAlert, FileText, CheckCircle2 } from "lucide-react";
 
 export default function ModernSlaveryStatement() {
+  const { t } = useTranslation('common');
   const lastUpdated = "March 28, 2026";
   
   const sections = [
@@ -18,15 +20,16 @@ export default function ModernSlaveryStatement() {
   ];
 
   return (
-    <Helmet>
+    <>
+      <Helmet>
         <title>{t('legalPages.modernSlaveryStatement', 'Anti-Slavery & Human Trafficking Statement')} | The Quantum Club</title>
         <meta name="description" content={t('legalPages.modernSlaveryStatementDesc', 'Legal documentation for The Quantum Club recruitment platform.')} />
       </Helmet>
       <LegalPageLayout
-      title={t('legalPages.modernSlaveryStatement', 'Anti-Slavery & Human Trafficking Statement')}
-      lastUpdated={lastUpdated}
-      sections={sections}
-    >
+        title={t('legalPages.modernSlaveryStatement', 'Anti-Slavery & Human Trafficking Statement')}
+        lastUpdated={lastUpdated}
+        sections={sections}
+      >
       <div className="space-y-8">
         <Card className="p-6 bg-primary/5 border-primary/20">
           <div className="flex items-start gap-4">
@@ -144,6 +147,7 @@ export default function ModernSlaveryStatement() {
         </div>
 
       </div>
-    </LegalPageLayout>
+      </LegalPageLayout>
+    </>
   );
 }
