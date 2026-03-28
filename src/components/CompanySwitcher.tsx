@@ -49,6 +49,7 @@ export function CompanySwitcher() {
           >
             <CompanyLogoStatic
               name={activeCompany?.company_name}
+              logoUrl={activeCompany?.company_logo_url}
               size="xs"
               className="flex-shrink-0"
             />
@@ -84,6 +85,7 @@ export function CompanySwitcher() {
               >
                 <CompanyLogoStatic
                   name={company.company_name}
+                  logoUrl={company.company_logo_url}
                   size="sm"
                   className="flex-shrink-0"
                 />

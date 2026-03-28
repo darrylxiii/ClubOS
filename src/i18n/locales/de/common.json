@@ -531,7 +531,51 @@
     "clubMember": "Club-Mitglied",
     "welcome": "Willkommen zurück",
     "welcomeBack": "Willkommen zurück, {{name}}",
-    "personalizedDashboard": "Hier ist Ihr persönliches Dashboard"
+    "personalizedDashboard": "Hier ist Ihr persönliches Dashboard",
+    "revenue": {
+      "title": "Umsatz & Wachstum",
+      "thisMonth": "Diesen Monat",
+      "lastMonth": "Letzter Monat",
+      "3m": "3 Monate",
+      "6m": "6 Monate",
+      "ytd": "Jahresbeginn",
+      "1y": "1 Jahr",
+      "custom": "Benutzerdefiniert",
+      "selectDateRange": "Datumsbereich auswählen",
+      "placements": "Vermittlungen",
+      "chartRevenue": "Umsatz",
+      "chartPreviousPeriod": "Vorperiode",
+      "totalRevenueWithPlacements": "Gesamtumsatz ({{count}} Vermittlungen)",
+      "avgPerPlacement": "Durchschn. pro Vermittlung",
+      "perWorkingDay": "Pro Arbeitstag",
+      "bestMonth": "Bester Monat",
+      "users": "Benutzer",
+      "companies": "Unternehmen",
+      "openJobsLabel": "Offene Stellen",
+      "applications": "Bewerbungen",
+      "weightedPipeline": "Gewichtete Pipeline",
+      "expectedClosings": "Erwartete Abschlüsse",
+      "expectedWithCount": "{{count}} erwartete Abschlüsse",
+      "projectedMonthEnd": "Prognostiziertes Monatsende",
+      "dayProgress": "Tag {{current}} von {{total}}",
+      "collapse": "Einklappen",
+      "expandAnalytics": "Analysen erweitern"
+    },
+    "teamCapacity": {
+      "manage": "Verwalten",
+      "placedCount": "{{count}} vermittelt",
+      "revenueAmount": "{{amount}} Umsatz",
+      "memberLastActive": "Zuletzt aktiv {{time}}",
+      "moreCount": "+{{count}} weitere Strategen",
+      "noStrategists": "Keine Strategen gefunden"
+    },
+    "partnerEngagement": {
+      "activeRate": "Aktivitätsrate",
+      "partners": "Partner",
+      "inactive14Days": "14+ Tage inaktiv",
+      "topPerformers": "Top-Performer",
+      "hiresCount": "{{count}} Einstellungen"
+    }
   },
   "dashboard": {
     "refreshKPIs": "Aktualisieren KPIs",
@@ -5612,7 +5656,7 @@
   "alerts": "Warnungen",
   "apps_per_job": "Bewerbungen pro Job",
   "jobs_filled_this_month": "Stellen Filled Dieser Monat",
-  "quick_launch": "Schnellzugriff",
+  "quick_launch": "Schnellstart",
   "latest_platform_events_last": "Neueste Plattform-Ereignisse (letzte 24 Stunden)",
   "latest_candidate_applications": "Neueste Kandidaten-Bewerbungen",
   "no_applications_yet": "Noch keine Bewerbungen",
@@ -14100,7 +14144,13 @@
   "activeMeetingsWidget": {
     "badge": {
       "live": "Live"
-    }
+    },
+    "todaysAgenda": "Heutige Agenda",
+    "upcomingMeetings": "Anstehende Meetings",
+    "noMeetings": "Keine Meetings in den nächsten 5 Tagen",
+    "viewCalendar": "Kalender ansehen",
+    "viewFullCalendar": "Vollständigen Kalender ansehen",
+    "join": "Beitreten"
   },
   "agentActivityWidget": {
     "badge": {
@@ -14109,7 +14159,7 @@
   },
   "careerProgressWidget": {
     "badge": {
-      "justGettingStarted": "Gerade erst angefangen",
+      "justGettingStarted": "Gerade gestartet",
       "onTrack": "Auf Kurs"
     }
   },
@@ -14117,86 +14167,86 @@
     "badge": {
       "aiSuggested": "KI-Vorschlag"
     },
-    "allCaughtUpNoPendingTasks": "Alles erledigt. Keine ausstehenden Aufgaben."
+    "allCaughtUpNoPendingTasks": "Alles erledigt — keine ausstehenden Aufgaben"
   },
   "dailyBriefingBanner": {
     "badge": {
-      "poweredByQuin": "Unterstuetzt von QUIN"
+      "poweredByQuin": "Unterstützt von Quin"
     }
   },
   "partnerHome": {
     "welcomeToTheQuantumClub": "Willkommen bei The Quantum Club",
-    "companySetupInProgress": "Unternehmenseinrichtung laeuft",
-    "completeYourAccountSetupToGetStartedWith": "Schliessen Sie Ihre Kontoeinrichtung ab, um mit Ihrem Partner-Portal zu beginnen",
-    "yourStrategistIsFinalisingYourCompanyPro": "Ihr Stratege stellt Ihr Unternehmensprofil fertig. Sie werden Ihr Dashboard hier in Kuerze sehen."
+    "companySetupInProgress": "Unternehmenseinrichtung läuft",
+    "completeYourAccountSetupToGetStartedWith": "Vervollständigen Sie Ihre Kontoeinrichtung, um loszulegen",
+    "yourStrategistIsFinalisingYourCompanyPro": "Ihr Stratege finalisiert Ihr Unternehmensprofil"
   },
   "skillDemandWidget": {
     "badge": {
       "stable": "Stabil",
       "youHaveThis": "Sie haben dies"
     },
-    "noSkillDataAvailableYet": "Noch keine skill data available"
+    "noSkillDataAvailableYet": "Noch keine Skill-Daten verfügbar"
   },
   "partnerStrategistStrip": {
     "badge": {
       "strategist": "Stratege"
     },
-    "yourDedicatedTalentPartnerAtTheQuantumCl": "Ihr persoenlicher Talent-Partner bei The Quantum Club"
+    "yourDedicatedTalentPartnerAtTheQuantumCl": "Ihr dedizierter Talent-Partner bei The Quantum Club"
   },
   "adminReferralWidget": {
-    "totalReferrals": "Empfehlungen gesamt",
+    "totalReferrals": "Gesamtempfehlungen",
     "successful": "Erfolgreich",
-    "paidOut": "Ausbezahlt",
+    "paidOut": "Ausgezahlt",
     "referralNetwork": "Empfehlungsnetzwerk"
   },
   "auditLogSummaryWidget": {
     "sensitive": "Sensibel",
-    "recentActivity": "Letzte Aktivitaet",
+    "recentActivity": "Letzte Aktivität",
     "noAuditEventsToday": "Keine Audit-Ereignisse heute",
     "failed": "Fehlgeschlagen",
     "today": "Heute"
   },
   "cRMProspectsWidget": {
-    "noProspectsYet": "Noch keine prospects",
-    "avgDeal": "Durchschnittl. Deal",
+    "noProspectsYet": "Noch keine Interessenten",
+    "avgDeal": "Durchschn. Deal",
     "active": "Aktiv"
   },
   "clubAIAnalyticsWidget": {
     "totalInteractions": "Interaktionen gesamt",
     "recommendations": "Empfehlungen",
     "actedUpon": "Umgesetzt",
-    "userSatisfaction": "Benutzerzufriedenheit",
-    "clubAiAnalytics": "Club AI Analysen"
+    "userSatisfaction": "Nutzerzufriedenheit",
+    "clubAiAnalytics": "Club AI Analytics"
   },
   "dealPipelineSummaryWidget": {
     "noActiveDealsInPipeline": "Keine aktiven Deals in der Pipeline",
-    "weightedValuesUseStageProbabilityFromCrm": "Gewichtete Werte verwenden die Phasenwahrscheinlichkeit aus den CRM-Einstellungen",
+    "weightedValuesUseStageProbabilityFromCrm": "Gewichtete Werte verwenden Stufenwahrscheinlichkeit aus dem CRM",
     "activeDeals": "Aktive Deals",
     "totalValue": "Gesamtwert",
     "weighted": "Gewichtet"
   },
   "edgeFunctionHealthWidget": {
-    "avgResponse": "Durchschnittl. Antwort",
+    "avgResponse": "Durchschn. Antwortzeit",
     "backendHealth": "Backend-Gesundheit"
   },
   "hiringPipelineOverview": {
-    "yourHiringPipelineStartsHere": "Ihre Einstellungs-Pipeline beginnt hier",
-    "description": "Aufschluesselung der aktuellen Phase"
+    "yourHiringPipelineStartsHere": "Ihre Einstellungspipeline beginnt hier",
+    "description": "Verwaltung Ihrer Einstellungspipeline"
   },
   "interviewCommandWidget": {
-    "noInterviewsScheduledForToday": "Keine Interviews fuer heute geplant",
-    "allScorecardsSubmitted": "Alle Scorecards eingereicht!"
+    "noInterviewsScheduledForToday": "Keine Interviews für heute geplant",
+    "allScorecardsSubmitted": "Alle Bewertungsbögen eingereicht"
   },
   "interviewCountdownWidget": {
-    "noUpcomingInterviewsScheduled": "Keine anstehenden Vorstellungsgespraeche geplant"
+    "noUpcomingInterviewsScheduled": "Keine anstehenden Interviews geplant"
   },
   "kPISummaryWidget": {
-    "noKpiDataAvailableYet": "Noch keine KPI data available",
+    "noKpiDataAvailableYet": "Noch keine KPI-Daten verfügbar",
     "critical": "Kritisch",
     "warning": "Warnung",
     "onTarget": "Im Ziel",
     "pending": "Ausstehend",
-    "healthScore": "Gesundheits-Score",
+    "healthScore": "Gesundheitsscore",
     "awaitingData": "Warten auf Daten"
   },
   "liveOperationsWidget": {
@@ -14204,21 +14254,21 @@
     "accountsActive": "Aktive Konten"
   },
   "messagesPreviewWidget": {
-    "noMessagesYet": "Noch keine messages"
+    "noMessagesYet": "Noch keine Nachrichten"
   },
   "nPSPulseWidget": {
-    "promoters": "Foerderer",
+    "promoters": "Promotoren",
     "passives": "Passive",
     "detractors": "Kritiker"
   },
   "partnerActivityFeed": {
-    "noRecentActivity": "Keine aktuelle Aktivitaet",
-    "description": "Aktuelle Plattformaktivitaet"
+    "noRecentActivity": "Keine kürzliche Aktivität",
+    "description": "Aktuelle Aktivitäten"
   },
   "partnerEngagementWidget": {
     "total": "Gesamt",
     "active": "Aktiv",
-    "atRisk": "Gefaehrdet",
+    "atRisk": "Gefährdet",
     "partnerEngagement": "Partner-Engagement",
     "placementSuccessRate": "Vermittlungserfolgsrate"
   },
@@ -14227,23 +14277,23 @@
     "allMemberRequestsHaveBeenProcessed": "Alle Mitgliedsanfragen wurden bearbeitet",
     "pendingApprovals": "Ausstehende Genehmigungen",
     "approvals": "Genehmigungen",
-    "description": "Neue Mitglieder warten auf Pruefung"
+    "description": "Ausstehende Mitgliedsgenehmigungen"
   },
   "recentApplicationsList": {
-    "noApplicationsYet": "Noch keine applications",
-    "applicationsWillAppearHereAsCandidatesAp": "Bewerbungen erscheinen hier, sobald sich Kandidaten bewerben",
-    "description": "Neueste Kandidaten-Bewerbungen"
+    "noApplicationsYet": "Noch keine Bewerbungen",
+    "applicationsWillAppearHereAsCandidatesAp": "Bewerbungen erscheinen hier, sobald Kandidaten sich bewerben",
+    "description": "Neueste Bewerbungen"
   },
   "recruiterTeamWidget": {
-    "sourced": "Beschafft",
+    "sourced": "Gesourced",
     "placements": "Vermittlungen",
     "topPerformers": "Top-Performer",
-    "noRecruiterActivityYet": "Noch keine recruiter activity",
-    "rate": "Tarif"
+    "noRecruiterActivityYet": "Noch keine Recruiter-Aktivität",
+    "rate": "Rate"
   },
   "referralStatsWidget": {
     "active": "Aktiv",
-    "projected": "Projiziert",
+    "projected": "Prognostiziert",
     "earned": "Verdient"
   },
   "revenueGrowthWidget": {
@@ -14255,21 +14305,21 @@
   "revenueSparkline": {
     "pipelineValue": "Pipeline-Wert",
     "title": {
-      "revenue": "Umsatz &"
+      "revenue": "Umsatz"
     }
   },
   "salaryInsightsWidget": {
-    "addYourRoleToSeeMarketBenchmarks": "your role to see market benchmarks hinzufuegen"
+    "addYourRoleToSeeMarketBenchmarks": "Fügen Sie Ihre Rolle hinzu, um Markt-Benchmarks zu sehen"
   },
   "savedJobsWidget": {
-    "noSavedJobsYet": "Noch keine saved jobs"
+    "noSavedJobsYet": "Noch keine gespeicherten Stellen"
   },
   "securityAlertsWidget": {
     "blockedIps": "Blockierte IPs"
   },
   "strategistContactCard": {
-    "aDedicatedStrategistWillBeAssignedToYouS": "Ein dedizierter Stratege wird Ihnen in Kuerze zugewiesen",
-    "theyllHelpGuideYourCareerJourney": "Sie werden Ihnen bei Ihrer Karrierereise helfen"
+    "aDedicatedStrategistWillBeAssignedToYouS": "Ein dedizierter Stratege wird Ihnen in Kürze zugewiesen",
+    "theyllHelpGuideYourCareerJourney": "Er/Sie begleitet Ihre Karrierereise"
   },
   "systemErrorsWidget": {
     "critical": "Kritisch",
@@ -14277,29 +14327,29 @@
     "warnings": "Warnungen"
   },
   "talentRecommendations": {
-    "noRecommendationsYet": "Noch keine recommendations",
-    "recommendationsWillAppearWhenYouHaveActi": "Empfehlungen erscheinen, wenn Sie aktive Stellenanzeigen haben",
-    "description": "Top-Kandidaten passend zu Ihren offenen Stellen"
+    "noRecommendationsYet": "Noch keine Empfehlungen",
+    "recommendationsWillAppearWhenYouHaveActi": "Empfehlungen erscheinen, wenn Sie aktive Stellen haben",
+    "description": "Talentempfehlungen"
   },
   "taskQueueWidget": {
     "noPendingTasks": "Keine ausstehenden Aufgaben",
     "pending": "Ausstehend",
-    "dueToday": "Heute faellig",
-    "overdue": "Ueberfaellig"
+    "dueToday": "Heute fällig",
+    "overdue": "Überfällig"
   },
   "teamCapacityWidget": {
     "title": {
-      "teamCapacity": "Teamkapazitaet"
+      "teamCapacity": "Teamkapazität"
     }
   },
   "topClientsWidget": {
-    "noActiveClientsYet": "Noch keine active clients"
+    "noActiveClientsYet": "Noch keine aktiven Kunden"
   },
   "partnerActivityFeedUnified": {
-    "postARoleToSeeApplicationsInterviewsAndU": "Veroeffentlichen Sie eine Stelle, um hier Bewerbungen, Interviews und Updates zu sehen"
+    "postARoleToSeeApplicationsInterviewsAndU": "Veröffentlichen Sie eine Rolle, um Bewerbungen, Interviews und Updates zu sehen"
   },
   "upcomingScheduleWidget": {
-    "interviewsAreAutomaticallyScheduledOnceC": "Interviews werden automatisch geplant, sobald Kandidaten fuer Ihre Stellen in die engere Auswahl kommen"
+    "interviewsAreAutomaticallyScheduledOnceC": "Interviews werden automatisch geplant, sobald Kandidaten ausgewählt werden"
   },
   "blindSpot": {
     "blindSpotDetector": "Blinder-Fleck-Detektor",
@@ -15739,5 +15789,37 @@
     "yourFeedbackHelpsUsImproveThe": "Ihr Feedback hilft uns, The Quantum Club zu verbessern.",
     "pleaseTryAgainLater": "Bitte versuchen Sie es später noch einmal.",
     "unknown": "Unbekannt"
+  },
+  "ticker": {
+    "mrr": "MRR",
+    "pipeline": "Pipeline",
+    "placements": "Vermittlungen",
+    "activeJobs": "Aktive Stellen"
+  },
+  "adminTasksWidget": {
+    "title": "Aufgaben",
+    "emptyMessage": "Alles erledigt — keine ausstehenden Aufgaben",
+    "openTaskBoard": "Task Board öffnen",
+    "doneToday": "{{count}} heute erledigt",
+    "dueToday": "Heute fällig",
+    "dueTomorrow": "Morgen fällig",
+    "due": "Fällig",
+    "daysOverdue": "{{count}} Tag(e) überfällig",
+    "completeTask": "Aufgabe abschließen",
+    "priorityHigh": "Hoch",
+    "priorityMedium": "Mittel",
+    "priorityLow": "Niedrig"
+  },
+  "quickLaunch": {
+    "finance": "Finanzen",
+    "kpiCenter": "KPI-Zentrale",
+    "talentPool": "Talentpool",
+    "jobApprovals": "Stellenfreigaben",
+    "security": "Sicherheit",
+    "analytics": "Analysen",
+    "employees": "Mitarbeiter",
+    "whatsapp": "WhatsApp",
+    "systemHealth": "Systemstatus",
+    "features": "Funktionen"
   }
 }

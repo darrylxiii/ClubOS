@@ -531,7 +531,51 @@
     "clubMember": "Membro del Club",
     "welcome": "Bentornato",
     "welcomeBack": "Bentornato, {{name}}",
-    "personalizedDashboard": "Ecco la tua dashboard personalizzata"
+    "personalizedDashboard": "Ecco la tua dashboard personalizzata",
+    "revenue": {
+      "title": "Ricavi & Crescita",
+      "thisMonth": "Questo Mese",
+      "lastMonth": "Mese Scorso",
+      "3m": "3 Mesi",
+      "6m": "6 Mesi",
+      "ytd": "Da Inizio Anno",
+      "1y": "1 Anno",
+      "custom": "Personalizzato",
+      "selectDateRange": "Seleziona intervallo date",
+      "placements": "Collocamenti",
+      "chartRevenue": "Ricavi",
+      "chartPreviousPeriod": "Periodo Precedente",
+      "totalRevenueWithPlacements": "Ricavi Totali ({{count}} collocamenti)",
+      "avgPerPlacement": "Media per Collocamento",
+      "perWorkingDay": "Per Giorno Lavorativo",
+      "bestMonth": "Miglior Mese",
+      "users": "Utenti",
+      "companies": "Aziende",
+      "openJobsLabel": "Posizioni Aperte",
+      "applications": "Candidature",
+      "weightedPipeline": "Pipeline Ponderata",
+      "expectedClosings": "Chiusure Attese",
+      "expectedWithCount": "{{count}} chiusure attese",
+      "projectedMonthEnd": "Proiezione Fine Mese",
+      "dayProgress": "Giorno {{current}} di {{total}}",
+      "collapse": "Comprimi",
+      "expandAnalytics": "Espandi Analisi"
+    },
+    "teamCapacity": {
+      "manage": "Gestisci",
+      "placedCount": "{{count}} collocato/i",
+      "revenueAmount": "{{amount}} ricavi",
+      "memberLastActive": "Ultima attività {{time}}",
+      "moreCount": "+{{count}} strateghi in più",
+      "noStrategists": "Nessuno stratega trovato"
+    },
+    "partnerEngagement": {
+      "activeRate": "Tasso di Attività",
+      "partners": "Partner",
+      "inactive14Days": "14+ giorni inattivo",
+      "topPerformers": "Migliori Performer",
+      "hiresCount": "{{count}} assunzioni"
+    }
   },
   "dashboard": {
     "refreshKPIs": "Aggiorna KPI",
@@ -5612,7 +5656,7 @@
   "alerts": "Avvisi",
   "apps_per_job": "Apps per Posizione",
   "jobs_filled_this_month": "Posizioni Filled This Month",
-  "quick_launch": "Accesso veloce",
+  "quick_launch": "Avvio Rapido",
   "latest_platform_events_last": "Últimos eventi di la plataforma (últimas 24 ore)",
   "latest_candidate_applications": "Últimas applicazioni di candidati",
   "no_applications_yet": "Ancora no hay applicazioni",
@@ -14099,152 +14143,158 @@
   },
   "activeMeetingsWidget": {
     "badge": {
-      "live": "In vivo"
-    }
+      "live": "In Diretta"
+    },
+    "todaysAgenda": "Agenda di Oggi",
+    "upcomingMeetings": "Riunioni Imminenti",
+    "noMeetings": "Nessuna riunione nei prossimi 5 giorni",
+    "viewCalendar": "Visualizza Calendario",
+    "viewFullCalendar": "Visualizza Calendario Completo",
+    "join": "Partecipa"
   },
   "agentActivityWidget": {
     "badge": {
-      "needsApproval": "Necesita approvazione"
+      "needsApproval": "Richiede Approvazione"
     }
   },
   "careerProgressWidget": {
     "badge": {
-      "justGettingStarted": "Recién comenzando",
-      "onTrack": "In camino"
+      "justGettingStarted": "Appena iniziato",
+      "onTrack": "In linea"
     }
   },
   "clubPilotTasksWidget": {
     "badge": {
-      "aiSuggested": "Sugerido per IA"
+      "aiSuggested": "Suggerimento IA"
     },
-    "allCaughtUpNoPendingTasks": "Todo al giorno. No hay attività in attesa."
+    "allCaughtUpNoPendingTasks": "Tutto aggiornato — nessun compito in sospeso"
   },
   "dailyBriefingBanner": {
     "badge": {
-      "poweredByQuin": "Powered by QUIN"
+      "poweredByQuin": "Alimentato da Quin"
     }
   },
   "partnerHome": {
-    "welcomeToTheQuantumClub": "Bienvenido a The Quantum Club",
-    "companySetupInProgress": "Azienda Setup in Progress",
-    "completeYourAccountSetupToGetStartedWith": "Complete il suo account setup to get started con il suo partner portale",
-    "yourStrategistIsFinalisingYourCompanyPro": "Your strategist is finalising il suo company profile. You essereá see il suo dashboard here shortly."
+    "welcomeToTheQuantumClub": "Benvenuto in The Quantum Club",
+    "companySetupInProgress": "Configurazione azienda in corso",
+    "completeYourAccountSetupToGetStartedWith": "Completa la configurazione del tuo account per iniziare",
+    "yourStrategistIsFinalisingYourCompanyPro": "Il tuo stratega sta finalizzando il profilo aziendale"
   },
   "skillDemandWidget": {
     "badge": {
       "stable": "Stabile",
-      "youHaveThis": "You tiene este"
+      "youHaveThis": "Hai questo"
     },
-    "noSkillDataAvailableYet": "Ancora no hay dati di competenze disponibili"
+    "noSkillDataAvailableYet": "Nessun dato sulle competenze disponibile"
   },
   "partnerStrategistStrip": {
     "badge": {
-      "strategist": "Strategista"
+      "strategist": "Stratega"
     },
-    "yourDedicatedTalentPartnerAtTheQuantumCl": "Il suo partner di talento dedicado in The Quantum Club"
+    "yourDedicatedTalentPartnerAtTheQuantumCl": "Il tuo partner dedicato ai talenti in The Quantum Club"
   },
   "adminReferralWidget": {
-    "totalReferrals": "Referencias totali",
+    "totalReferrals": "Referral Totali",
     "successful": "Riuscito",
-    "paidOut": "Pagado",
-    "referralNetwork": "Rete di referencias"
+    "paidOut": "Pagato",
+    "referralNetwork": "Rete di Referral"
   },
   "auditLogSummaryWidget": {
-    "sensitive": "Sensible",
-    "recentActivity": "Recent Attività",
-    "noAuditEventsToday": "No hay eventi di auditoría oggi",
+    "sensitive": "Sensibile",
+    "recentActivity": "Attività Recente",
+    "noAuditEventsToday": "Nessun evento di audit oggi",
     "failed": "Fallito",
     "today": "Oggi"
   },
   "cRMProspectsWidget": {
-    "noProspectsYet": "Ancora no hay clienti potenciales",
-    "avgDeal": "Media di Acuerdo",
+    "noProspectsYet": "Ancora nessun prospetto",
+    "avgDeal": "Trattativa Media",
     "active": "Attivo"
   },
   "clubAIAnalyticsWidget": {
     "totalInteractions": "Interazioni Totali",
     "recommendations": "Raccomandazioni",
-    "actedUpon": "Actuado Il suo",
-    "userSatisfaction": "Utente Satisfaction",
-    "clubAiAnalytics": "Club AI Analisi"
+    "actedUpon": "Applicato",
+    "userSatisfaction": "Soddisfazione Utente",
+    "clubAiAnalytics": "Club AI Analytics"
   },
   "dealPipelineSummaryWidget": {
-    "noActiveDealsInPipeline": "No hay acuerdos activos in il pipeline",
-    "weightedValuesUseStageProbabilityFromCrm": "Weighted values use stage probability di CRM settings",
-    "activeDeals": "Attivo Deals",
+    "noActiveDealsInPipeline": "Nessuna trattativa attiva",
+    "weightedValuesUseStageProbabilityFromCrm": "I valori ponderati usano la probabilità di fase dal CRM",
+    "activeDeals": "Trattative Attive",
     "totalValue": "Valore Totale",
-    "weighted": "Ponderado"
+    "weighted": "Ponderato"
   },
   "edgeFunctionHealthWidget": {
     "avgResponse": "Risposta Media",
-    "backendHealth": "Backend Stato"
+    "backendHealth": "Salute Backend"
   },
   "hiringPipelineOverview": {
-    "yourHiringPipelineStartsHere": "Il suo pipeline di assunzione comienza aquí",
-    "description": "Desglose di la fase attuale"
+    "yourHiringPipelineStartsHere": "La tua pipeline di assunzione inizia qui",
+    "description": "Gestisci la tua pipeline di assunzione"
   },
   "interviewCommandWidget": {
-    "noInterviewsScheduledForToday": "No interviews scheduled per today",
-    "allScorecardsSubmitted": "¡Tutte le tarjetas di puntuación enviadas!"
+    "noInterviewsScheduledForToday": "Nessun colloquio programmato per oggi",
+    "allScorecardsSubmitted": "Tutte le schede di valutazione inviate"
   },
   "interviewCountdownWidget": {
-    "noUpcomingInterviewsScheduled": "No hay colloqui programadas próximas"
+    "noUpcomingInterviewsScheduled": "Nessun colloquio imminente programmato"
   },
   "kPISummaryWidget": {
-    "noKpiDataAvailableYet": "Ancora no hay dati di KPI disponibili",
+    "noKpiDataAvailableYet": "Nessun dato KPI disponibile",
     "critical": "Critico",
-    "warning": "Avviso",
-    "onTarget": "On Obiettivo",
-    "pending": "In attesa",
-    "healthScore": "Stato Puntuación",
-    "awaitingData": "Esperando Dati"
+    "warning": "Avvertimento",
+    "onTarget": "In Obiettivo",
+    "pending": "In Sospeso",
+    "healthScore": "Punteggio Salute",
+    "awaitingData": "In attesa di dati"
   },
   "liveOperationsWidget": {
     "teamOnline": "Team Online",
-    "accountsActive": "Accounts Attivo"
+    "accountsActive": "Account Attivi"
   },
   "messagesPreviewWidget": {
-    "noMessagesYet": "Ancora no hay messaggi"
+    "noMessagesYet": "Ancora nessun messaggio"
   },
   "nPSPulseWidget": {
-    "promoters": "Promotores",
-    "passives": "Pasivos",
-    "detractors": "Detractores"
+    "promoters": "Promotori",
+    "passives": "Passivi",
+    "detractors": "Detrattori"
   },
   "partnerActivityFeed": {
-    "noRecentActivity": "No hay attività recente",
-    "description": "Attività recente di la plataforma"
+    "noRecentActivity": "Nessuna attività recente",
+    "description": "Attività recente"
   },
   "partnerEngagementWidget": {
     "total": "Totale",
     "active": "Attivo",
-    "atRisk": "In Riesgo",
-    "partnerEngagement": "Partner Interazione",
-    "placementSuccessRate": "Tasso di Éxito di Colocación"
+    "atRisk": "A Rischio",
+    "partnerEngagement": "Coinvolgimento Partner",
+    "placementSuccessRate": "Tasso di Successo Collocamenti"
   },
   "pendingMemberApprovalsWidget": {
-    "noPendingApprovals": "No hay approvazioni in attesa",
-    "allMemberRequestsHaveBeenProcessed": "All member requests tiene sido processed",
-    "pendingApprovals": "In attesa Approvazioni",
+    "noPendingApprovals": "Nessuna approvazione in sospeso",
+    "allMemberRequestsHaveBeenProcessed": "Tutte le richieste sono state elaborate",
+    "pendingApprovals": "Approvazioni in Sospeso",
     "approvals": "Approvazioni",
-    "description": "Nuevos membri esperando revisione"
+    "description": "Approvazioni in sospeso"
   },
   "recentApplicationsList": {
-    "noApplicationsYet": "Ancora no hay candidature",
-    "applicationsWillAppearHereAsCandidatesAp": "Candidature essereá appear here as candidates apply",
-    "description": "Últimas candidature di candidati"
+    "noApplicationsYet": "Ancora nessuna candidatura",
+    "applicationsWillAppearHereAsCandidatesAp": "Le candidature appariranno qui quando i candidati si candidano",
+    "description": "Candidature Recenti"
   },
   "recruiterTeamWidget": {
-    "sourced": "Obtenido",
+    "sourced": "Trovati",
     "placements": "Collocamenti",
-    "topPerformers": "Mejores risultati",
-    "noRecruiterActivityYet": "Ancora no hay attività di recruiter",
-    "rate": "Tarifa"
+    "topPerformers": "Migliori Performer",
+    "noRecruiterActivityYet": "Nessuna attività recruiter",
+    "rate": "Tasso"
   },
   "referralStatsWidget": {
     "active": "Attivo",
-    "projected": "Proyectado",
-    "earned": "Ganado"
+    "projected": "Proiettato",
+    "earned": "Guadagnato"
   },
   "revenueGrowthWidget": {
     "weightedPipeline": "Pipeline Ponderado",
@@ -14253,53 +14303,53 @@
     "pipeline": "Pipeline"
   },
   "revenueSparkline": {
-    "pipelineValue": "Valore pipeline",
+    "pipelineValue": "Valore Pipeline",
     "title": {
-      "revenue": "Entrate &"
+      "revenue": "Ricavi"
     }
   },
   "salaryInsightsWidget": {
-    "addYourRoleToSeeMarketBenchmarks": "Add il suo role to see market benchmarks"
+    "addYourRoleToSeeMarketBenchmarks": "Aggiungi il tuo ruolo per vedere i benchmark di mercato"
   },
   "savedJobsWidget": {
-    "noSavedJobsYet": "Ancora no hay lavori salvati"
+    "noSavedJobsYet": "Nessuna posizione salvata"
   },
   "securityAlertsWidget": {
-    "blockedIps": "IPs Bloqueadas"
+    "blockedIps": "IP Bloccati"
   },
   "strategistContactCard": {
-    "aDedicatedStrategistWillBeAssignedToYouS": "A dedicated strategist essereá be assigned to you soon",
-    "theyllHelpGuideYourCareerJourney": "They'll help guide il suo career journey"
+    "aDedicatedStrategistWillBeAssignedToYouS": "Uno stratega dedicato ti verrà assegnato a breve",
+    "theyllHelpGuideYourCareerJourney": "Ti guiderà nel tuo percorso di carriera"
   },
   "systemErrorsWidget": {
     "critical": "Critico",
     "errors": "Errori",
-    "warnings": "Avvisi"
+    "warnings": "Avvertimenti"
   },
   "talentRecommendations": {
-    "noRecommendationsYet": "Ancora no hay raccomandazioni",
-    "recommendationsWillAppearWhenYouHaveActi": "Raccomandazioni essereá appear when you tiene active job postings",
-    "description": "Top candidates matching il suo open ruoli"
+    "noRecommendationsYet": "Ancora nessuna raccomandazione",
+    "recommendationsWillAppearWhenYouHaveActi": "Le raccomandazioni appariranno quando avrai posizioni attive",
+    "description": "Raccomandazioni Talenti"
   },
   "taskQueueWidget": {
-    "noPendingTasks": "Senza attività in attesa",
-    "pending": "In attesa",
-    "dueToday": "Vence oggi",
-    "overdue": "In ritardo"
+    "noPendingTasks": "Nessun compito in sospeso",
+    "pending": "In Sospeso",
+    "dueToday": "Scade Oggi",
+    "overdue": "Scaduto"
   },
   "teamCapacityWidget": {
     "title": {
-      "teamCapacity": "Capacità team"
+      "teamCapacity": "Capacità del Team"
     }
   },
   "topClientsWidget": {
-    "noActiveClientsYet": "Ancora no hay clienti activos"
+    "noActiveClientsYet": "Ancora nessun cliente attivo"
   },
   "partnerActivityFeedUnified": {
-    "postARoleToSeeApplicationsInterviewsAndU": "Post a role to see applications, interviews, e updates here"
+    "postARoleToSeeApplicationsInterviewsAndU": "Pubblica un ruolo per vedere candidature, colloqui e aggiornamenti"
   },
   "upcomingScheduleWidget": {
-    "interviewsAreAutomaticallyScheduledOnceC": "Colloqui sono automatically scheduled once candidates sono shortlisted per il suo ruoli"
+    "interviewsAreAutomaticallyScheduledOnceC": "I colloqui vengono programmati automaticamente una volta selezionati i candidati"
   },
   "blindSpot": {
     "blindSpotDetector": "Detector di Puntos Ciegos",
@@ -15739,5 +15789,37 @@
     "yourFeedbackHelpsUsImproveThe": "I suoi commenti nos ayudan a mejorar The Quantum Club.",
     "pleaseTryAgainLater": "Per favor, inténtelo di nuovo più tarde.",
     "unknown": "Sconosciuto"
+  },
+  "ticker": {
+    "mrr": "MRR",
+    "pipeline": "Pipeline",
+    "placements": "Collocamenti",
+    "activeJobs": "Posizioni Attive"
+  },
+  "adminTasksWidget": {
+    "title": "Azioni",
+    "emptyMessage": "Tutto aggiornato — nessuna attività in sospeso",
+    "openTaskBoard": "Apri Bacheca Attività",
+    "doneToday": "{{count}} completato/i oggi",
+    "dueToday": "Scade oggi",
+    "dueTomorrow": "Scade domani",
+    "due": "Scade",
+    "daysOverdue": "{{count}} giorno/i in ritardo",
+    "completeTask": "Completa attività",
+    "priorityHigh": "Alta",
+    "priorityMedium": "Media",
+    "priorityLow": "Bassa"
+  },
+  "quickLaunch": {
+    "finance": "Finanza",
+    "kpiCenter": "Centro KPI",
+    "talentPool": "Pool Talenti",
+    "jobApprovals": "Approvazioni Posizioni",
+    "security": "Sicurezza",
+    "analytics": "Analisi",
+    "employees": "Dipendenti",
+    "whatsapp": "WhatsApp",
+    "systemHealth": "Salute Sistema",
+    "features": "Funzionalità"
   }
 }

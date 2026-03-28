@@ -63,19 +63,28 @@ export default function OAuthOnboarding() {
       return;
     }
 
-    // Check if onboarding is already completed
+    // Check if onboarding is already completed or user has existing data
     const checkOnboardingStatus = async () => {
       try {
         const { data, error } = await supabase
           .from('profiles')
-          .select('onboarding_completed_at, account_status')
+          .select('onboarding_completed_at, account_status, phone, current_title')
           .eq('id', user.id)
           .single();
 
         if (error) throw error;
 
-        if (data?.onboarding_completed_at) {
-          
+        // Detect legacy users who have substantive profile data
+        const hasSubstantiveProfile = !!(data?.phone || data?.current_title);
+
+        if (data?.onboarding_completed_at || hasSubstantiveProfile) {
+          // Backfill timestamp for legacy users so this doesn't run again
+          if (hasSubstantiveProfile && !data.onboarding_completed_at) {
+            supabase.from('profiles').update({
+              onboarding_completed_at: new Date().toISOString(),
+            }).eq('id', user.id);
+          }
+
           // Redirect based on account status
           if (data.account_status === 'approved') {
             navigate('/home', { replace: true });

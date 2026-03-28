@@ -40,15 +40,19 @@ export default function CandidateOnboarding() {
         if (user) {
           const { data: profile } = await supabase
             .from('profiles')
-            .select('account_status, onboarding_completed_at')
+            .select('account_status, onboarding_completed_at, phone, current_title')
             .eq('id', user.id)
             .maybeSingle();
           
           if (profile) {
-           if (profile.account_status === 'approved' && profile.onboarding_completed_at) {
+            // Detect legacy users with substantive data even without onboarding timestamp
+            const hasSubstantiveData = !!(profile.phone || profile.current_title);
+            const isOnboarded = !!(profile.onboarding_completed_at || hasSubstantiveData);
+
+           if (profile.account_status === 'approved' && isOnboarded) {
               setIsAlreadyMember(true);
               return;
-            } else {
+            } else if (profile.account_status !== 'pending' || isOnboarded) {
               navigate('/pending-approval');
               return;
             }

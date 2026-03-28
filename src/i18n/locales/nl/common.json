@@ -351,7 +351,51 @@
     "clubMember": "Club lid",
     "welcome": "Welkom terug",
     "welcomeBack": "Welkom terug, {{name}}",
-    "personalizedDashboard": "Dit is uw gepersonaliseerde dashboard"
+    "personalizedDashboard": "Dit is uw gepersonaliseerde dashboard",
+    "revenue": {
+      "title": "Omzet & Groei",
+      "thisMonth": "Deze Maand",
+      "lastMonth": "Vorige Maand",
+      "3m": "3 Maanden",
+      "6m": "6 Maanden",
+      "ytd": "Jaar tot nu",
+      "1y": "1 Jaar",
+      "custom": "Aangepast",
+      "selectDateRange": "Selecteer datumbereik",
+      "placements": "Plaatsingen",
+      "chartRevenue": "Omzet",
+      "chartPreviousPeriod": "Vorige Periode",
+      "totalRevenueWithPlacements": "Totale Omzet ({{count}} plaatsingen)",
+      "avgPerPlacement": "Gem. per Plaatsing",
+      "perWorkingDay": "Per Werkdag",
+      "bestMonth": "Beste Maand",
+      "users": "Gebruikers",
+      "companies": "Bedrijven",
+      "openJobsLabel": "Open Vacatures",
+      "applications": "Sollicitaties",
+      "weightedPipeline": "Gewogen Pipeline",
+      "expectedClosings": "Verwachte Sluitingen",
+      "expectedWithCount": "{{count}} verwachte sluitingen",
+      "projectedMonthEnd": "Verwacht Maandeinde",
+      "dayProgress": "Dag {{current}} van {{total}}",
+      "collapse": "Inklappen",
+      "expandAnalytics": "Analyses uitklappen"
+    },
+    "teamCapacity": {
+      "manage": "Beheren",
+      "placedCount": "{{count}} geplaatst",
+      "revenueAmount": "{{amount}} omzet",
+      "memberLastActive": "Laatst actief {{time}}",
+      "moreCount": "+{{count}} meer strategen",
+      "noStrategists": "Geen strategen gevonden"
+    },
+    "partnerEngagement": {
+      "activeRate": "Activiteitsgraad",
+      "partners": "Partners",
+      "inactive14Days": "14+ dagen inactief",
+      "topPerformers": "Top Presteerders",
+      "hiresCount": "{{count}} aannames"
+    }
   },
   "dashboard": {
     "quickActions": {
@@ -5615,7 +5659,7 @@
   "alerts": "Meldingen",
   "apps_per_job": "Sollicitaties per vacature",
   "jobs_filled_this_month": "Vervulde vacatures deze maand",
-  "quick_launch": "Snel starten",
+  "quick_launch": "Snelstart",
   "latest_platform_events_last": "Laatste platformevenementen (laatste 24 uur)",
   "latest_candidate_applications": "Laatste kandidaatsollicitaties",
   "no_applications_yet": "Nog geen sollicitaties",
@@ -14180,11 +14224,17 @@
   "activeMeetingsWidget": {
     "badge": {
       "live": "Live"
-    }
+    },
+    "todaysAgenda": "Agenda van Vandaag",
+    "upcomingMeetings": "Aankomende Vergaderingen",
+    "noMeetings": "Geen vergaderingen in de komende 5 dagen",
+    "viewCalendar": "Kalender bekijken",
+    "viewFullCalendar": "Volledige Kalender bekijken",
+    "join": "Deelnemen"
   },
   "agentActivityWidget": {
     "badge": {
-      "needsApproval": "Goedkeuring vereist"
+      "needsApproval": "Goedkeuring nodig"
     }
   },
   "careerProgressWidget": {
@@ -14195,93 +14245,93 @@
   },
   "clubPilotTasksWidget": {
     "badge": {
-      "aiSuggested": "AI Voorgesteld"
+      "aiSuggested": "AI-suggestie"
     },
-    "allCaughtUpNoPendingTasks": "Alle caught up. no pending tasks."
+    "allCaughtUpNoPendingTasks": "Alles bijgewerkt — geen openstaande taken"
   },
   "dailyBriefingBanner": {
     "badge": {
-      "poweredByQuin": "Aangedreven door QUIN"
+      "poweredByQuin": "Ondersteund door Quin"
     }
   },
   "partnerHome": {
     "welcomeToTheQuantumClub": "Welkom bij The Quantum Club",
-    "companySetupInProgress": "Bedrijfsconfiguratie bezig",
-    "completeYourAccountSetupToGetStartedWith": "Voltooi uw accountconfiguratie om aan de slag te gaan met uw partnerportaal",
-    "yourStrategistIsFinalisingYourCompanyPro": "Uw strateeg finaliseert uw bedrijfsprofiel. U ziet uw dashboard hier binnenkort."
+    "companySetupInProgress": "Bedrijfsinrichting bezig",
+    "completeYourAccountSetupToGetStartedWith": "Voltooi uw accountinstellingen om te beginnen",
+    "yourStrategistIsFinalisingYourCompanyPro": "Uw strateeg finaliseert uw bedrijfsprofiel"
   },
   "skillDemandWidget": {
     "badge": {
       "stable": "Stabiel",
       "youHaveThis": "U heeft dit"
     },
-    "noSkillDataAvailableYet": "Nog geen skill data available"
+    "noSkillDataAvailableYet": "Nog geen vaardigheidsdata beschikbaar"
   },
   "partnerStrategistStrip": {
     "badge": {
       "strategist": "Strateeg"
     },
-    "yourDedicatedTalentPartnerAtTheQuantumCl": "Uw persoonlijke talentpartner bij The Quantum Club"
+    "yourDedicatedTalentPartnerAtTheQuantumCl": "Uw toegewijde talent-partner bij The Quantum Club"
   },
   "adminReferralWidget": {
-    "totalReferrals": "Totaal verwijzingen",
+    "totalReferrals": "Totale Verwijzingen",
     "successful": "Succesvol",
     "paidOut": "Uitbetaald",
     "referralNetwork": "Verwijzingsnetwerk"
   },
   "auditLogSummaryWidget": {
     "sensitive": "Gevoelig",
-    "recentActivity": "Recente activiteit",
-    "noAuditEventsToday": "Geen auditgebeurtenissen vandaag",
+    "recentActivity": "Recente Activiteit",
+    "noAuditEventsToday": "Geen audit-events vandaag",
     "failed": "Mislukt",
     "today": "Vandaag"
   },
   "cRMProspectsWidget": {
     "noProspectsYet": "Nog geen prospects",
-    "avgDeal": "Gem. deal",
+    "avgDeal": "Gem. Deal",
     "active": "Actief"
   },
   "clubAIAnalyticsWidget": {
-    "totalInteractions": "Totaal interactions",
+    "totalInteractions": "Totale Interacties",
     "recommendations": "Aanbevelingen",
-    "actedUpon": "Op gehandeld",
+    "actedUpon": "Toegepast",
     "userSatisfaction": "Gebruikerstevredenheid",
     "clubAiAnalytics": "Club AI Analytics"
   },
   "dealPipelineSummaryWidget": {
-    "noActiveDealsInPipeline": "Geen actieve deals in pipeline",
-    "weightedValuesUseStageProbabilityFromCrm": "Gewogen waarden gebruiken fasekans uit CRM-instellingen",
+    "noActiveDealsInPipeline": "Geen actieve deals in de pipeline",
+    "weightedValuesUseStageProbabilityFromCrm": "Gewogen waarden gebruiken faseswaarschijnlijkheid uit CRM",
     "activeDeals": "Actieve Deals",
-    "totalValue": "Totaal value",
+    "totalValue": "Totale Waarde",
     "weighted": "Gewogen"
   },
   "edgeFunctionHealthWidget": {
-    "avgResponse": "Gem. reactie",
-    "backendHealth": "Backend status"
+    "avgResponse": "Gem. Responstijd",
+    "backendHealth": "Backend Gezondheid"
   },
   "hiringPipelineOverview": {
     "yourHiringPipelineStartsHere": "Uw wervingspipeline begint hier",
-    "description": "Huidige fase-overzicht"
+    "description": "Beheer uw wervingspipeline"
   },
   "interviewCommandWidget": {
     "noInterviewsScheduledForToday": "Geen interviews gepland voor vandaag",
-    "allScorecardsSubmitted": "Alle scorecards submitted!"
+    "allScorecardsSubmitted": "Alle beoordelingsformulieren ingediend"
   },
   "interviewCountdownWidget": {
     "noUpcomingInterviewsScheduled": "Geen aankomende interviews gepland"
   },
   "kPISummaryWidget": {
-    "noKpiDataAvailableYet": "Nog geen kpi data available",
+    "noKpiDataAvailableYet": "Nog geen KPI-data beschikbaar",
     "critical": "Kritiek",
     "warning": "Waarschuwing",
-    "onTarget": "Op doelstelling",
-    "pending": "In afwachting",
+    "onTarget": "Op Doel",
+    "pending": "Openstaand",
     "healthScore": "Gezondheidsscore",
-    "awaitingData": "Wacht op gegevens"
+    "awaitingData": "Wachtend op data"
   },
   "liveOperationsWidget": {
     "teamOnline": "Team Online",
-    "accountsActive": "Accounts Actief"
+    "accountsActive": "Actieve Accounts"
   },
   "messagesPreviewWidget": {
     "noMessagesYet": "Nog geen berichten"
@@ -14293,63 +14343,63 @@
   },
   "partnerActivityFeed": {
     "noRecentActivity": "Geen recente activiteit",
-    "description": "Recente platformactiviteit"
+    "description": "Recente activiteit"
   },
   "partnerEngagementWidget": {
     "total": "Totaal",
     "active": "Actief",
-    "atRisk": "Risicovol",
+    "atRisk": "Risico",
     "partnerEngagement": "Partner Betrokkenheid",
     "placementSuccessRate": "Plaatsingssuccespercentage"
   },
   "pendingMemberApprovalsWidget": {
     "noPendingApprovals": "Geen openstaande goedkeuringen",
-    "allMemberRequestsHaveBeenProcessed": "Alle member requests have been processed",
-    "pendingApprovals": "Openstaande goedkeuringen",
+    "allMemberRequestsHaveBeenProcessed": "Alle lidmaatschapsverzoeken zijn verwerkt",
+    "pendingApprovals": "Openstaande Goedkeuringen",
     "approvals": "Goedkeuringen",
-    "description": "Nieuwe leden die wachten op beoordeling"
+    "description": "Openstaande goedkeuringen"
   },
   "recentApplicationsList": {
     "noApplicationsYet": "Nog geen sollicitaties",
     "applicationsWillAppearHereAsCandidatesAp": "Sollicitaties verschijnen hier zodra kandidaten solliciteren",
-    "description": "Laatste kandidaatsollicitaties"
+    "description": "Recente Sollicitaties"
   },
   "recruiterTeamWidget": {
-    "sourced": "Gesourced",
+    "sourced": "Gevonden",
     "placements": "Plaatsingen",
-    "topPerformers": "Toppresteerders",
-    "noRecruiterActivityYet": "Nog geen recruiter activity",
-    "rate": "Tarief"
+    "topPerformers": "Top Presteerders",
+    "noRecruiterActivityYet": "Nog geen recruiter-activiteit",
+    "rate": "Ratio"
   },
   "referralStatsWidget": {
     "active": "Actief",
-    "projected": "Geprojecteerd",
+    "projected": "Verwacht",
     "earned": "Verdiend"
   },
   "revenueGrowthWidget": {
     "weightedPipeline": "Gewogen pijplijn",
     "expectedClosings": "Verwachte afsluitingen",
     "projectedMonthend": "Verwacht maandeinde",
-    "pipeline": "Pijplijn"
+    "pipeline": "Pipeline"
   },
   "revenueSparkline": {
-    "pipelineValue": "Pijplijnwaarde",
+    "pipelineValue": "Pipeline-waarde",
     "title": {
-      "revenue": "Omzet &"
+      "revenue": "Omzet"
     }
   },
   "salaryInsightsWidget": {
-    "addYourRoleToSeeMarketBenchmarks": "your role to see market benchmarks toevoegen"
+    "addYourRoleToSeeMarketBenchmarks": "Voeg uw rol toe om marktbenchmarks te zien"
   },
   "savedJobsWidget": {
-    "noSavedJobsYet": "Nog geen saved jobs"
+    "noSavedJobsYet": "Nog geen opgeslagen vacatures"
   },
   "securityAlertsWidget": {
-    "blockedIps": "Geblokkeerde IP's"
+    "blockedIps": "Geblokkeerde IPs"
   },
   "strategistContactCard": {
-    "aDedicatedStrategistWillBeAssignedToYouS": "Er wordt binnenkort een persoonlijke strateeg aan u toegewezen",
-    "theyllHelpGuideYourCareerJourney": "Ze helpen u bij uw carrière"
+    "aDedicatedStrategistWillBeAssignedToYouS": "Een toegewijde strateeg wordt binnenkort aan u toegewezen",
+    "theyllHelpGuideYourCareerJourney": "Ze begeleiden uw carrièrereis"
   },
   "systemErrorsWidget": {
     "critical": "Kritiek",
@@ -14357,15 +14407,15 @@
     "warnings": "Waarschuwingen"
   },
   "talentRecommendations": {
-    "noRecommendationsYet": "Nog geen recommendations",
+    "noRecommendationsYet": "Nog geen aanbevelingen",
     "recommendationsWillAppearWhenYouHaveActi": "Aanbevelingen verschijnen wanneer u actieve vacatures heeft",
-    "description": "Topkandidaten die overeenkomen met uw openstaande functies"
+    "description": "Talentaanbevelingen"
   },
   "taskQueueWidget": {
     "noPendingTasks": "Geen openstaande taken",
-    "pending": "In afwachting",
+    "pending": "Openstaand",
     "dueToday": "Vandaag verlopen",
-    "overdue": "Achterstallig"
+    "overdue": "Verlopen"
   },
   "teamCapacityWidget": {
     "title": {
@@ -14373,13 +14423,13 @@
     }
   },
   "topClientsWidget": {
-    "noActiveClientsYet": "Nog geen active clients"
+    "noActiveClientsYet": "Nog geen actieve klanten"
   },
   "partnerActivityFeedUnified": {
-    "postARoleToSeeApplicationsInterviewsAndU": "Plaats een functie om hier sollicitaties, interviews en updates te zien"
+    "postARoleToSeeApplicationsInterviewsAndU": "Plaats een vacature om sollicitaties, interviews en updates te zien"
   },
   "upcomingScheduleWidget": {
-    "interviewsAreAutomaticallyScheduledOnceC": "Interviews worden automatisch ingepland zodra kandidaten op de shortlist staan voor uw functies"
+    "interviewsAreAutomaticallyScheduledOnceC": "Interviews worden automatisch gepland zodra kandidaten zijn geselecteerd"
   },
   "blindSpot": {
     "blindSpotDetector": "Blind Spot Detector",
@@ -15771,5 +15821,37 @@
     "yourFeedbackHelpsUsImproveThe": "Uw feedback helpt ons The Quantum Club te verbeteren.",
     "pleaseTryAgainLater": "Probeer het later opnieuw.",
     "unknown": "Onbekend"
+  },
+  "ticker": {
+    "mrr": "MRR",
+    "pipeline": "Pipeline",
+    "placements": "Plaatsingen",
+    "activeJobs": "Actieve Vacatures"
+  },
+  "adminTasksWidget": {
+    "title": "Actiepunten",
+    "emptyMessage": "Alles bijgewerkt — geen openstaande taken",
+    "openTaskBoard": "Takenbord openen",
+    "doneToday": "{{count}} vandaag afgerond",
+    "dueToday": "Vandaag verlopen",
+    "dueTomorrow": "Morgen verlopen",
+    "due": "Vervalt",
+    "daysOverdue": "{{count}} dag(en) verlopen",
+    "completeTask": "Taak voltooien",
+    "priorityHigh": "Hoog",
+    "priorityMedium": "Gemiddeld",
+    "priorityLow": "Laag"
+  },
+  "quickLaunch": {
+    "finance": "Financiën",
+    "kpiCenter": "KPI Centrum",
+    "talentPool": "Talentenpool",
+    "jobApprovals": "Vacaturegoedkeuringen",
+    "security": "Beveiliging",
+    "analytics": "Analyses",
+    "employees": "Medewerkers",
+    "whatsapp": "WhatsApp",
+    "systemHealth": "Systeemstatus",
+    "features": "Functies"
   }
 }

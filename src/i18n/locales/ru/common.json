@@ -354,7 +354,51 @@
     "clubMember": "Участник клуба",
     "welcome": "С возвращением",
     "welcomeBack": "С возвращением, {{name}}",
-    "personalizedDashboard": "Ваша персональная панель управления"
+    "personalizedDashboard": "Ваша персональная панель управления",
+    "revenue": {
+      "title": "Доходы и Рост",
+      "thisMonth": "Этот Месяц",
+      "lastMonth": "Прошлый Месяц",
+      "3m": "3 Месяца",
+      "6m": "6 Месяцев",
+      "ytd": "С Начала Года",
+      "1y": "1 Год",
+      "custom": "Настраиваемый",
+      "selectDateRange": "Выбрать период",
+      "placements": "Трудоустройства",
+      "chartRevenue": "Доходы",
+      "chartPreviousPeriod": "Предыдущий Период",
+      "totalRevenueWithPlacements": "Общий Доход ({{count}} трудоустройств)",
+      "avgPerPlacement": "Среднее за Трудоустройство",
+      "perWorkingDay": "За Рабочий День",
+      "bestMonth": "Лучший Месяц",
+      "users": "Пользователи",
+      "companies": "Компании",
+      "openJobsLabel": "Открытые Вакансии",
+      "applications": "Заявки",
+      "weightedPipeline": "Взвешенная Воронка",
+      "expectedClosings": "Ожидаемые Закрытия",
+      "expectedWithCount": "{{count}} ожидаемых закрытий",
+      "projectedMonthEnd": "Прогноз на Конец Месяца",
+      "dayProgress": "День {{current}} из {{total}}",
+      "collapse": "Свернуть",
+      "expandAnalytics": "Развернуть Аналитику"
+    },
+    "teamCapacity": {
+      "manage": "Управлять",
+      "placedCount": "{{count}} трудоустроено",
+      "revenueAmount": "{{amount}} дохода",
+      "memberLastActive": "Последняя активность {{time}}",
+      "moreCount": "+{{count}} ещё стратегов",
+      "noStrategists": "Стратеги не найдены"
+    },
+    "partnerEngagement": {
+      "activeRate": "Уровень Активности",
+      "partners": "Партнёры",
+      "inactive14Days": "14+ дней неактивен",
+      "topPerformers": "Лучшие Результаты",
+      "hiresCount": "{{count}} наймов"
+    }
   },
   "dashboard": {
     "quickActions": {
@@ -5610,7 +5654,7 @@
   "alerts": "Оповещения",
   "apps_per_job": "Заявок на вакансию",
   "jobs_filled_this_month": "Вакансий закрыто в этом месяце",
-  "quick_launch": "Быстрый запуск",
+  "quick_launch": "Быстрый Запуск",
   "latest_platform_events_last": "Последние события на платформе (за последние 24 часа)",
   "latest_candidate_applications": "Последние заявки кандидатов",
   "no_applications_yet": "Пока нет заявок",
@@ -14154,12 +14198,18 @@
   },
   "activeMeetingsWidget": {
     "badge": {
-      "live": "В эфире"
-    }
+      "live": "Прямой Эфир"
+    },
+    "todaysAgenda": "Повестка Дня",
+    "upcomingMeetings": "Предстоящие Встречи",
+    "noMeetings": "Нет встреч в ближайшие 5 дней",
+    "viewCalendar": "Открыть Календарь",
+    "viewFullCalendar": "Полный Календарь",
+    "join": "Присоединиться"
   },
   "agentActivityWidget": {
     "badge": {
-      "needsApproval": "Требует одобрения"
+      "needsApproval": "Требуется Одобрение"
     }
   },
   "careerProgressWidget": {
@@ -14170,13 +14220,13 @@
   },
   "clubPilotTasksWidget": {
     "badge": {
-      "aiSuggested": "Предложено ИИ"
+      "aiSuggested": "Предложение ИИ"
     },
-    "allCaughtUpNoPendingTasks": "Всё выполнено. Нет ожидающих задач."
+    "allCaughtUpNoPendingTasks": "Всё выполнено — нет ожидающих задач"
   },
   "dailyBriefingBanner": {
     "badge": {
-      "poweredByQuin": "На основе QUIN"
+      "poweredByQuin": "На базе Quin"
     }
   },
   "partnerHome": {
@@ -14205,10 +14255,10 @@
     "referralNetwork": "Реферальная сеть"
   },
   "auditLogSummaryWidget": {
-    "sensitive": "Конфиденциальные",
-    "recentActivity": "Последняя активность",
+    "sensitive": "Конфиденциально",
+    "recentActivity": "Недавняя Активность",
     "noAuditEventsToday": "Нет событий аудита сегодня",
-    "failed": "Неудачные",
+    "failed": "Неудача",
     "today": "Сегодня"
   },
   "cRMProspectsWidget": {
@@ -14224,11 +14274,11 @@
     "clubAiAnalytics": "Аналитика Club AI"
   },
   "dealPipelineSummaryWidget": {
-    "noActiveDealsInPipeline": "Нет активных сделок в воронке",
-    "weightedValuesUseStageProbabilityFromCrm": "Взвешенные значения используют вероятность этапа из настроек CRM",
-    "activeDeals": "Активные сделки",
-    "totalValue": "Общая стоимость",
-    "weighted": "Взвешенная"
+    "noActiveDealsInPipeline": "Нет активных сделок",
+    "weightedValuesUseStageProbabilityFromCrm": "Взвешенные значения используют вероятность этапа из CRM",
+    "activeDeals": "Активные Сделки",
+    "totalValue": "Общая Стоимость",
+    "weighted": "Взвешенный"
   },
   "edgeFunctionHealthWidget": {
     "avgResponse": "Среднее время ответа",
@@ -14246,12 +14296,12 @@
     "noUpcomingInterviewsScheduled": "Нет запланированных собеседований"
   },
   "kPISummaryWidget": {
-    "noKpiDataAvailableYet": "Данные KPI пока недоступны",
+    "noKpiDataAvailableYet": "Нет данных KPI",
     "critical": "Критический",
     "warning": "Предупреждение",
-    "onTarget": "По плану",
-    "pending": "Ожидает",
-    "healthScore": "Оценка состояния",
+    "onTarget": "В Цели",
+    "pending": "Ожидание",
+    "healthScore": "Показатель Здоровья",
     "awaitingData": "Ожидание данных"
   },
   "liveOperationsWidget": {
@@ -14273,9 +14323,9 @@
   "partnerEngagementWidget": {
     "total": "Всего",
     "active": "Активные",
-    "atRisk": "Под угрозой",
-    "partnerEngagement": "Вовлечённость партнёров",
-    "placementSuccessRate": "Процент успешных трудоустройств"
+    "atRisk": "Под Риском",
+    "partnerEngagement": "Вовлечённость Партнёров",
+    "placementSuccessRate": "Успешность Трудоустройств"
   },
   "pendingMemberApprovalsWidget": {
     "noPendingApprovals": "Нет ожидающих одобрений",
@@ -14308,9 +14358,9 @@
     "pipeline": "Воронка"
   },
   "revenueSparkline": {
-    "pipelineValue": "Стоимость воронки",
+    "pipelineValue": "Стоимость Воронки",
     "title": {
-      "revenue": "Выручка и"
+      "revenue": "Доходы"
     }
   },
   "salaryInsightsWidget": {
@@ -14327,7 +14377,7 @@
     "theyllHelpGuideYourCareerJourney": "Он поможет направлять Ваш карьерный путь"
   },
   "systemErrorsWidget": {
-    "critical": "Критические",
+    "critical": "Критический",
     "errors": "Ошибки",
     "warnings": "Предупреждения"
   },
@@ -14338,13 +14388,13 @@
   },
   "taskQueueWidget": {
     "noPendingTasks": "Нет ожидающих задач",
-    "pending": "Ожидает",
-    "dueToday": "Срок сегодня",
+    "pending": "Ожидание",
+    "dueToday": "Сегодня",
     "overdue": "Просрочено"
   },
   "teamCapacityWidget": {
     "title": {
-      "teamCapacity": "Загруженность команды"
+      "teamCapacity": "Загрузка Команды"
     }
   },
   "topClientsWidget": {
@@ -15742,5 +15792,37 @@
     "yourFeedbackHelpsUsImproveThe": "Ваш отзыв помогает нам улучшить The Quantum Club.",
     "pleaseTryAgainLater": "Пожалуйста, попробуйте позже.",
     "unknown": "Неизвестно"
+  },
+  "ticker": {
+    "mrr": "MRR",
+    "pipeline": "Воронка",
+    "placements": "Трудоустройства",
+    "activeJobs": "Активные Вакансии"
+  },
+  "adminTasksWidget": {
+    "title": "Задачи",
+    "emptyMessage": "Всё выполнено — нет ожидающих задач",
+    "openTaskBoard": "Открыть Доску Задач",
+    "doneToday": "{{count}} выполнено сегодня",
+    "dueToday": "Сегодня",
+    "dueTomorrow": "Завтра",
+    "due": "Срок",
+    "daysOverdue": "{{count}} дн. просрочено",
+    "completeTask": "Завершить задачу",
+    "priorityHigh": "Высокий",
+    "priorityMedium": "Средний",
+    "priorityLow": "Низкий"
+  },
+  "quickLaunch": {
+    "finance": "Финансы",
+    "kpiCenter": "Центр KPI",
+    "talentPool": "Пул Талантов",
+    "jobApprovals": "Утверждение Вакансий",
+    "security": "Безопасность",
+    "analytics": "Аналитика",
+    "employees": "Сотрудники",
+    "whatsapp": "WhatsApp",
+    "systemHealth": "Состояние Системы",
+    "features": "Функции"
   }
 }

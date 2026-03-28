@@ -30,6 +30,7 @@ interface TaskRow {
 }
 
 function useDueDateLabel(dueDate: string | null, isOverdue: boolean | null) {
+  const { t } = useTranslation('common');
   if (!dueDate) return null;
   const due = new Date(dueDate);
   const today = startOfDay(new Date());
@@ -38,26 +39,27 @@ function useDueDateLabel(dueDate: string | null, isOverdue: boolean | null) {
   if (isOverdue || diff < 0) {
     const absDiff = Math.abs(diff);
     return {
-      text: absDiff === 0 ? "Due today" : `${absDiff}d overdue`,
+      text: absDiff === 0 ? t('adminTasksWidget.dueToday', 'Due today') : t('adminTasksWidget.daysOverdue', '{{count}}d overdue', { count: absDiff }),
       className: "text-red-400",
     };
   }
-  if (diff === 0) return { text: "Due today", className: "text-amber-400" };
-  if (diff === 1) return { text: "Due tomorrow", className: "text-amber-300" };
-  if (diff <= 6) return { text: `Due ${format(due, "EEE")}`, className: "text-muted-foreground" };
+  if (diff === 0) return { text: t('adminTasksWidget.dueToday', 'Due today'), className: "text-amber-400" };
+  if (diff === 1) return { text: t('adminTasksWidget.dueTomorrow', 'Due tomorrow'), className: "text-amber-300" };
+  if (diff <= 6) return { text: `${t('adminTasksWidget.due', 'Due')} ${format(due, "EEE")}`, className: "text-muted-foreground" };
   return { text: format(due, "MMM d"), className: "text-muted-foreground" };
 }
 
 const PriorityBadge = ({ priority }: { priority: string }) => {
-  const config: Record<string, { label: string; className: string }> = {
-    high: { label: "High", className: "bg-red-500/10 text-red-500 border-red-500/30 shadow-[inset_0_0_8px_rgba(239,68,68,0.1)]" },
-    medium: { label: "Med", className: "bg-amber-500/10 text-amber-500 border-amber-500/30 shadow-[inset_0_0_8px_rgba(245,158,11,0.1)]" },
-    low: { label: "Low", className: "bg-blue-500/10 text-blue-500 border-blue-500/30 shadow-[inset_0_0_8px_rgba(59,130,246,0.1)]" },
+  const { t } = useTranslation('common');
+  const config: Record<string, { labelKey: string; fallback: string; className: string }> = {
+    high: { labelKey: "adminTasksWidget.priorityHigh", fallback: "High", className: "bg-red-500/10 text-red-500 border-red-500/30 shadow-[inset_0_0_8px_rgba(239,68,68,0.1)]" },
+    medium: { labelKey: "adminTasksWidget.priorityMedium", fallback: "Med", className: "bg-amber-500/10 text-amber-500 border-amber-500/30 shadow-[inset_0_0_8px_rgba(245,158,11,0.1)]" },
+    low: { labelKey: "adminTasksWidget.priorityLow", fallback: "Low", className: "bg-blue-500/10 text-blue-500 border-blue-500/30 shadow-[inset_0_0_8px_rgba(59,130,246,0.1)]" },
   };
   const c = config[priority] || config.low;
   return (
     <div className={cn("text-[8px] uppercase tracking-[0.15em] px-2 py-[2px] rounded-full border-[0.5px] font-bold backdrop-blur-sm", c.className)}>
-      {c.label}
+      {t(c.labelKey, c.fallback)}
     </div>
   );
 };
@@ -114,7 +116,7 @@ const TaskItem = ({
       <button
         onClick={() => onComplete(task.id, task.title)}
         className="relative flex-shrink-0 h-4 w-4 rounded-full border-[1.5px] border-muted-foreground/30 group-hover:border-emerald-500/50 flex items-center justify-center transition-all duration-300 group/btn"
-        aria-label={"Complete task"}
+        aria-label={t('adminTasksWidget.completeTask', 'Complete task')}
       >
         <div className="absolute inset-0 rounded-full bg-emerald-500 scale-0 group-hover/btn:scale-100 transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] shadow-[0_0_10px_rgba(16,185,129,0.5)]" />
         <CheckCircle2 className="h-3 w-3 text-white opacity-0 group-hover/btn:opacity-100 scale-50 group-hover/btn:scale-100 transition-all duration-300 relative z-10" />
@@ -135,6 +137,7 @@ const TaskItem = ({
 };
 
 export const AdminTasksWidget = () => {
+  const { t } = useTranslation('common');
   const { user } = useAuth();
   const queryClient = useQueryClient();
 
@@ -235,19 +238,19 @@ export const AdminTasksWidget = () => {
     streakCount > 0 ? (
       <div className="flex items-center gap-1 text-emerald-400">
         <Flame className="h-3.5 w-3.5" />
-        <span className="text-xs font-medium">{streakCount} done today</span>
+        <span className="text-xs font-medium">{t('adminTasksWidget.doneToday', '{{count}} done today', { count: streakCount })}</span>
       </div>
     ) : null;
 
   return (
     <>
       <DashboardWidget
-        title={"Action Items"}
+        title={t('adminTasksWidget.title', 'Action Items')}
         icon={Target}
         iconClassName="text-primary"
         isLoading={isLoading}
         isEmpty={tasks.length === 0}
-        emptyMessage="All caught up — no pending tasks"
+        emptyMessage={t('adminTasksWidget.emptyMessage', 'All caught up — no pending tasks')}
         headerAction={streakBadge}
       >
         <div className="space-y-0.5 -mx-1">
@@ -263,7 +266,7 @@ export const AdminTasksWidget = () => {
         <div className="pt-3 border-t border-border/40 mt-3">
           <Button variant="ghost" size="sm" asChild className="w-full text-muted-foreground hover:text-foreground">
             <Link to="/tasks">
-              Open Task Board
+              {t('adminTasksWidget.openTaskBoard', 'Open Task Board')}
               <ArrowRight className="h-3.5 w-3.5 ml-1" />
             </Link>
           </Button>

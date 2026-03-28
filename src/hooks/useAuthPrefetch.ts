@@ -8,6 +8,7 @@ export interface CompanyMembership {
   company_id: string;
   role: string;
   company_name?: string;
+  company_logo_url?: string | null;
 }
 
 export interface AuthPrefetchData {
@@ -18,6 +19,8 @@ export interface AuthPrefetchData {
     company_id: string | null;
     full_name: string | null;
     avatar_url: string | null;
+    phone: string | null;
+    current_title: string | null;
   } | null;
   /** @deprecated Use companyMemberships instead */
   companyMembership: CompanyMembership | null;
@@ -34,7 +37,7 @@ async function fetchAuthData(userId: string): Promise<AuthPrefetchData> {
     supabase.from('user_roles').select('role').eq('user_id', userId),
     supabase
       .from('profiles')
-      .select('account_status, onboarding_completed_at, company_id, full_name, avatar_url')
+      .select('account_status, onboarding_completed_at, company_id, full_name, avatar_url, phone, current_title')
       .eq('id', userId)
       .single(),
     supabase
@@ -45,7 +48,7 @@ async function fetchAuthData(userId: string): Promise<AuthPrefetchData> {
     supabase.auth.mfa.listFactors(),
     supabase
       .from('company_members')
-      .select('company_id, role, companies:company_id(name)')
+      .select('company_id, role, companies:company_id(name, logo_url)')
       .eq('user_id', userId)
       .eq('is_active', true)
       .order('created_at', { ascending: true }),
@@ -66,6 +69,8 @@ async function fetchAuthData(userId: string): Promise<AuthPrefetchData> {
         company_id: profileResult.data.company_id,
         full_name: profileResult.data.full_name ?? null,
         avatar_url: profileResult.data.avatar_url ?? null,
+        phone: profileResult.data.phone ?? null,
+        current_title: profileResult.data.current_title ?? null,
       }
     : null;
 
@@ -77,7 +82,8 @@ async function fetchAuthData(userId: string): Promise<AuthPrefetchData> {
   const companyMemberships: CompanyMembership[] = (companyMemberResult.data || []).map((m) => ({
     company_id: m.company_id,
     role: m.role,
-    company_name: (m.companies as { name: string } | null)?.name ?? undefined,
+    company_name: (m.companies as { name: string; logo_url: string | null } | null)?.name ?? undefined,
+    company_logo_url: (m.companies as { name: string; logo_url: string | null } | null)?.logo_url ?? null,
   }));
 
   const activeCompanyId = (prefsResult.data as { active_company_id?: string | null } | null)?.active_company_id ?? null;

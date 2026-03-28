@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { useNavigate, useSearchParams, Link } from "react-router-dom";
 import { motion, useReducedMotion } from "@/lib/motion";
 import { useTranslation } from "react-i18next";
@@ -58,6 +59,7 @@ export function AuthFormView({ layout = 'page', onRequestClose }: AuthFormViewPr
   const {
     t: tCommon
   } = useTranslation('common');
+  const queryClient = useQueryClient();
   const [searchParams] = useSearchParams();
   const inviteCode = searchParams.get("invite");
   const prefillEmail = searchParams.get("email");
@@ -280,10 +282,14 @@ export function AuthFormView({ layout = 'page', onRequestClose }: AuthFormViewPr
         }
 
         try {
-          // Fetch roles and profile in parallel
+          // Fetch roles and profile in parallel — include substantive fields
+          // to detect legacy users who already have data but no onboarding timestamp
           const [rolesResult, profileResult] = await Promise.all([
             supabase.from('user_roles').select('role').eq('user_id', user.id),
-            supabase.from('profiles').select('onboarding_completed_at').eq('id', user.id).maybeSingle(),
+            supabase.from('profiles')
+              .select('onboarding_completed_at, full_name, phone, current_title, account_status')
+              .eq('id', user.id)
+              .maybeSingle(),
           ]);
 
           const roles = rolesResult.data?.map(r => r.role) || [];
@@ -300,34 +306,85 @@ export function AuthFormView({ layout = 'page', onRequestClose }: AuthFormViewPr
           }
 
           if (profileResult.error) {
-            logger.warn('Failed to fetch profile for onboarding check', {
+            logger.warn('Failed to fetch profile for onboarding check, falling through to /home', {
               componentName: 'Auth',
               error: profileResult.error,
             });
-            navigate("/oauth-onboarding");
+            // Route to /home — ProtectedRoute will handle the guard properly.
+            // Never send to /oauth-onboarding on error; that punishes existing users during transient failures.
+            navigate("/home");
             return;
           }
-          if (!profileResult.data?.onboarding_completed_at) {
-            logger.debug('User needs to complete onboarding', {
-              componentName: 'Auth'
-            });
-            navigate("/oauth-onboarding");
-          } else {
+
+          const profile = profileResult.data;
+
+          // Detect legacy/existing users who have substantive profile data
+          // but never went through the formal onboarding wizard
+          const hasSubstantiveProfile = !!(
+            profile?.phone ||
+            profile?.current_title ||
+            (profile?.full_name && profile.full_name.trim() !== '' && roles.length > 0)
+          );
+
+          if (profile?.onboarding_completed_at || hasSubstantiveProfile) {
+            // User is already onboarded OR has existing data — go home
+            if (hasSubstantiveProfile && !profile?.onboarding_completed_at) {
+              // Backfill the timestamp + write audit event so admins have a trail
+              const backfillTimestamp = new Date().toISOString();
+              Promise.all([
+                supabase.from('profiles').update({
+                  onboarding_completed_at: backfillTimestamp,
+                }).eq('id', user.id),
+                supabase.from('activation_events').insert({
+                  user_id: user.id,
+                  event_type: 'onboarding_auto_backfilled',
+                  event_category: 'onboarding',
+                  milestone_name: 'legacy_user_detected',
+                  event_data: {
+                    reason: 'substantive_profile_data_detected',
+                    fields_found: [
+                      profile?.phone ? 'phone' : null,
+                      profile?.current_title ? 'current_title' : null,
+                      profile?.full_name ? 'full_name' : null,
+                    ].filter(Boolean),
+                    backfilled_at: backfillTimestamp,
+                  },
+                }),
+              ]).then(() => {
+                // Invalidate the auth-prefetch cache so ProtectedRoute picks up the new timestamp
+                queryClient.invalidateQueries({ queryKey: ['auth-prefetch', user.id] });
+                logger.debug('Backfilled onboarding_completed_at for legacy user with audit trail', {
+                  componentName: 'Auth',
+                });
+              }).catch((backfillErr) => {
+                logger.warn('Backfill/audit write failed (non-blocking)', {
+                  componentName: 'Auth',
+                  error: backfillErr,
+                });
+              });
+            }
             logger.debug('User authenticated, navigating to /home', {
-              componentName: 'Auth'
+              componentName: 'Auth',
             });
             navigate("/home");
+          } else {
+            logger.debug('User needs to complete onboarding', {
+              componentName: 'Auth',
+            });
+            navigate("/oauth-onboarding");
           }
         } catch (err) {
-          logger.error('Error checking onboarding status', err instanceof Error ? err : new Error(String(err)), {
+          logger.error('Error checking onboarding status, falling through to /home', err instanceof Error ? err : new Error(String(err)), {
             componentName: 'Auth'
           });
-          navigate("/oauth-onboarding");
+          // Route to /home — ProtectedRoute handles the guard.
+          // Never punish existing users with onboarding on transient errors.
+          navigate("/home");
         }
       }
     };
     checkOnboardingStatus();
-  }, [loading, user, session, mfaRequired, oauthProcessing, navigate]);
+  }, [loading, user, session, mfaRequired, oauthProcessing, navigate, queryClient]);
   useEffect(() => {
     if (inviteCode) {
       validateInviteCode(inviteCode);

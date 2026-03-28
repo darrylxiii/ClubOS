@@ -14583,7 +14583,13 @@
   "activeMeetingsWidget": {
     "badge": {
       "live": "Live"
-    }
+    },
+    "todaysAgenda": "Today's Agenda",
+    "upcomingMeetings": "Upcoming Meetings",
+    "noMeetings": "No meetings in the next 5 days",
+    "viewCalendar": "View Calendar",
+    "viewFullCalendar": "View Full Calendar",
+    "join": "Join"
   },
   "agentActivityWidget": {
     "badge": {
@@ -17193,5 +17199,31 @@
   "profileCompletion": {
     "profileStrength": "Profile Strength",
     "completeProfile": "Complete Profile"
+  },
+  "adminTasksWidget": {
+    "title": "Action Items",
+    "emptyMessage": "All caught up — no pending tasks",
+    "openTaskBoard": "Open Task Board",
+    "doneToday": "{{count}} done today",
+    "dueToday": "Due today",
+    "dueTomorrow": "Due tomorrow",
+    "due": "Due",
+    "daysOverdue": "{{count}}d overdue",
+    "completeTask": "Complete task",
+    "priorityHigh": "High",
+    "priorityMedium": "Med",
+    "priorityLow": "Low"
+  },
+  "quickLaunch": {
+    "finance": "Finance",
+    "kpiCenter": "KPI Center",
+    "talentPool": "Talent Pool",
+    "jobApprovals": "Job Approvals",
+    "security": "Security",
+    "analytics": "Analytics",
+    "employees": "Employees",
+    "whatsapp": "WhatsApp",
+    "systemHealth": "System Health",
+    "features": "Features"
   }
 }

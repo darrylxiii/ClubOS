@@ -351,7 +351,51 @@
     "clubMember": "عضو النادي",
     "welcome": "مرحباً بعودتك",
     "welcomeBack": "مرحباً بعودتك، {{name}}",
-    "personalizedDashboard": "إليك لوحة التحكم المخصّصة لك"
+    "personalizedDashboard": "إليك لوحة التحكم المخصّصة لك",
+    "revenue": {
+      "title": "الإيرادات والنمو",
+      "thisMonth": "هذا الشهر",
+      "lastMonth": "الشهر الماضي",
+      "3m": "3 أشهر",
+      "6m": "6 أشهر",
+      "ytd": "من بداية العام",
+      "1y": "سنة واحدة",
+      "custom": "مخصص",
+      "selectDateRange": "اختر النطاق الزمني",
+      "placements": "التوظيفات",
+      "chartRevenue": "الإيرادات",
+      "chartPreviousPeriod": "الفترة السابقة",
+      "totalRevenueWithPlacements": "إجمالي الإيرادات ({{count}} توظيف)",
+      "avgPerPlacement": "المتوسط لكل توظيف",
+      "perWorkingDay": "لكل يوم عمل",
+      "bestMonth": "أفضل شهر",
+      "users": "المستخدمون",
+      "companies": "الشركات",
+      "openJobsLabel": "الوظائف المفتوحة",
+      "applications": "الطلبات",
+      "weightedPipeline": "خط الأنابيب المرجح",
+      "expectedClosings": "الإغلاقات المتوقعة",
+      "expectedWithCount": "{{count}} إغلاقات متوقعة",
+      "projectedMonthEnd": "توقعات نهاية الشهر",
+      "dayProgress": "اليوم {{current}} من {{total}}",
+      "collapse": "طي",
+      "expandAnalytics": "توسيع التحليلات"
+    },
+    "teamCapacity": {
+      "manage": "إدارة",
+      "placedCount": "{{count}} تم توظيفه",
+      "revenueAmount": "{{amount}} إيرادات",
+      "memberLastActive": "آخر نشاط {{time}}",
+      "moreCount": "+{{count}} استراتيجيين آخرين",
+      "noStrategists": "لم يتم العثور على استراتيجيين"
+    },
+    "partnerEngagement": {
+      "activeRate": "معدل النشاط",
+      "partners": "الشركاء",
+      "inactive14Days": "غير نشط لأكثر من 14 يوماً",
+      "topPerformers": "الأفضل أداءً",
+      "hiresCount": "{{count}} توظيفات"
+    }
   },
   "dashboard": {
     "quickActions": {
@@ -5607,7 +5651,7 @@
   "alerts": "تنبيهات",
   "apps_per_job": "الطلبات لكل وظيفة",
   "jobs_filled_this_month": "الوظائف التي تم شغلها هذا الشهر",
-  "quick_launch": "تشغيل سريع",
+  "quick_launch": "الإطلاق السريع",
   "latest_platform_events_last": "أحدث فعاليات المنصة (آخر 24 ساعة)",
   "latest_candidate_applications": "أحدث طلبات المرشحين",
   "no_applications_yet": "لا توجد طلبات حتى الآن",
@@ -14152,11 +14196,17 @@
   "activeMeetingsWidget": {
     "badge": {
       "live": "مباشر"
-    }
+    },
+    "todaysAgenda": "جدول أعمال اليوم",
+    "upcomingMeetings": "الاجتماعات القادمة",
+    "noMeetings": "لا اجتماعات في الأيام الخمسة القادمة",
+    "viewCalendar": "عرض التقويم",
+    "viewFullCalendar": "عرض التقويم الكامل",
+    "join": "انضمام"
   },
   "agentActivityWidget": {
     "badge": {
-      "needsApproval": "يحتاج إلى موافقة"
+      "needsApproval": "يحتاج موافقة"
     }
   },
   "careerProgressWidget": {
@@ -14167,13 +14217,13 @@
   },
   "clubPilotTasksWidget": {
     "badge": {
-      "aiSuggested": "مقترح بواسطة Club AI"
+      "aiSuggested": "اقتراح الذكاء الاصطناعي"
     },
-    "allCaughtUpNoPendingTasks": "تم إنجاز كل شيء. لا توجد مهام معلقة."
+    "allCaughtUpNoPendingTasks": "كل شيء محدث — لا مهام معلقة"
   },
   "dailyBriefingBanner": {
     "badge": {
-      "poweredByQuin": "مدعوم بواسطة QUIN"
+      "poweredByQuin": "مدعوم من Quin"
     }
   },
   "partnerHome": {
@@ -14268,10 +14318,10 @@
     "description": "نشاط المنصة الأخير"
   },
   "partnerEngagementWidget": {
-    "total": "المجموع",
+    "total": "الإجمالي",
     "active": "نشط",
-    "atRisk": "في خطر",
-    "partnerEngagement": "مشاركة الشريك",
+    "atRisk": "معرض للخطر",
+    "partnerEngagement": "مشاركة الشركاء",
     "placementSuccessRate": "معدل نجاح التوظيف"
   },
   "pendingMemberApprovalsWidget": {
@@ -14334,8 +14384,8 @@
     "description": "أفضل المرشحين المطابقين لأدوارك المفتوحة"
   },
   "taskQueueWidget": {
-    "noPendingTasks": "لا توجد مهام معلقة",
-    "pending": "قيد الانتظار",
+    "noPendingTasks": "لا مهام معلقة",
+    "pending": "معلق",
     "dueToday": "مستحق اليوم",
     "overdue": "متأخر"
   },
@@ -15767,5 +15817,37 @@
     "all_rights_reserved": "جميع الحقوق محفوظة.",
     "accessibility": "إمكانية الوصول",
     "subprocessors": "المعالجون الفرعيون"
+  },
+  "ticker": {
+    "mrr": "MRR",
+    "pipeline": "الأنبوب",
+    "placements": "التوظيفات",
+    "activeJobs": "الوظائف النشطة"
+  },
+  "adminTasksWidget": {
+    "title": "مهام العمل",
+    "emptyMessage": "كل شيء محدث — لا مهام معلقة",
+    "openTaskBoard": "فتح لوحة المهام",
+    "doneToday": "{{count}} مكتمل اليوم",
+    "dueToday": "مستحق اليوم",
+    "dueTomorrow": "مستحق غداً",
+    "due": "مستحق",
+    "daysOverdue": "متأخر {{count}} يوم",
+    "completeTask": "إتمام المهمة",
+    "priorityHigh": "عالي",
+    "priorityMedium": "متوسط",
+    "priorityLow": "منخفض"
+  },
+  "quickLaunch": {
+    "finance": "المالية",
+    "kpiCenter": "مركز KPI",
+    "talentPool": "مجموعة المواهب",
+    "jobApprovals": "موافقات الوظائف",
+    "security": "الأمان",
+    "analytics": "التحليلات",
+    "employees": "الموظفون",
+    "whatsapp": "واتساب",
+    "systemHealth": "صحة النظام",
+    "features": "الميزات"
   }
 }

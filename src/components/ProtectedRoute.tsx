@@ -48,7 +48,14 @@ export const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 
     // Onboarding check (candidates only)
     const skipOnboarding = user.user_metadata?.skip_onboarding === true;
-    const needsOnboarding = !skipOnboarding && isPureCandidate && !prefetch.profile?.onboarding_completed_at;
+    // Detect legacy users who have substantive profile data but no formal onboarding timestamp
+    const hasSubstantiveProfile = !!(
+      prefetch.profile?.phone ||
+      prefetch.profile?.current_title
+    );
+    const needsOnboarding = !skipOnboarding && isPureCandidate
+      && !prefetch.profile?.onboarding_completed_at
+      && !hasSubstantiveProfile;
 
     if (needsOnboarding) {
       return <Navigate to="/oauth-onboarding" replace />;

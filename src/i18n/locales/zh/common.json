@@ -531,7 +531,51 @@
     "clubMember": "俱乐部会员",
     "welcome": "欢迎回来",
     "welcomeBack": "欢迎回来，{{name}}",
-    "personalizedDashboard": "这是为您定制的个人仪表盘"
+    "personalizedDashboard": "这是为您定制的个人仪表盘",
+    "revenue": {
+      "title": "收入与增长",
+      "thisMonth": "本月",
+      "lastMonth": "上月",
+      "3m": "3个月",
+      "6m": "6个月",
+      "ytd": "年初至今",
+      "1y": "1年",
+      "custom": "自定义",
+      "selectDateRange": "选择日期范围",
+      "placements": "岗位配置",
+      "chartRevenue": "收入",
+      "chartPreviousPeriod": "上一期",
+      "totalRevenueWithPlacements": "总收入（{{count}} 次配置）",
+      "avgPerPlacement": "每次配置平均",
+      "perWorkingDay": "每工作日",
+      "bestMonth": "最佳月份",
+      "users": "用户",
+      "companies": "公司",
+      "openJobsLabel": "开放职位",
+      "applications": "申请",
+      "weightedPipeline": "加权管道",
+      "expectedClosings": "预期成交",
+      "expectedWithCount": "{{count}} 预期成交",
+      "projectedMonthEnd": "月末预测",
+      "dayProgress": "第 {{current}} 天 / 共 {{total}} 天",
+      "collapse": "收起",
+      "expandAnalytics": "展开分析"
+    },
+    "teamCapacity": {
+      "manage": "管理",
+      "placedCount": "已配置 {{count}} 人",
+      "revenueAmount": "{{amount}} 收入",
+      "memberLastActive": "最后活跃 {{time}}",
+      "moreCount": "+{{count}} 更多策略师",
+      "noStrategists": "未找到策略师"
+    },
+    "partnerEngagement": {
+      "activeRate": "活跃率",
+      "partners": "合作伙伴",
+      "inactive14Days": "14天以上不活跃",
+      "topPerformers": "最佳表现者",
+      "hiresCount": "{{count}} 次招聘"
+    }
   },
   "dashboard": {
     "refreshKPIs": "刷新 KPIs",
@@ -14100,11 +14144,17 @@
   "activeMeetingsWidget": {
     "badge": {
       "live": "直播"
-    }
+    },
+    "todaysAgenda": "今日议程",
+    "upcomingMeetings": "即将到来的会议",
+    "noMeetings": "未来5天内无会议",
+    "viewCalendar": "查看日历",
+    "viewFullCalendar": "查看完整日历",
+    "join": "加入"
   },
   "agentActivityWidget": {
     "badge": {
-      "needsApproval": "需要批准"
+      "needsApproval": "需要审批"
     }
   },
   "careerProgressWidget": {
@@ -14115,13 +14165,13 @@
   },
   "clubPilotTasksWidget": {
     "badge": {
-      "aiSuggested": "AI 建议"
+      "aiSuggested": "AI建议"
     },
-    "allCaughtUpNoPendingTasks": "已全部处理. 没有待处理的任务."
+    "allCaughtUpNoPendingTasks": "一切就绪 — 无待处理任务"
   },
   "dailyBriefingBanner": {
     "badge": {
-      "poweredByQuin": "由...提供支持 QUIN"
+      "poweredByQuin": "由Quin驱动"
     }
   },
   "partnerHome": {
@@ -14218,9 +14268,9 @@
   "partnerEngagementWidget": {
     "total": "总计",
     "active": "活跃",
-    "atRisk": "在 风险",
-    "partnerEngagement": "合作伙伴 互动",
-    "placementSuccessRate": "安置 成功 R在e"
+    "atRisk": "风险",
+    "partnerEngagement": "合作伙伴参与",
+    "placementSuccessRate": "配置成功率"
   },
   "pendingMemberApprovalsWidget": {
     "noPendingApprovals": "No 待处理 approvals",
@@ -14250,12 +14300,12 @@
     "weightedPipeline": "加权 Pipeline",
     "expectedClosings": "预期成交",
     "projectedMonthend": "Projected 月-End",
-    "pipeline": "渠道"
+    "pipeline": "管道"
   },
   "revenueSparkline": {
-    "pipelineValue": "Pipeline 价值",
+    "pipelineValue": "管道价值",
     "title": {
-      "revenue": "收入 &"
+      "revenue": "收入"
     }
   },
   "salaryInsightsWidget": {
@@ -14282,14 +14332,14 @@
     "description": "顶部 候选人 matching your 打开 角色"
   },
   "taskQueueWidget": {
-    "noPendingTasks": "没有待处理的任务",
+    "noPendingTasks": "无待处理任务",
     "pending": "待处理",
-    "dueToday": "Due 今天",
-    "overdue": "已逾期"
+    "dueToday": "今日到期",
+    "overdue": "逾期"
   },
   "teamCapacityWidget": {
     "title": {
-      "teamCapacity": "团队 容量"
+      "teamCapacity": "团队容量"
     }
   },
   "topClientsWidget": {
@@ -15739,5 +15789,37 @@
     "yourFeedbackHelpsUsImproveThe": "您的反馈有助于我们改进 The Quantum Club。",
     "pleaseTryAgainLater": "请稍后再试。",
     "unknown": "未知"
+  },
+  "ticker": {
+    "mrr": "月经常性收入",
+    "pipeline": "管道",
+    "placements": "岗位配置",
+    "activeJobs": "活跃职位"
+  },
+  "adminTasksWidget": {
+    "title": "待办事项",
+    "emptyMessage": "一切就绪 — 无待处理任务",
+    "openTaskBoard": "打开任务板",
+    "doneToday": "今日完成 {{count}} 项",
+    "dueToday": "今日到期",
+    "dueTomorrow": "明日到期",
+    "due": "到期",
+    "daysOverdue": "逾期 {{count}} 天",
+    "completeTask": "完成任务",
+    "priorityHigh": "高",
+    "priorityMedium": "中",
+    "priorityLow": "低"
+  },
+  "quickLaunch": {
+    "finance": "财务",
+    "kpiCenter": "KPI中心",
+    "talentPool": "人才库",
+    "jobApprovals": "职位审批",
+    "security": "安全",
+    "analytics": "分析",
+    "employees": "员工",
+    "whatsapp": "WhatsApp",
+    "systemHealth": "系统健康",
+    "features": "功能"
   }
 }

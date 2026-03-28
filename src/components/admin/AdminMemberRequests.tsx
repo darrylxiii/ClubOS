@@ -58,27 +58,28 @@ interface MemberRequest {
   }>;
   profiles?: {
     onboarding_completed_at?: string | null;
-    onboarding_current_step?: number;
+    onboarding_current_step?: number | null;
     onboarding_partial_data?: any;
     onboarding_last_activity_at?: string | null;
-    phone_verified?: boolean;
-    email_verified?: boolean;
-    current_title?: string;
-    linkedin_url?: string;
-    location?: string;
-    employment_type_preference?: string;
-    notice_period?: string;
-    remote_work_preference?: boolean;
-    resume_url?: string;
-    resume_filename?: string;
-    career_preferences?: string;
-    current_salary_min?: number;
-    current_salary_max?: number;
-    desired_salary_min?: number;
-    desired_salary_max?: number;
-    freelance_hourly_rate_min?: number;
-    freelance_hourly_rate_max?: number;
-    salary_preference_hidden?: boolean;
+    phone_verified?: boolean | null;
+    phone?: string | null;
+    email_verified?: boolean | null;
+    current_title?: string | null;
+    linkedin_url?: string | null;
+    location?: string | null;
+    employment_type_preference?: string | null;
+    notice_period?: string | null;
+    remote_work_preference?: boolean | null;
+    resume_url?: string | null;
+    resume_filename?: string | null;
+    career_preferences?: string | null;
+    current_salary_min?: number | null;
+    current_salary_max?: number | null;
+    desired_salary_min?: number | null;
+    desired_salary_max?: number | null;
+    freelance_hourly_rate_min?: number | null;
+    freelance_hourly_rate_max?: number | null;
+    salary_preference_hidden?: boolean | null;
     user_roles?: Array<{ role: string }>;
   };
 }
@@ -88,7 +89,6 @@ const ELEVATED_ROLES = ['admin', 'super_admin', 'partner', 'strategist', 'recrui
 
 // Helper function to check if a request is from a pure candidate (no elevated roles)
 const isPureCandidate = (request: MemberRequest): boolean => {
-  const { t } = useTranslation('admin');
   const roles = (request.profiles?.user_roles as any[])?.map((r: any) => r.role) || [];
   return !roles.some(r => ELEVATED_ROLES.includes(r));
 };
@@ -205,6 +205,7 @@ export const AdminMemberRequests = () => {
                 onboarding_partial_data,
                 onboarding_last_activity_at,
                 phone_verified,
+                phone,
                 email_verified,
                 current_title,
                 linkedin_url,
@@ -236,7 +237,7 @@ export const AdminMemberRequests = () => {
               enriched.profiles = {
                 ...profileData,
                 user_roles: userRoles || []
-              };
+              } as MemberRequest['profiles'];
             }
           }
 
@@ -336,11 +337,13 @@ export const AdminMemberRequests = () => {
         if (isPureCandidate) {
           const { data: profile } = await supabase
             .from('profiles')
-            .select('onboarding_completed_at, phone_verified, onboarding_current_step')
+            .select('onboarding_completed_at, phone_verified, onboarding_current_step, phone, current_title')
             .eq('id', selectedRequest.id)
             .single();
 
-          if (!profile?.onboarding_completed_at || !profile?.phone_verified) {
+          const hasSubstantiveData = !!(profile?.phone || profile?.current_title);
+
+          if ((!profile?.onboarding_completed_at && !hasSubstantiveData) || !profile?.phone_verified) {
             toast.error(
               `Cannot approve ${selectedRequest.name}. Candidates must complete all 6 onboarding steps with phone verification. Currently on step ${profile?.onboarding_current_step || 0}.`,
               { duration: 6000 }
@@ -711,6 +714,8 @@ export const AdminMemberRequests = () => {
                     {request.request_type === 'candidate' && 
                      isPureCandidate(request) &&
                      !request.profiles?.onboarding_completed_at && 
+                     !request.profiles?.phone && 
+                     !request.profiles?.current_title &&
                      request.status === 'pending' && (
                       <Alert variant="destructive" className="mt-3">
                         <AlertCircle className="h-4 w-4" />
@@ -751,7 +756,7 @@ export const AdminMemberRequests = () => {
                           disabled={
                             request.request_type === 'candidate' && 
                             isPureCandidate(request) &&
-                            (!request.profiles?.onboarding_completed_at || !request.profiles?.phone_verified)
+                            ((!request.profiles?.onboarding_completed_at && !request.profiles?.phone && !request.profiles?.current_title) || !request.profiles?.phone_verified)
                           }
                         >
                           <CheckCircle2 className="w-4 h-4" />

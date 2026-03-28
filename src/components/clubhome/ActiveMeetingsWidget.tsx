@@ -111,7 +111,7 @@ export const ActiveMeetingsWidget = () => {
 
   const today = new Date();
   const allToday = events.every((e) => isToday(e.start));
-  const headerTitle = allToday ? "Today's Agenda" : 'Upcoming Meetings';
+  const headerTitle = allToday ? t('activeMeetingsWidget.todaysAgenda', "Today's Agenda") : t('activeMeetingsWidget.upcomingMeetings', 'Upcoming Meetings');
   const dateLabel = allToday ? format(today, 'EEEE, MMM d') : '';
 
   const formatEventTime = (date: Date): string => {
@@ -154,9 +154,9 @@ export const ActiveMeetingsWidget = () => {
         {events.length === 0 ? (
           <div className="flex flex-col items-center gap-3 py-6 text-center">
             <Calendar className="h-8 w-8 text-muted-foreground/40" />
-            <p className="text-sm text-muted-foreground">{"No meetings in the next 5 days"}</p>
+            <p className="text-sm text-muted-foreground">{t('activeMeetingsWidget.noMeetings', 'No meetings in the next 5 days')}</p>
             <Button asChild variant="outline" size="sm">
-              <Link to="/meetings?tab=calendar">{"View Calendar"}</Link>
+              <Link to="/meetings?tab=calendar">{t('activeMeetingsWidget.viewCalendar', 'View Calendar')}</Link>
             </Button>
           </div>
         ) : (
@@ -218,7 +218,7 @@ export const ActiveMeetingsWidget = () => {
                         onClick={() => navigate(`/meetings/${e.meeting_id}/room`)}
                       >
                         <Video className="h-3.5 w-3.5 mr-1" />
-                        Join
+                        {t('activeMeetingsWidget.join', 'Join')}
                       </Button>
                     ) : e.is_quantum_club && info?.status === 'ended' ? (
                       <Button
@@ -240,7 +240,7 @@ export const ActiveMeetingsWidget = () => {
         <Button asChild variant="outline" size="sm" className="mt-4 w-full">
           <Link to="/meetings?tab=calendar">
             <ArrowRight className="h-4 w-4 mr-2" />
-            View Full Calendar
+              {t('activeMeetingsWidget.viewFullCalendar', 'View Full Calendar')}
           </Link>
         </Button>
 
