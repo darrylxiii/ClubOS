@@ -13,18 +13,16 @@ import quantumClubLogoLightShort from "@/assets/quantum-logo-light-transparent.p
 import quantumClubLogoDark from "@/assets/quantum-club-logo.png"; // Full logo - black for light theme
 import quantumClubLogoLight from "@/assets/quantum-logo-dark.png"; // Full logo - white for dark theme
 import { useAuthPrefetch } from "@/hooks/useAuthPrefetch";
-import { GlobalCallNotificationProvider } from "./GlobalCallNotificationProvider";
-import { MeetingNotificationManager } from "./meetings/MeetingNotificationManager";
 import { DynamicBackground } from "./DynamicBackground";
 import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
 import { NotificationBell } from "@/components/NotificationBell";
-import { MusicPlayer } from "@/components/MusicPlayer";
-import { GlobalSpotlightSearch } from "@/components/GlobalSpotlightSearch";
-import { PagePresenceAvatars } from "@/components/shared/PagePresenceAvatars";
-import { AmbientInsightBar } from "@/components/shared/AmbientInsightBar";
-import { VoiceCommandButton } from "@/components/admin/VoiceCommandButton";
-import { RoleGate } from "@/components/RoleGate";
+// PERF: Lazy-load non-critical shell components to reduce initial bundle
+const MusicPlayer = lazy(() => import("@/components/MusicPlayer").then(m => ({ default: m.MusicPlayer })));
+const GlobalSpotlightSearch = lazy(() => import("@/components/GlobalSpotlightSearch").then(m => ({ default: m.GlobalSpotlightSearch })));
+const GlobalCallNotificationProvider = lazy(() => import("./GlobalCallNotificationProvider").then(m => ({ default: m.GlobalCallNotificationProvider })));
+const MeetingNotificationManager = lazy(() => import("./meetings/MeetingNotificationManager").then(m => ({ default: m.MeetingNotificationManager })));
+const AmbientInsightBar = lazy(() => import("@/components/shared/AmbientInsightBar").then(m => ({ default: m.AmbientInsightBar })));
 // Lazy load ClubAIVoice to prevent livekit-client module resolution at startup
 const ClubAIVoice = lazy(() => 
   import("@/components/voice/ClubAIVoice").then(m => ({ default: m.ClubAIVoice }))
@@ -39,6 +37,9 @@ import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { BurgerMenu } from "@/components/ui/burger-menu";
 import { useRole } from "@/contexts/RoleContext";
 import { CompanySwitcher } from "@/components/CompanySwitcher";
+import { PagePresenceAvatars } from "@/components/shared/PagePresenceAvatars";
+import { VoiceCommandButton } from "@/components/admin/VoiceCommandButton";
+import { RoleGate } from "@/components/RoleGate";
 
 import { SoundToggle } from "@/components/ui/sound-toggle";
 import { useRoutePrediction } from "@/hooks/useRoutePrediction";
@@ -186,7 +187,7 @@ export const AppLayout = ({ children }: AppLayoutProps) => {
              <div className="absolute inset-0 rounded-full bg-gradient-to-r from-primary/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 blur-xl pointer-events-none" />
              
              <div className="flex items-center gap-0.5 px-1 py-0.5">
-               <MusicPlayer />
+               <Suspense fallback={null}><MusicPlayer /></Suspense>
                <div className="w-[1px] h-5 bg-border/50 mx-1" />
                <NotificationBell />
              </div>
@@ -250,7 +251,7 @@ export const AppLayout = ({ children }: AppLayoutProps) => {
                 : undefined
             }}
           >
-            <AmbientInsightBar />
+            <Suspense fallback={null}><AmbientInsightBar /></Suspense>
             {children}
           </div>
         </main>
@@ -258,14 +259,14 @@ export const AppLayout = ({ children }: AppLayoutProps) => {
 
       {/* Global Navigation Tools */}
       
-      <GlobalSpotlightSearch />
+      <Suspense fallback={null}><GlobalSpotlightSearch /></Suspense>
       <ErrorBoundary>
         <Suspense fallback={null}>
           <ClubAIVoice />
         </Suspense>
       </ErrorBoundary>
-      <GlobalCallNotificationProvider />
-      <MeetingNotificationManager />
+      <Suspense fallback={null}><GlobalCallNotificationProvider /></Suspense>
+      <Suspense fallback={null}><MeetingNotificationManager /></Suspense>
 
       {/* Floating Club AI Assistant */}
       <ErrorBoundary>

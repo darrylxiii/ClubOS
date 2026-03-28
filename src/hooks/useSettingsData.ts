@@ -388,7 +388,7 @@ export function useSettingsData(user: User | null, i18n: { language: string; cha
     }
   }, [user, updateField]);
 
-  const handleDisconnectSocial = useCallback(async (platform: 'linkedin' | 'instagram' | 'twitter' | 'github') => {
+  const handleDisconnectSocial = useCallback(async (platform: string) => {
     const updates: Record<string, unknown> = {};
     if (platform === 'linkedin') {
       updates.linkedin_connected = false;
@@ -409,7 +409,7 @@ export function useSettingsData(user: User | null, i18n: { language: string; cha
       const { error } = await supabase
         .from('profiles')
         .update(updates)
-        .eq('id', user?.id);
+        .eq('id', user!.id);
       if (error) throw error;
       setState(prev => ({
         ...prev,

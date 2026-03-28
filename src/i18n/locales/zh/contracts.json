@@ -232,16 +232,16 @@
   },
   "text": {
     "contractdetailpage": {
-      "signContract": "Sign Contract",
-      "milestoneStarted": "Milestone started!",
-      "milestoneSubmittedForReview": "Milestone submitted for review!",
-      "milestoneApprovedButPaymentReleaseFailed": "Milestone approved, but payment release failed. Please contact support.",
-      "milestoneApprovedPaymentReleasedSuccessfully": "Milestone approved! Payment released successfully.",
-      "youAreTheFreelancer": "You are the freelancer",
-      "youAreTheClient": "You are the client",
-      "client": "Client",
-      "freelancer": "Freelancer",
-      "anErrorOccurred": "An error occurred"
+      "signContract": "签署合同",
+      "milestoneStarted": "里程碑已开始！",
+      "milestoneSubmittedForReview": "里程碑已提交审核！",
+      "milestoneApprovedButPaymentReleaseFailed": "里程碑已批准，但付款发布失败。请联系支持。",
+      "milestoneApprovedPaymentReleasedSuccessfully": "里程碑已批准！付款已成功发布。",
+      "youAreTheFreelancer": "您是自由职业者",
+      "youAreTheClient": "您是客户",
+      "client": "客户",
+      "freelancer": "自由职业者",
+      "anErrorOccurred": "发生错误"
     }
   }
 }

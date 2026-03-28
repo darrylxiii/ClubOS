@@ -215,19 +215,20 @@ export default defineConfig(({ mode, command }) => ({
               }
             }
           },
-          // PERF: Hashed JS/CSS bundles use CacheFirst — content-hash in filename
-          // guarantees uniqueness, so cache hits are always valid. New deploys
-          // produce new filenames automatically. This eliminates redundant
-          // network requests on every navigation.
+          // CRITICAL: JS/CSS bundles use NetworkFirst to prevent stale asset serving.
+          // Even though filenames are content-hashed, a stale sw.js (cached by CDN)
+          // can request old hashes. NetworkFirst ensures we always try the network
+          // first and only fall back to cache when offline.
           {
             urlPattern: /\.(?:js|css)$/i,
-            handler: 'CacheFirst',
+            handler: 'NetworkFirst',
             options: {
               cacheName: 'static-resources',
               expiration: {
-                maxEntries: 300,
-                maxAgeSeconds: 60 * 60 * 24 * 90 // 90 days (safe with hashed names)
+                maxEntries: 200,
+                maxAgeSeconds: 60 * 60 * 24 * 30 // 30 days
               },
+              networkTimeoutSeconds: 5,
               cacheableResponse: {
                 statuses: [0, 200]
               }
@@ -300,6 +301,9 @@ export default defineConfig(({ mode, command }) => ({
           'vendor-date': ['date-fns', 'date-fns-tz'],
           'vendor-dnd': ['@dnd-kit/core', '@dnd-kit/sortable', '@dnd-kit/utilities'],
           'vendor-sentry': ['@sentry/react'],
+          'vendor-posthog': ['posthog-js'],
+          'vendor-helmet': ['react-helmet-async'],
+          'vendor-carousel': ['embla-carousel', 'embla-carousel-react'],
         },
       },
     },

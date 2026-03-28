@@ -15,9 +15,9 @@
   },
   "cookies": {
     "title": "Cookie 设置",
-    "essential": "Essential Cookies",
+    "essential": "必要 Cookie",
     "analytics": "分析 Cookies",
-    "marketing": "Marketing Cookies",
+    "marketing": "营销 Cookie",
     "preferences": "偏好 Cookies",
     "acceptAll": "全部接受",
     "rejectAll": "全部拒绝",

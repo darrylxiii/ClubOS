@@ -270,5 +270,16 @@ export function hasOptedOut(): boolean {
   return ph.has_opted_out_capturing();
 }
 
+/**
+ * Register a callback for when feature flags are loaded
+ */
+export function onFeatureFlags(callback: () => void): void {
+  getPostHog().then((posthog) => {
+    if (posthog?.__loaded) {
+      posthog.onFeatureFlags(callback);
+    }
+  });
+}
+
 // NOTE: posthog instance is no longer exported directly.
 // Use the named exports above instead.

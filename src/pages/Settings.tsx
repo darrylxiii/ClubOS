@@ -29,7 +29,7 @@ import { logger } from "@/lib/logger";
 
 const Settings = () => {
   const { user } = useAuth();
-  const { i18n } = useTranslation();
+  const { t, i18n } = useTranslation('common');
   const location = useLocation();
   const navigate = useNavigate();
   const [resumeModalOpen, setResumeModalOpen] = useState(false);
@@ -83,7 +83,7 @@ const Settings = () => {
     navigate(`/settings?tab=${value}`, { replace: true });
   };
 
-  const handleConnectSocial = async (provider: 'linkedin_oidc' | 'twitter' | 'instagram' | 'github') => {
+  const handleConnectSocial = async (provider: string) => {
     try {
       const redirectTo = `${window.location.origin}/settings`;
       await signInWithOAuthCustomDomain({
@@ -119,7 +119,7 @@ const Settings = () => {
         </div>
 
         <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-6">
-          <TabsList className="flex flex-wrap gap-1 h-auto p-1">
+          <TabsList className="flex flex-wrap sm:flex-nowrap sm:overflow-x-auto sm:scrollbar-hide gap-1 h-auto p-1">
             <TabsTrigger value="profile">{t('text.settings.profile', 'Profile')}</TabsTrigger>
             <TabsTrigger value="ai-persona">{t('text.settings.aiPersona', 'AI Persona')}</TabsTrigger>
             <TabsTrigger value="compensation">{t('text.settings.compensation', 'Compensation')}</TabsTrigger>

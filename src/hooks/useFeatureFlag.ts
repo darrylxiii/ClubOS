@@ -3,13 +3,13 @@
  * Type-safe hooks for PostHog feature flags
  */
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { useOptionalPostHog } from '@/providers/PostHogProvider';
 import { 
   isFeatureEnabled, 
   getFeatureFlag, 
   getFeatureFlagPayload,
-  posthog,
+  onFeatureFlags,
 } from '@/lib/posthog';
 
 // Define known feature flags for type safety
@@ -80,7 +80,7 @@ export function useFeatureFlag(
       checkFlag();
     };
 
-    posthog.onFeatureFlags(handleFlagsLoaded);
+    onFeatureFlags(handleFlagsLoaded);
 
     return () => {
       // PostHog doesn't have an off method, flags are checked on each render
@@ -118,7 +118,7 @@ export function useFeatureFlagVariant<T = string | boolean>(
     };
 
     checkVariant();
-    posthog.onFeatureFlags(checkVariant);
+    onFeatureFlags(checkVariant);
   }, [flagKey, postHog?.isInitialized]);
 
   return { variant, loading };
@@ -152,7 +152,7 @@ export function useFeatureFlagPayload<T = unknown>(
     };
 
     checkPayload();
-    posthog.onFeatureFlags(checkPayload);
+    onFeatureFlags(checkPayload);
   }, [flagKey, postHog?.isInitialized]);
 
   return { payload, loading };
@@ -184,7 +184,7 @@ export function useFeatureFlags(
     };
 
     checkFlags();
-    posthog.onFeatureFlags(checkFlags);
+    onFeatureFlags(checkFlags);
   }, [flagKeys.join(','), postHog?.isInitialized]);
 
   return flags;
