@@ -64,7 +64,7 @@ export default function MyPerformance() {
   const isLoading = employeeLoading || targetsLoading || commissionsLoading || metricsLoading;
 
   return (
-    <RoleGate allowedRoles={['admin', 'strategist', 'partner']}>
+    <RoleGate allowedRoles={['admin', 'strategist', 'partner', 'user']}>
       <div className="w-full px-4 sm:px-6 lg:px-8 py-6 space-y-6">
           {/* Header */}
           <div className="flex items-center justify-between">
@@ -79,7 +79,7 @@ export default function MyPerformance() {
               className="gap-2"
             >
               <RefreshCw className="h-4 w-4" />
-              Refresh
+              {t('myPerformance.refresh', 'Refresh')}
             </Button>
           </div>
 
@@ -129,19 +129,19 @@ export default function MyPerformance() {
                 <TabsList>
                   <TabsTrigger value="performance" className="gap-2">
                     <Clock className="h-4 w-4" />
-                    Performance
+                    {t('myPerformance.performanceTab', 'Performance')}
                   </TabsTrigger>
                   <TabsTrigger value="activity" className="gap-2">
                     <Activity className="h-4 w-4" />
-                    Activity
+                    {t('myPerformance.activityTab', 'Activity')}
                   </TabsTrigger>
                   <TabsTrigger value="training" className="gap-2">
                     <GraduationCap className="h-4 w-4" />
-                    Training
+                    {t('myPerformance.trainingTab', 'Training')}
                   </TabsTrigger>
                   <TabsTrigger value="onboarding" className="gap-2">
                     <ListChecks className="h-4 w-4" />
-                    Onboarding
+                    {t('myPerformance.onboardingTab', 'Onboarding')}
                   </TabsTrigger>
                 </TabsList>
 
@@ -172,7 +172,7 @@ export default function MyPerformance() {
                         <CardHeader>
                           <CardTitle className="flex items-center gap-2">
                             <Clock className="h-5 w-5 text-primary" />
-                            Time & Productivity
+                            {t('myPerformance.timeProductivity', 'Time & Productivity')}
                           </CardTitle>
                         </CardHeader>
                         <CardContent>

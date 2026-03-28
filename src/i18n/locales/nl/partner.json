@@ -223,8 +223,8 @@
       "notes": "Notities",
       "role": "Rol",
       "seniority": "Senioriteit",
-      "hiringDriver": "Driving this hire",
-      "context": "Additional context"
+      "hiringDriver": "Reden voor deze aanwerving",
+      "context": "Aanvullende context"
     },
     "restoringProgress": "Voortgang herstellen…",
     "back": "Terug",
@@ -252,17 +252,17 @@
     "roleTitlePlaceholder": "e.g. VP van Engineering, CFO, Head van Product",
     "hiringDriver": "Wat drijft deze aanname?",
     "hiringDriverGrowth": "Growth — scaling the Team",
-    "hiringDriverReplacement": "Replacement — someone left",
+    "hiringDriverReplacement": "Vervanging — iemand is vertrokken",
     "hiringDriverNewFunction": "Nieuw function — building from scratch",
     "hiringDriverConfidential": "Confidential — discreet Zoeken",
-    "seniorityLevel": "Seniority level",
-    "seniorityDirector": "Director / VP",
+    "seniorityLevel": "Senioriteitsniveau",
+    "seniorityDirector": "Directeur / VP",
     "seniorityCSuite": "C-Suite",
     "seniorityHead": "Head van / Senior Lead",
     "senioritySpecialist": "Specialist IC",
-    "additionalContext": "Anything else we should know?",
+    "additionalContext": "Nog iets dat we moeten weten?",
     "additionalContextPlaceholder": "Team size, reporting line, challenges with Vorige hires, specific skills…",
-    "whereAreYouBased": "Where are you based?",
+    "whereAreYouBased": "Waar bent u gevestigd?",
     "roleRequired": "Please enter the Rol you're looking to fill"
   },
   "funnelAnalytics": {
@@ -288,7 +288,7 @@
     "text20": "Sector",
     "text21": "Type",
     "text22": "Status",
-    "text23": "Source"
+    "text23": "Bron"
   },
   "partnerAnalyticsDashboard": {
     "text1": "Geen bedrijf gekoppeld aan uw account",
@@ -337,20 +337,20 @@
   },
   "addCandidateDialog": {
     "toast": {
-      "duplicateEmailDetected": "Duplicate Email Detected",
-      "duplicateEmailDetectedDesc": "A candidate with this email already exists. Please search for the existing candidate or use a different email.",
-      "databaseError": "Database Error",
-      "databaseErrorDesc": "Unable to link candidate data. Please try again or contact support if the issue persists.",
-      "permissionDenied": "Permission Denied",
-      "permissionDeniedDesc": "You don't have permission to add candidates. Please contact an administrator.",
-      "duplicateCandidate": "Duplicate Candidate",
-      "duplicateCandidateDesc": "This candidate already exists in the system. Please check existing applications."
+      "duplicateEmailDetected": "Dubbele e-mail gedetecteerd",
+      "duplicateEmailDetectedDesc": "Er bestaat al een kandidaat met dit e-mailadres. Zoek naar de bestaande kandidaat of gebruik een ander e-mailadres.",
+      "databaseError": "Databasefout",
+      "databaseErrorDesc": "Kan kandidaatgegevens niet koppelen. Probeer het opnieuw of neem contact op met de ondersteuning als het probleem aanhoudt.",
+      "permissionDenied": "Toestemming geweigerd",
+      "permissionDeniedDesc": "U heeft geen toestemming om kandidaten toe te voegen. Neem contact op met een beheerder.",
+      "duplicateCandidate": "Dubbele kandidaat",
+      "duplicateCandidateDesc": "Deze kandidaat bestaat al in het systeem. Controleer bestaande sollicitaties."
     },
     "placeholder": {
       "johnDoe": "John Doe",
       "techCorp": "Tech Corp",
       "seniorDeveloper": "Senior Developer",
-      "whyThisCandidateSourceSpecialConsiderati": "Why this candidate? Source? Special considerations?"
+      "whyThisCandidateSourceSpecialConsiderati": "Waarom deze kandidaat? Bron? Speciale overwegingen?"
     }
   },
   "addJobTeamMemberDialog": {
@@ -358,170 +358,170 @@
     "toast": {
       "failedToLoadTeamMembers": "Laden van team members mislukt",
       "failedToLoadTqcTeamMembers": "Laden van tqc team members mislukt",
-      "pleaseSelectATeamMember": "Please select a team member",
-      "pleaseSelectAUser": "Please select a user",
-      "pleaseProvideAReasonForThisAssignment": "Please provide a reason for this assignment",
-      "teamMemberAddedSuccessfully": "Team member added successfully"
+      "pleaseSelectATeamMember": "Selecteer een teamlid",
+      "pleaseSelectAUser": "Selecteer een gebruiker",
+      "pleaseProvideAReasonForThisAssignment": "Geef alstublieft een reden voor deze toewijzing.",
+      "teamMemberAddedSuccessfully": "Teamlid succesvol toegevoegd"
     },
     "label": {
-      "teamMember": "Team Member",
-      "role": "Role",
+      "teamMember": "Teamlid",
+      "role": "Rol",
       "permissions": "Rechten",
       "selectTqcTeamMember": "Selecteer tqc team member",
-      "assignmentReason": "Assignment Reason"
+      "assignmentReason": "Reden voor toewijzing"
     },
     "placeholder": {
       "selectATeamMember": "Selecteer een team member",
       "searchTqcTeamByNameOrEmail": "TQC team by name or email zoeken...",
-      "whyIsThisPersonBeingAssignedToThisJob": "Why is this person being assigned to this job?"
+      "whyIsThisPersonBeingAssignedToThisJob": "Waarom wordt deze persoon aan deze functie toegewezen?"
     },
     "badge": {
       "admin": "Beheer",
       "strategist": "Strateeg"
     },
     "noMatchingTeamMembersFound": "Geen matching team members gevonden",
-    "externalUsersReceiveLimitedTimeboxedAcce": "External users receive limited, time-boxed access with audit logging",
-    "dialogDescription": "Assign a team member or external user to this job with specific role and permissions.",
+    "externalUsersReceiveLimitedTimeboxedAcce": "Externe gebruikers ontvangen beperkte, tijdelijke toegang met auditlogging",
+    "dialogDescription": "Wijs een teamlid of externe gebruiker toe aan deze functie met specifieke rol en rechten.",
     "option": {
-      "hiringManager": "Hiring Manager",
-      "founderexecutiveReviewer": "Founder/Executive Reviewer",
-      "technicalInterviewer": "Technical Interviewer",
-      "behavioralInterviewer": "Behavioral Interviewer",
-      "panelMember": "Panel Member",
-      "interviewCoordinator": "Interview Coordinator",
-      "observer": "Observer"
+      "hiringManager": "Aanwervingsmanager",
+      "founderexecutiveReviewer": "Oprichter/Directeur Beoordelaar",
+      "technicalInterviewer": "Technisch interviewer",
+      "behavioralInterviewer": "Gedragsinterviewer",
+      "panelMember": "Panellid",
+      "interviewCoordinator": "Interviewcoördinator",
+      "observer": "Waarnemer"
     }
   },
   "addStageDialog": {
     "dialogTitle": "New Pipeline Stage toevoegen",
     "placeholder": {
-      "buildingroomNumberReceptionInstructionsP": "Building/Room number, Reception instructions, Parking information, Accessibility notes...",
-      "listMaterialsCandidatesShouldPreparePort": "List materials candidates should prepare (portfolio, references, certificates, etc.)"
+      "buildingroomNumberReceptionInstructionsP": "Gebouw-/kamernummer, instructies receptie, parkeerinformatie, toegankelijkheidsinformatie...",
+      "listMaterialsCandidatesShouldPreparePort": "Lijst met materialen die kandidaten moeten voorbereiden (portfolio, referenties, certificaten, enz.)"
     },
     "configureEveryDetailForALuxuryTailoredCa": "every detail for a luxury, tailored candidate experience configureren",
-    "candidatesCanChooseBetweenOnlineOrInpers": "Candidates can choose between online or in-person. Configure both options above or provide flexible instructions.",
-    "thisHelpsEvaluatorsProvideConsistentStru": "This helps evaluators provide consistent, structured feedback",
-    "quickstartWithPreconfiguredStageTemplate": "Quick-start with pre-configured stage templates",
+    "candidatesCanChooseBetweenOnlineOrInpers": "Kandidaten kunnen kiezen tussen online of persoonlijk. Configureer beide opties hierboven of geef flexibele instructies.",
+    "thisHelpsEvaluatorsProvideConsistentStru": "Dit helpt beoordelaars om consistente, gestructureerde feedback te geven",
+    "quickstartWithPreconfiguredStageTemplate": "Snel starten met vooraf geconfigureerde fase templates",
     "option": {
       "noTeamMembersAvailable": "Geen team members beschikbaar"
     },
     "desc": {
-      "stageConfigurationSavedAndAuditLogged": "Stage configuration saved and audit logged"
+      "stageConfigurationSavedAndAuditLogged": "Fase configuratie opgeslagen en gecontroleerd"
     }
   },
   "addToJobDialog": {
     "dialogTitle": "to Job Pipeline toevoegen",
     "toast": {
-      "candidateAddedButInteractionLogFailed": "Candidate added but interaction log failed",
-      "candidateAddedButAuditLogFailed": "Candidate added but audit log failed",
+      "candidateAddedButInteractionLogFailed": "Kandidaat toegevoegd, maar interactielogboek mislukt",
+      "candidateAddedButAuditLogFailed": "Kandidaat toegevoegd, maar auditlogboek mislukt",
       "failedToAddCandidate": "add candidate to job mislukt"
     },
     "label": {
-      "startingStage": "Starting Stage",
-      "notesOptional": "Notes (optional)"
+      "startingStage": "Startfase",
+      "notesOptional": "Opmerkingen (optioneel)"
     },
     "placeholder": {
       "searchJobsByTitleOrCompany": "jobs by title or company zoeken...",
-      "whyAreYouAddingThisCandidate": "Why are you adding this candidate?"
+      "whyAreYouAddingThisCandidate": "Waarom voegt u deze kandidaat toe?"
     },
     "badge": {
-      "alreadyInPipeline": "Already in pipeline"
+      "alreadyInPipeline": "Al in de pijplijn"
     },
-    "noActiveJobsFound": "No active jobs found."
+    "noActiveJobsFound": "Geen actieve vacatures gevonden."
   },
   "adminBoardTools": {
     "toast": {
       "globalAnalytics": "Globale analyse",
-      "globalAnalyticsDesc": "Cross-company insights and platform-wide metrics",
-      "talentPoolAccessGranted": "Talent Pool Access Granted",
-      "talentPoolAccessGrantedDesc": "Full access to 12,847 candidate profiles",
-      "companyManagement": "Company Management",
+      "globalAnalyticsDesc": "Bedrijfsoverstijgende inzichten en platformbrede statistieken",
+      "talentPoolAccessGranted": "Toegang tot Talentenpool verleend",
+      "talentPoolAccessGrantedDesc": "Volledige toegang tot 12.847 kandidaatprofielen",
+      "companyManagement": "Bedrijfsbeheer",
       "companyManagementDesc": "all partner companies and their access levels beheren",
       "bulkOperations": "Bulkbewerkingen",
-      "bulkOperationsDesc": "Perform bulk actions across multiple jobs and candidates",
-      "platformSettings": "Platform Settings",
+      "bulkOperationsDesc": "Voer bulkacties uit voor meerdere vacatures en kandidaten",
+      "platformSettings": "Platforminstellingen",
       "platformSettingsDesc": "global platform rules, AI models, and workflows configureren",
       "aiConfiguration": "AI-configuratie",
-      "aiConfigurationDesc": "Adjust matching algorithms, scoring weights, and ML models",
-      "systemHealthOptimal": "System Health: Optimal",
+      "aiConfigurationDesc": "Pas matching algoritmen, scoregewichten en ML-modellen aan",
+      "systemHealthOptimal": "Systeemstatus: Optimaal",
       "systemHealthOptimalDesc": "Alle services running normally. 99.97% uptime",
-      "globalDataExport": "Global Data Export",
-      "globalDataExportDesc": "Exporting anonymized platform analytics...",
-      "accessControl": "Access Control",
+      "globalDataExport": "Globale data export",
+      "globalDataExportDesc": "Exporteren van geanonimiseerde platform analytics...",
+      "accessControl": "Toegangscontrole",
       "accessControlDesc": "roles, permissions, and security policies beheren"
     },
     "badge": {
-      "quantumClubAdmin": "QUANTUM CLUB ADMIN"
+      "quantumClubAdmin": "THE QUANTUM CLUB BEHEERDER"
     },
-    "platformwideManagementAnalytics": "Platform-wide management & analytics",
+    "platformwideManagementAnalytics": "Platformbreed management & analytics",
     "companyManagement": "Company Management",
     "viewManageAllPartners": "& manage all partners bekijken",
     "bulkOperations": "Bulkbewerkingen",
-    "crossjobActionsAtScale": "Cross-job actions at scale",
+    "crossjobActionsAtScale": "Cross-job acties op schaal",
     "aiModelConfig": "AI Model Config",
-    "tuneMatchingAlgorithms": "Tune matching algorithms",
+    "tuneMatchingAlgorithms": "Matching algoritmes afstemmen",
     "systemHealth": "Systeemgezondheid",
-    "platformStatusUptime": "Platform status & uptime",
-    "accessControl": "Access Control",
-    "rolesPermissions": "Roles & permissions",
-    "platformSettings": "Platform Settings",
-    "globalConfigurations": "Global configurations",
-    "exportGlobalData": "Export Global Data",
-    "platformwideAnalytics": "Platform-wide analytics",
+    "platformStatusUptime": "Platformstatus & uptime",
+    "accessControl": "Toegangscontrole",
+    "rolesPermissions": "Rollen & permissies",
+    "platformSettings": "Platforminstellingen",
+    "globalConfigurations": "Globale configuraties",
+    "exportGlobalData": "Globale data exporteren",
+    "platformwideAnalytics": "Platformbrede analytics",
     "refreshAllMetrics": "Vernieuwen Alle Statistieken",
-    "recalculateEverything": "Recalculate everything"
+    "recalculateEverything": "Alles herberekenen"
   },
   "adminJobTools": {
     "sheetTitle": "Email Dump",
     "toast": {
-      "metricsUpdatedSuccessfully": "Metrics updated successfully",
+      "metricsUpdatedSuccessfully": "Metrics succesvol bijgewerkt",
       "aiMatchingEngine": "AI Matching Engine",
-      "aiMatchingEngineDesc": "Analyzing global talent pool for perfect matches...",
-      "found23HighpotentialCandidates": "Found 23 high-potential candidates",
-      "found23HighpotentialCandidatesDesc": "Advanced AI scoring applied. Review in pipeline.",
+      "aiMatchingEngineDesc": "Analyseert de globale talentenpool voor perfecte matches...",
+      "found23HighpotentialCandidates": "23 potentiële kandidaten gevonden",
+      "found23HighpotentialCandidatesDesc": "Geavanceerde AI-scoring toegepast. Bekijk in de pipeline.",
       "bulkImport": "Bulk Import",
-      "bulkImportDesc": "Upload CSV or connect ATS to import candidates",
+      "bulkImportDesc": "Upload CSV of verbind ATS om kandidaten te importeren",
       "pipelineHealth94": "Pipeline Health: 94%",
-      "pipelineHealth94Desc": "Excellent flow. Avg time-to-hire: 12 days",
-      "exportingPipelineData": "Exporting pipeline data",
-      "exportingPipelineDataDesc": "Full analytics export with GDPR compliance",
-      "recalculatingMetrics": "Recalculating metrics...",
-      "recalculatingMetricsDesc": "Using latest AI models and scoring algorithms"
+      "pipelineHealth94Desc": "Uitstekende flow. Gemiddelde time-to-hire: 12 dagen",
+      "exportingPipelineData": "Pipeline data exporteren",
+      "exportingPipelineDataDesc": "Volledige analytics export met GDPR-compliance",
+      "recalculatingMetrics": "Metrics herberekenen...",
+      "recalculatingMetricsDesc": "Gebruikt de nieuwste AI-modellen en scoring algoritmes"
     },
     "badge": {
       "adminJobTools": "ADMIN JOB TOOLS"
     },
-    "joblevelOperations": "Job-level operations"
+    "joblevelOperations": "Job-level operaties"
   },
   "advancedJobFilters": {
-    "title": "Advanced Filters",
+    "title": "Geavanceerde filters",
     "status": "Status",
     "company": "Bedrijf",
-    "createdDateRange": "Created Date Range",
-    "fromDate": "From date",
-    "toDate": "To date"
+    "createdDateRange": "Aanmaakdatum bereik",
+    "fromDate": "Van datum",
+    "toDate": "Tot datum"
   },
   "applicantPipeline": {
-    "noActiveJobs": "No active jobs",
+    "noActiveJobs": "Geen actieve jobs",
     "applicantPipeline": "Applicant Pipeline",
     "noApplicationsYet": "Nog geen sollicitaties",
     "toast": {
       "failedToLoadApplicants": "Laden van applicants mislukt"
     },
-    "publishAJobToStartReceivingApplications": "Publish a job to start receiving applications",
-    "applicationsWillAppearHereOnceCandidates": "Applications will appear here once candidates start applying",
-    "noCandidatesInThisStage": "No candidates in this stage"
+    "publishAJobToStartReceivingApplications": "Publiceer een job om sollicitaties te ontvangen",
+    "applicationsWillAppearHereOnceCandidates": "Sollicitaties verschijnen hier zodra kandidaten beginnen met solliciteren",
+    "noCandidatesInThisStage": "Geen kandidaten in deze fase"
   },
   "applicationsAnalytics": {
-    "title": "Pipeline Distribution",
-    "avgTimeToHire": "Avg. Time to Hire",
+    "title": "Pipeline Distributie",
+    "avgTimeToHire": "Gem. tijd tot aanwerving",
     "conversionRate": "Conversiepercentage",
-    "activePipelines": "Active Pipelines",
-    "stalledPipelines": "Stalled Pipelines",
+    "activePipelines": "Actieve pijplijnen",
+    "stalledPipelines": "Gestagneerde pijplijnen",
     "excellent": "Uitstekend",
-    "needsImprovement": "Needs improvement",
-    "inProgress": "In progress",
-    "needAttention": "Need attention"
+    "needsImprovement": "Verbetering nodig",
+    "inProgress": "Bezig",
+    "needAttention": "Aandacht nodig"
   },
   "applicationsFilters": {
     "placeholder": {
@@ -541,9 +541,9 @@
       "allCompanies": "Alle bedrijven",
       "allSources": "Alle sources",
       "linkedin": "LinkedIn",
-      "referral": "Referral",
+      "referral": "Verwijzing",
       "direct": "Direct",
-      "agency": "Agency",
+      "agency": "Bureau",
       "all": "Alle",
       "recentActivity": "Recente activiteit"
     }
@@ -552,51 +552,51 @@
     "badge": {
       "noActivity": "Nee Activiteit",
       "urgent": "Urgent",
-      "pendingSignup": "Pending Signup"
+      "pendingSignup": "Aanmelding in behandeling"
     },
-    "noApplicationsFoundMatchingYourFilters": "No applications found matching your filters"
+    "noApplicationsFoundMatchingYourFilters": "Geen sollicitaties gevonden die overeenkomen met uw filters"
   },
   "benchmarkComparison": {
     "badge": {
-      "updatedToday": "Updated today"
+      "updatedToday": "Vandaag bijgewerkt"
     },
-    "completeMoreHiringCyclesToUnlockBenchmar": "Complete more hiring cycles to unlock benchmark comparisons"
+    "completeMoreHiringCyclesToUnlockBenchmar": "Voltooi meer wervingscycli om benchmarkvergelijkingen te ontgrendelen"
   },
   "calendarInterviewLinker": {
     "badge": {
       "tqc": "TQC"
     },
-    "automaticallyDetectedInterviewsFromYourC": "Automatically detected interviews from your calendar",
+    "automaticallyDetectedInterviewsFromYourC": "Automatisch gedetecteerde interviews uit uw agenda",
     "selectACalendarEventToLinkAsAnInterview": "Selecteer een calendar event to link as an interview",
-    "interviewsThatHaveBeenConfirmedAndLinked": "Interviews that have been confirmed and linked to this job",
-    "dialogDescription": "Browse your calendar events or view automatically detected interviews"
+    "interviewsThatHaveBeenConfirmedAndLinked": "Interviews die zijn bevestigd en gekoppeld aan deze functie",
+    "dialogDescription": "Blader door uw agenda-afspraken of bekijk automatisch gedetecteerde interviews"
   },
   "candidateActionDialog": {
     "toast": {
       "noNextStageAvailable": "Geen next stage beschikbaar",
-      "pleaseProvideARejectionReason": "Please provide a rejection reason",
+      "pleaseProvideARejectionReason": "Geef een reden voor afwijzing op",
       "failedToProcessAction": "process action mislukt"
     },
     "label": {
-      "rejectionReason": "Rejection Reason *"
+      "rejectionReason": "Reden voor afwijzing *"
     },
     "placeholder": {
       "selectAReason": "Selecteer een reason"
     },
-    "clubCheckAdvanceCandidate": "Club Check - Advance Candidate",
-    "thisCandidateHasPassedClubVettingStandar": "This candidate has passed Club vetting standards",
+    "clubCheckAdvanceCandidate": "Club Check - Kandidaat doorzetten",
+    "thisCandidateHasPassedClubVettingStandar": "Deze kandidaat heeft de Club screeningnormen doorstaan",
     "option": {
-      "notAFit": "Not a fit",
-      "salaryExpectations": "Salary expectations",
+      "notAFit": "Past niet",
+      "salaryExpectations": "Salarisverwachtingen",
       "location": "Locatie",
-      "seniorityMismatch": "Seniority mismatch",
-      "skillsGap": "Skills gap",
-      "culturalFit": "Cultural fit",
+      "seniorityMismatch": "Senioriteitsmismatch",
+      "skillsGap": "Vaardigheidskloof",
+      "culturalFit": "Culturele fit",
       "other": "Anders"
     },
     "desc": {
-      "clubCheckCompletedSuccessfully": "Club Check completed successfully",
-      "feedbackRecordedAndCandidateNotified": "Feedback recorded and candidate notified"
+      "clubCheckCompletedSuccessfully": "Club Check succesvol afgerond",
+      "feedbackRecordedAndCandidateNotified": "Feedback geregistreerd en kandidaat op de hoogte gesteld"
     }
   },
   "candidateAnalytics": {
@@ -604,58 +604,58 @@
       "failedToLoadAnalytics": "Laden van analyse mislukt"
     },
     "badge": {
-      "highInterest": "High Interest",
-      "excellentFit": "Excellent Fit",
-      "highlyEngaged": "Highly Engaged"
+      "highInterest": "Hoge interesse",
+      "excellentFit": "Uitstekende match",
+      "highlyEngaged": "Sterk betrokken"
     },
     "profileViews": "Profielweergaven",
-    "uniqueViewers": "Unique Viewers",
+    "uniqueViewers": "Unieke kijkers",
     "engagementScore": "Betrokkenheid Score",
     "fitScore": "Fit Score",
     "noProfileViewsYet": "Nog geen profile views",
-    "thisCandidateHasReceivedSignificantAtten": "This candidate has received significant attention from the team",
-    "aiAnalysisShowsStrongAlignmentWithRoleRe": "AI analysis shows strong alignment with role requirements",
-    "candidateShowsStrongEngagementWithTheApp": "Candidate shows strong engagement with the application process",
-    "noInsightsAvailableYetProfileViewsAndInt": "No insights available yet. Profile views and interactions will generate AI insights.",
-    "description": "Team members who recently viewed this profile"
+    "thisCandidateHasReceivedSignificantAtten": "Deze kandidaat heeft aanzienlijke aandacht van het team gekregen",
+    "aiAnalysisShowsStrongAlignmentWithRoleRe": "AI-analyse toont een sterke overeenstemming met de functie-eisen",
+    "candidateShowsStrongEngagementWithTheApp": "Kandidaat toont sterke betrokkenheid bij het sollicitatieproces",
+    "noInsightsAvailableYetProfileViewsAndInt": "Nog geen inzichten beschikbaar. Profielweergaven en interacties genereren AI-inzichten.",
+    "description": "Teamleden die dit profiel recentelijk hebben bekeken"
   },
   "candidateDecisionDashboard": {
-    "dialogTitle": "Move to Offer Stage",
+    "dialogTitle": "Verplaatsen naar aanbiedingsfase",
     "toast": {
-      "noApplicationSelected": "No application selected",
-      "candidateMovedToOfferStage": "Candidate moved to Offer stage",
+      "noApplicationSelected": "Geen sollicitatie geselecteerd",
+      "candidateMovedToOfferStage": "Kandidaat verplaatst naar de aanbiedingsfase",
       "failedToMoveCandidateToOfferStage": "move candidate to offer stage mislukt",
       "failedToLogVerdict": "log verdict mislukt",
-      "openingInterviewScheduler": "Opening interview scheduler..."
+      "openingInterviewScheduler": "Interviewplanner openen..."
     },
     "placeholder": {
       "addNotesAboutYourDecision": "notes about your decision... toevoegen"
     },
-    "overall": "Overall",
-    "yearsExp": "Years Exp",
+    "overall": "Algemeen",
+    "yearsExp": "Aantal jaren ervaring",
     "salaryRange": "Salarisbereik",
-    "noticePeriod": "Notice Period",
-    "preferredLocation": "Preferred Location",
+    "noticePeriod": "Opzegtermijn",
+    "preferredLocation": "Voorkeurslocatie",
     "quickActions": "Snelle acties",
     "alert": {
-      "thisActionWillTriggerTheOfferWorkflowAndDesc": "This action will trigger the offer workflow and notify relevant stakeholders."
+      "thisActionWillTriggerTheOfferWorkflowAndDesc": "Deze actie activeert de aanbiedingsworkflow en informeert relevante stakeholders."
     }
   },
   "candidateDetailDialog": {
     "title": "Kandidaat Informatie",
     "toast": {
       "failedToAddComment": "add comment mislukt",
-      "commentAdded": "Comment added",
+      "commentAdded": "Opmerking toegevoegd",
       "failedToSubmitScorecard": "submit scorecard mislukt",
-      "scorecardSubmitted": "Scorecard submitted",
+      "scorecardSubmitted": "Scorekaart ingediend",
       "failedToMoveCandidate": "move candidate mislukt",
-      "candidateMoved": "Candidate moved"
+      "candidateMoved": "Kandidaat verplaatst"
     },
     "placeholder": {
-      "moveToStage": "Move to stage...",
-      "whatAreTheirStrengths": "What are their strengths?",
-      "anyConcerns": "Any concerns?",
-      "additionalNotes": "Additional notes..."
+      "moveToStage": "Verplaatsen naar fase...",
+      "whatAreTheirStrengths": "Wat zijn hun sterke punten?",
+      "anyConcerns": "Zijn er zorgen?",
+      "additionalNotes": "Aanvullende notities..."
     },
     "tab": {
       "overview": "Overzicht",
@@ -663,7 +663,7 @@
       "comments": "Opmerkingen",
       "activity": "Activiteit"
     },
-    "activityTimelineComingSoon": "Activity timeline coming soon",
+    "activityTimelineComingSoon": "Activiteitentijdlijn binnenkort beschikbaar",
     "pipelineStage": "Pipeline Fase",
     "option": {
       "strongYes": "Sterk Ja",
@@ -677,160 +677,160 @@
     "toast": {
       "failedToLoadDocuments": "Laden van documenten mislukt",
       "failedToUpdateDocument": "update document mislukt",
-      "documentDeleted": "Document deleted",
+      "documentDeleted": "Document verwijderd",
       "failedToDeleteDocument": "delete document mislukt"
     },
     "label": {
-      "documentType": "Document Type",
-      "expiryDateOptional": "Expiry Date (Optional)"
+      "documentType": "Documenttype",
+      "expiryDateOptional": "Vervaldatum (Optioneel)"
     },
     "loadingDocuments": "documenten laden",
-    "releaseToUpload": "Release to upload",
+    "releaseToUpload": "Loslaten om te uploaden",
     "noDocumentsYet": "Nog geen documenten",
-    "uploadTheFirstDocumentToGetStarted": "Upload the first document to get started",
-    "documentsWillBeAutomaticallyArchivedAfte": "Documents will be automatically archived after this date for GDPR compliance",
+    "uploadTheFirstDocumentToGetStarted": "Upload het eerste document om te beginnen",
+    "documentsWillBeAutomaticallyArchivedAfte": "Documenten worden na deze datum automatisch gearchiveerd in verband met de AVG",
     "verified": "Geverifieerd",
     "title": {
-      "documentPreview": "Document preview"
+      "documentPreview": "Documentvoorbeeld"
     }
   },
   "candidateInteractionLog": {
-    "title": "Interaction Timeline",
+    "title": "Interactie-tijdlijn",
     "toast": {
-      "pleaseEnterNoteContent": "Please enter note content",
-      "noteAddedSuccessfully": "Note added successfully",
+      "pleaseEnterNoteContent": "Voer de inhoud van de notitie in",
+      "noteAddedSuccessfully": "Notitie succesvol toegevoegd",
       "failedToAddNote": "add note mislukt"
     },
     "label": {
-      "logNewInteraction": "Log New Interaction"
+      "logNewInteraction": "Nieuwe interactie loggen"
     },
     "placeholder": {
-      "enterInteractionDetails": "Enter interaction details..."
+      "enterInteractionDetails": "Voer interactiedetails in..."
     },
     "noInteractionsLoggedYet": "Nog geen interactions logged",
     "description": "candidate interactions laden...",
     "option": {
-      "note": "Note",
-      "phoneCall": "Phone Call",
+      "note": "Notitie",
+      "phoneCall": "Telefoongesprek",
       "email": "E-mail",
       "message": "Bericht",
       "meeting": "Vergadering"
     }
   },
   "candidateInternalRatingCard": {
-    "title": "Rating History",
+    "title": "Beoordelingsgeschiedenis",
     "toast": {
-      "ratingsUpdatedSuccessfully": "Ratings updated successfully",
+      "ratingsUpdatedSuccessfully": "Beoordelingen succesvol bijgewerkt",
       "failedToUpdateRatings": "update ratings mislukt"
     },
     "placeholder": {
       "addContextForTheseRatings": "context for these ratings... toevoegen"
     },
-    "overallTeamAssessmentOfCandidateQuality": "Overall team assessment of candidate quality",
-    "candidateResponsivenessAndInterestLevel": "Candidate responsiveness and interest level",
-    "skillsAndExperienceAlignmentWithOpportun": "Skills and experience alignment with opportunities",
+    "overallTeamAssessmentOfCandidateQuality": "Algemene teambeoordeling van de kwaliteit van de kandidaat",
+    "candidateResponsivenessAndInterestLevel": "Reactievermogen en interesse van de kandidaat",
+    "skillsAndExperienceAlignmentWithOpportun": "Afstemming van vaardigheden en ervaring met mogelijkheden",
     "viewAllRatingChangesAndTeamMemberAssessm": "all rating changes and team member assessments over time bekijken",
-    "description": "Team evaluation metrics (not visible to candidate)"
+    "description": "Team evaluatiemetrics (niet zichtbaar voor kandidaat)"
   },
   "candidateInvitationDialog": {
     "toast": {
-      "invitationSentSuccessfully": "Invitation sent successfully!",
+      "invitationSentSuccessfully": "Uitnodiging succesvol verzonden!",
       "failedToSendInvitation": "send invitation mislukt"
     },
     "label": {
-      "emailAddress": "Email Address",
-      "linkToSpecificJobsOptional": "Link to Specific Jobs (Optional)",
-      "personalMessage": "Personal Message"
+      "emailAddress": "E-mailadres",
+      "linkToSpecificJobsOptional": "Link naar specifieke vacatures (Optioneel)",
+      "personalMessage": "Persoonlijk bericht"
     },
-    "selectedJobsWillBeMentionedInTheInvitati": "Selected jobs will be mentioned in the invitation email",
-    "thisMessageWillBeIncludedInTheInvitation": "This message will be included in the invitation email",
-    "whatHappensNext": "What happens next?"
+    "selectedJobsWillBeMentionedInTheInvitati": "Geselecteerde vacatures worden vermeld in de uitnodigingsmail",
+    "thisMessageWillBeIncludedInTheInvitation": "Dit bericht wordt opgenomen in de uitnodigingsmail",
+    "whatHappensNext": "Wat gebeurt er hierna?"
   },
   "candidateLinkedJobs": {
     "toast": {
       "failedToLoadLinkedJobs": "Laden van linked jobs mislukt"
     },
     "applied": "Gesolliciteerd",
-    "lastUpdated": "Last Updated",
+    "lastUpdated": "Laatst bijgewerkt",
     "salaryRange": "Salarisbereik",
     "stageProgress": "Fase Voortgang",
     "description": "Geen job applications gevonden"
   },
   "candidateNotesManager": {
     "toast": {
-      "noteContentIsRequired": "Note content is required",
-      "youMustBeLoggedInToCreateNotes": "You must be logged in to create notes",
-      "noteSaved": "Note saved",
+      "noteContentIsRequired": "Notitie inhoud is vereist",
+      "youMustBeLoggedInToCreateNotes": "U moet ingelogd zijn om notities aan te maken",
+      "noteSaved": "Notitie opgeslagen",
       "failedToDeleteNote": "delete note mislukt",
-      "noteDeleted": "Note deleted",
+      "noteDeleted": "Notitie verwijderd",
       "failedToUpdateNote": "update note mislukt"
     },
     "placeholder": {
-      "noteTitle": "Note title...",
+      "noteTitle": "Notitie titel...",
       "addYourNotesHere": "your notes here... toevoegen"
     },
     "tab": {
       "allNotes": "Alle notities",
-      "tqcInternal": "TQC Internal",
-      "partnerShared": "Partner Shared",
+      "tqcInternal": "TQC Intern",
+      "partnerShared": "Gedeeld met Partner",
       "general": "Algemeen"
     },
     "loadingNotes": "notities laden...",
-    "tqcInternal": "TQC Internal",
-    "visibleOnlyToTqcTeam": "Visible only to TQC team",
+    "tqcInternal": "TQC Intern",
+    "visibleOnlyToTqcTeam": "Alleen zichtbaar voor het TQC team",
     "general": "Algemeen",
-    "visibleToEveryone": "Visible to everyone"
+    "visibleToEveryone": "Zichtbaar voor iedereen"
   },
   "candidatePipelineStatus": {
     "toast": {
       "failedToLoadPipelineStatus": "Laden van pipeline status mislukt",
-      "pipelineStageUpdated": "Pipeline stage updated",
+      "pipelineStageUpdated": "Pipeline fase geüpdatet",
       "failedToUpdateStage": "update stage mislukt"
     },
-    "currentStage": "Current Stage",
+    "currentStage": "Huidige Fase",
     "progress": "Voortgang",
     "description": "Geen active applications gevonden"
   },
   "candidateQuickActions": {
-    "dialogTitle": "Import from LinkedIn",
+    "dialogTitle": "Importeren van LinkedIn",
     "toast": {
-      "pleaseEnterALinkedinUrl": "Please enter a LinkedIn URL",
-      "linkedinProfileImportedSuccessfully": "LinkedIn profile imported successfully.",
+      "pleaseEnterALinkedinUrl": "Voer een LinkedIn URL in",
+      "linkedinProfileImportedSuccessfully": "LinkedIn profiel succesvol geïmporteerd.",
       "failedToImportLinkedinProfile": "import LinkedIn profile mislukt",
-      "profileExportedSuccessfully": "Profile exported successfully",
+      "profileExportedSuccessfully": "Profiel succesvol geëxporteerd",
       "failedToExportProfile": "export profile mislukt"
     },
     "label": {
-      "linkedinProfileUrl": "LinkedIn Profile URL"
+      "linkedinProfileUrl": "LinkedIn Profiel URL"
     },
-    "dialogDescription": "Enter a LinkedIn profile URL to automatically enrich this candidate's profile"
+    "dialogDescription": "Voer een LinkedIn profiel URL in om het profiel van deze kandidaat automatisch te verrijken"
   },
   "companyAchievements": {
-    "title": "Custom Achievements",
-    "basicInformation": "Basic Information",
+    "title": "Aangepaste Prestaties",
+    "basicInformation": "Basis Informatie",
     "unlockCriteria": "Ontgrendelingscriteria",
     "noCustomAchievementsYet": "Nog geen custom achievements",
     "label": {
-      "achievementName": "Achievement Name *",
-      "description": "Description *",
+      "achievementName": "Naam Prestatie *",
+      "description": "Omschrijving *",
       "icon": "Pictogram",
-      "interactionType": "Interaction Type *",
-      "requiredAmount": "Required Amount *",
-      "timeboundChallenge": "Time-Bound Challenge",
-      "daysToComplete": "Days to Complete *"
+      "interactionType": "Interactie Type *",
+      "requiredAmount": "Vereiste Hoeveelheid *",
+      "timeboundChallenge": "Tijdsgebonden Uitdaging",
+      "daysToComplete": "Dagen om te Voltooien *"
     },
     "placeholder": {
-      "describeWhatThisAchievementRepresentsAnd": "Describe what this achievement represents and how to earn it"
+      "describeWhatThisAchievementRepresentsAnd": "Beschrijf wat deze prestatie vertegenwoordigt en hoe deze te behalen is"
     },
     "requireCompletionWithinASpecificTimefram": "Voltooiing vereisen binnen een specifiek tijdsbestek",
     "createYourFirstCustomAchievementToRecogn": "your first custom achievement to recognize and reward exceptional contributions from your team. aanmaken",
     "noPlatformAchievementsEarnedByTeamMember": "Nog geen platform achievements earned by team members",
     "analytics": "Analyse",
-    "description": "Standard achievements earned by your team members across the platform",
-    "dialogDescription": "Define criteria and rewards for exceptional team contributions",
+    "description": "Standaard prestaties behaald door uw teamleden op het platform",
+    "dialogDescription": "Definieer criteria en beloningen voor uitzonderlijke teamprestaties",
     "created": "Aangemaakt",
     "totalAwarded": "Totaal awarded",
-    "avgPerAchievement": "Avg per Achievement",
+    "avgPerAchievement": "Gem. per Prestatie",
     "active": "Actief"
   },
   "companyAnalyticsChart": {
@@ -839,92 +839,92 @@
     },
     "desc": {
       "last30Days": "Laatste 30 dagen",
-      "currentFollowers": "Current followers",
-      "reactionsComments": "Reactions & comments"
+      "currentFollowers": "Huidige volgers",
+      "reactionsComments": "Reacties & commentaren"
     }
   },
   "companyBranding": {
     "brandColors": "Merkkleuren",
-    "typography": "Typography",
-    "logosAssets": "Logos & Assets",
-    "brandPreview": "Brand Preview",
+    "typography": "Typografie",
+    "logosAssets": "Logo's & Assets",
+    "brandPreview": "Merk Voorbeeld",
     "toast": {
       "failedToLoadBranding": "Laden van huisstijl mislukt",
-      "brandingUpdatedSuccessfully": "Branding updated successfully",
+      "brandingUpdatedSuccessfully": "Branding succesvol geüpdatet",
       "failedToUpdateBranding": "update branding mislukt"
     },
     "label": {
       "primaryColor": "Primaire kleur",
       "secondaryColor": "Secundaire kleur",
       "accentColor": "Accentkleur",
-      "headingFont": "Heading Font",
-      "bodyFont": "Body Font",
-      "lightLogoUrl": "Light Logo URL",
-      "darkLogoUrl": "Dark Logo URL",
+      "headingFont": "Koptekst Lettertype",
+      "bodyFont": "Body Lettertype",
+      "lightLogoUrl": "Lichte Logo URL",
+      "darkLogoUrl": "Donkere Logo URL",
       "faviconUrl": "Favicon-URL",
-      "socialPreviewImage": "Social Preview Image"
+      "socialPreviewImage": "Sociale Preview Afbeelding"
     },
-    "description": "Customize your company's visual identity"
+    "description": "Pas de visuele identiteit van uw bedrijf aan"
   },
   "companyBrandingEditor": {
     "preview": "Voorbeeld",
-    "headingExample": "Heading Example",
+    "headingExample": "Voorbeeld Koptekst",
     "toast": {
       "failedToLoadBrandingSettings": "Laden van branding settings mislukt",
-      "brandingUpdatedSuccessfully": "Branding updated successfully",
+      "brandingUpdatedSuccessfully": "Branding succesvol bijgewerkt",
       "failedToUpdateBranding": "update branding mislukt"
     },
     "label": {
       "primaryColor": "Primaire kleur",
       "secondaryColor": "Secundaire kleur",
       "accentColor": "Accentkleur",
-      "headingFont": "Heading Font",
-      "bodyFont": "Body Font"
+      "headingFont": "Koptekst Lettertype",
+      "bodyFont": "Body Lettertype"
     },
     "placeholder": {
       "interRobotoEtc": "Inter, Roboto, etc."
     },
-    "bodyTextExampleWithYourSelectedFontAndCo": "Body text example with your selected font and colors.",
-    "description": "Customize your company's visual identity"
+    "bodyTextExampleWithYourSelectedFontAndCo": "Voorbeeld body tekst met uw geselecteerde lettertype en kleuren.",
+    "description": "Pas de visuele identiteit van uw bedrijf aan"
   },
   "companyFollowers": {
     "toast": {
       "failedToLoadFollowers": "Laden van volgers mislukt"
     },
     "badge": {
-      "notificationsOn": "Notifications On"
+      "notificationsOn": "Meldingen Aan"
     },
     "noFollowersYet": "Nog geen volgers"
   },
   "companyPosts": {
-    "companyPosts": "Company Posts",
+    "companyPosts": "Bedrijfsposts",
     "toast": {
       "failedToLoadPosts": "Laden van berichten mislukt",
-      "postUpdatedSuccessfully": "Post updated successfully",
-      "postCreatedSuccessfully": "Post created successfully",
+      "postUpdatedSuccessfully": "Post succesvol bijgewerkt",
+      "postCreatedSuccessfully": "Post succesvol aangemaakt",
       "failedToSavePost": "save post mislukt",
-      "postDeletedSuccessfully": "Post deleted successfully",
+      "postDeletedSuccessfully": "Post succesvol verwijderd",
       "failedToDeletePost": "delete post mislukt"
     },
     "label": {
       "title": "Titel",
       "content": "Inhoud",
       "postType": "Post Type",
-      "tagsCommaSeparated": "Tags (comma separated)"
+      "tagsCommaSeparated": "Tags (komma gescheiden)"
     },
     "badge": {
       "featured": "Uitgelicht",
       "private": "Privé"
     },
     "manageYourCompanyNewsAndUpdates": "your company news and updates beheren",
-    "noPostsYetCreateYourFirstPostToGetStarte": "No posts yet. Create your first post to get started.",
+    "noPostsYetCreateYourFirstPostToGetStarte": "Nog geen posts. Maak uw eerste post om te beginnen.",
     "public": "Openbaar",
     "featured": "Uitgelicht",
-    "dialogDescription": "Share news, milestones, events, and updates with your audience",
+    "dialogDescription": "Deel nieuws, mijlpalen, evenementen en updates met uw publiek",
     "option": {
-      "news": "News",
+      "news": "Nieuws",
       "milestone": "Mijlpaal",
-      "event": "Event",
+      "event": "Evenement",
       "media": "Media"
     }
   },
@@ -932,7 +932,7 @@
     "title": "Bedrijf Profiel",
     "toast": {
       "failedToLoadCompanyProfile": "Laden van company profile mislukt",
-      "companyProfileUpdated": "Company profile updated",
+      "companyProfileUpdated": "Bedrijfsprofiel bijgewerkt",
       "failedToUpdateCompanyProfile": "update company profile mislukt"
     },
     "label": {
@@ -941,184 +941,184 @@
       "description": "Beschrijving",
       "website": "Website",
       "linkedinUrl": "LinkedIn URL",
-      "headquartersLocation": "Headquarters Location",
+      "headquartersLocation": "Hoofdkantoor Locatie",
       "industry": "Sector",
-      "companySize": "Company Size"
+      "companySize": "Bedrijfsgrootte"
     },
     "description": "your company information and branding beheren"
   },
   "companyWall": {
-    "title": "Company Wall",
+    "title": "Bedrijfswall",
     "toast": {
       "failedToLoadCompanyPosts": "Laden van company posts mislukt"
     },
     "badge": {
       "featured": "Uitgelicht"
     },
-    "noPostsYetBeTheFirstToShareSomething": "No posts yet. Be the first to share something!",
-    "description": "Latest news, updates, and announcements"
+    "noPostsYetBeTheFirstToShareSomething": "Nog geen posts. Wees de eerste om iets te delen!",
+    "description": "Laatste nieuws, updates en aankondigingen"
   },
   "contractDeadlineAlerts": {
     "badge": {
-      "breached": "BREACHED"
+      "breached": "OVERSCHREDEN"
     },
-    "milestoneDeadlineHasPassed": "Milestone deadline has passed",
-    "milestoneDeadlineApproaching": "Milestone deadline approaching"
+    "milestoneDeadlineHasPassed": "Mijlpaal deadline is verstreken",
+    "milestoneDeadlineApproaching": "Mijlpaal deadline nadert"
   },
   "createInterviewDialog": {
     "toast": {
-      "pleaseFillInAllRequiredFields": "Please fill in all required fields",
-      "pleaseSelectAtLeastOneInterviewer": "Please select at least one interviewer",
-      "interviewScheduledButFailedToAddToGoogle": "Interview scheduled, but failed to add to Google Calendar",
-      "interviewScheduledAndAddedToYourGoogleCa": "Interview scheduled and added to your Google Calendar!",
-      "interviewScheduledButCalendarSyncFailed": "Interview scheduled, but calendar sync failed",
-      "interviewScheduledSuccessfully": "Interview scheduled successfully"
+      "pleaseFillInAllRequiredFields": "Vul alle verplichte velden in",
+      "pleaseSelectAtLeastOneInterviewer": "Selecteer alstublieft minstens één interviewer",
+      "interviewScheduledButFailedToAddToGoogle": "Interview ingepland, maar toevoegen aan Google Agenda mislukt",
+      "interviewScheduledAndAddedToYourGoogleCa": "Interview ingepland en toegevoegd aan uw Google Agenda!",
+      "interviewScheduledButCalendarSyncFailed": "Interview ingepland, maar kalendersynchronisatie mislukt",
+      "interviewScheduledSuccessfully": "Interview succesvol ingepland"
     },
     "label": {
       "addToGoogleCalendar": "to Google Calendar toevoegen",
       "interviewType": "Interview Type *",
-      "meetingTitle": "Meeting Title *",
+      "meetingTitle": "Vergaderingstitel *",
       "description": "Beschrijving",
-      "date": "Date *",
-      "time": "Time *",
+      "date": "Datum *",
+      "time": "Tijd *",
       "durationMinutes": "Duur (minuten)"
     },
     "placeholder": {
-      "companyCandidateNameInterviewStage": "Company - Candidate Name - Interview Stage",
-      "candidateEmail": "Candidate email",
-      "meetingDescriptionAndAgenda": "Meeting description and agenda"
+      "companyCandidateNameInterviewStage": "Bedrijf - Naam Kandidaat - Interviewfase",
+      "candidateEmail": "E-mailadres kandidaat",
+      "meetingDescriptionAndAgenda": "Vergaderbeschrijving en agenda"
     },
     "badge": {
       "candidate": "Kandidaat"
     },
-    "googleCalendarConnected": "Google Calendar Connected",
-    "interviewWillBeSyncedToYourCalendarAndAt": "Interview will be synced to your calendar and attendees will receive invites",
-    "googleCalendarNotConnected": "Google Calendar Not Connected",
-    "connectYourGoogleCalendarToAutomatically": "Connect your Google Calendar to automatically sync interviews and send calendar invites",
-    "titleAndDescriptionAutogeneratedWithComp": "Title and description auto-generated with company, candidate, and interviewer details",
-    "noTeamMembersAssignedToThisJob": "No team members assigned to this job",
-    "aipoweredAutofill": "AI-Powered Auto-Fill"
+    "googleCalendarConnected": "Google Agenda verbonden",
+    "interviewWillBeSyncedToYourCalendarAndAt": "Interview wordt gesynchroniseerd met uw agenda en deelnemers ontvangen uitnodigingen",
+    "googleCalendarNotConnected": "Google Agenda niet verbonden",
+    "connectYourGoogleCalendarToAutomatically": "Verbind uw Google Agenda om interviews automatisch te synchroniseren en agenda-uitnodigingen te verzenden",
+    "titleAndDescriptionAutogeneratedWithComp": "Titel en beschrijving automatisch gegenereerd met details van bedrijf, kandidaat en interviewer",
+    "noTeamMembersAssignedToThisJob": "Er zijn geen teamleden aan deze functie toegewezen",
+    "aipoweredAutofill": "AI-gestuurde Auto-Aanvulling"
   },
   "createJobDialog": {
     "toast": {
-      "jobCreatedButFailedToAddSomeViewers": "Job created but failed to add some viewers"
+      "jobCreatedButFailedToAddSomeViewers": "Functie aangemaakt, maar toevoegen van sommige kijkers is mislukt"
     },
     "selectACompanyFirstToChooseFromSavedOffi": "Selecteer een company first to choose from saved offices",
-    "compensationDetailsAreSharedOnlyWithShor": "Compensation details are shared only with shortlisted candidates unless displayed on the listing."
+    "compensationDetailsAreSharedOnlyWithShor": "Compensatiegegevens worden alleen gedeeld met kandidaten op de shortlist, tenzij weergegeven in de vacature."
   },
   "createPostDialog": {
     "dialogTitle": "Bericht aanmaken",
     "toast": {
-      "youMustBeLoggedInToCreateAPost": "You must be logged in to create a post",
-      "postCreatedSuccessfully": "Post created successfully",
+      "youMustBeLoggedInToCreateAPost": "U moet ingelogd zijn om een bericht te plaatsen",
+      "postCreatedSuccessfully": "Bericht succesvol aangemaakt",
       "failedToCreatePost": "create post mislukt"
     },
     "label": {
       "title": "Titel",
-      "postType": "Post Type",
+      "postType": "Berichttype",
       "content": "Inhoud",
-      "tagsCommaSeparated": "Tags (comma separated)",
-      "audience": "Audience",
-      "publicPost": "Public Post",
+      "tagsCommaSeparated": "Tags (komma-gescheiden)",
+      "audience": "Doelgroep",
+      "publicPost": "Openbaar bericht",
       "featured": "Uitgelicht",
-      "publishNow": "Publish Now"
+      "publishNow": "Nu publiceren"
     },
     "placeholder": {
-      "excitingNewsToShareRequired": "Exciting news to share... required",
-      "shareYourStory": "Share your story..."
+      "excitingNewsToShareRequired": "Spannend nieuws om te delen... vereist",
+      "shareYourStory": "Deel uw verhaal..."
     },
-    "dialogDescription": "Share news, updates, or announcements with your followers",
+    "dialogDescription": "Deel nieuws, updates of aankondigingen met uw volgers",
     "option": {
-      "news": "News",
+      "news": "Nieuws",
       "milestone": "Mijlpaal",
-      "event": "Event",
+      "event": "Evenement",
       "media": "Media"
     }
   },
   "duplicateCandidateDialog": {
-    "dialogTitle": "Candidate Already in Pipeline",
+    "dialogTitle": "Kandidaat reeds in pijplijn",
     "badge": {
-      "nameMatch": "Name Match",
-      "linkedinMatch": "LinkedIn Match"
+      "nameMatch": "Naam komt overeen",
+      "linkedinMatch": "LinkedIn komt overeen"
     }
   },
   "editJobDialog": {
     "dialogTitle": "Vacature bewerken",
     "toast": {
       "failedToLoadCompanies": "Laden van bedrijven mislukt",
-      "jobUpdatedSuccessfully": "Job updated successfully",
+      "jobUpdatedSuccessfully": "Functie succesvol bijgewerkt",
       "failedToUpdateJob": "update job mislukt"
     },
     "label": {
-      "company": "Company *",
-      "jobTitle": "Job Title *",
+      "company": "Bedrijf *",
+      "jobTitle": "Functietitel *",
       "description": "Beschrijving",
       "location": "Locatie",
-      "employmentType": "Employment Type",
+      "employmentType": "Dienstverband",
       "currency": "Valuta",
-      "minSalary": "Min Salary",
-      "maxSalary": "Max Salary",
+      "minSalary": "Min. Salaris",
+      "maxSalary": "Max. Salaris",
       "addSupportingDocuments": "Supporting Documents toevoegen",
-      "nicetohaveTools": "Nice-to-Have Tools"
+      "nicetohaveTools": "Prettig-om-te-hebben tools"
     },
     "placeholder": {
       "selectACompany": "Selecteer een bedrijf",
       "searchToolsEgNotionFigmaPython": "tools (e.g., Notion, Figma, Python) zoeken...",
       "searchAdditionalTools": "additional tools zoeken..."
     },
-    "currentDocumentUploadedUploadANewFileToR": "Current document uploaded. Upload a new file to replace it.",
+    "currentDocumentUploadedUploadANewFileToR": "Huidig document geüpload. Upload een nieuw bestand om het te vervangen.",
     "selectToolsCandidatesMustBeProficientWit": "Selecteer tools candidates must be proficient with",
-    "bonusSkillsThatWouldBeBeneficial": "Bonus skills that would be beneficial",
+    "bonusSkillsThatWouldBeBeneficial": "Bonusvaardigheden die gunstig zouden zijn",
     "option": {
-      "fulltime": "Full-time",
-      "parttime": "Part-time",
+      "fulltime": "Voltijd",
+      "parttime": "Deeltijd",
       "contract": "Contract",
       "freelance": "Freelance"
     }
   },
   "editJobSheet": {
-    "title": "Job Details",
+    "title": "Functie Details",
     "toast": {
       "failedToLoadCompanies": "Laden van bedrijven mislukt",
-      "documentWillBeRemovedWhenYouSave": "Document will be removed when you save",
+      "documentWillBeRemovedWhenYouSave": "Document wordt verwijderd wanneer u opslaat",
       "failedToRemoveDocument": "remove document mislukt",
       "failedToDownloadDocument": "download document mislukt",
-      "jobUpdatedSuccessfully": "Job updated successfully",
+      "jobUpdatedSuccessfully": "Functie succesvol bijgewerkt",
       "failedToUpdateJob": "update job mislukt",
-      "youHaveUnsavedChanges": "You have unsaved changes"
+      "youHaveUnsavedChanges": "U heeft niet-opgeslagen wijzigingen"
     },
     "label": {
-      "company": "Company *",
-      "jobTitle": "Job Title *",
+      "company": "Bedrijf *",
+      "jobTitle": "Functietitel *",
       "description": "Beschrijving",
       "location": "Locatie",
-      "employmentType": "Employment Type",
+      "employmentType": "Dienstverband",
       "currency": "Valuta",
-      "minSalaryAnnual": "Min Salary (Annual)",
-      "maxSalaryAnnual": "Max Salary (Annual)",
-      "existingDocuments": "Existing Documents",
-      "newDocumentsWillBeUploadedOnSave": "New Documents (will be uploaded on save)"
+      "minSalaryAnnual": "Min. Salaris (Jaar)",
+      "maxSalaryAnnual": "Max. Salaris (Jaar)",
+      "existingDocuments": "Bestaande Documenten",
+      "newDocumentsWillBeUploadedOnSave": "Nieuwe Documenten (worden opgeslagen bij opslaan)"
     },
     "placeholder": {
       "selectACompany": "Selecteer een bedrijf",
-      "briefOverviewOfTheRole": "Brief overview of the role...",
+      "briefOverviewOfTheRole": "Kort overzicht van de rol...",
       "searchRequiredToolsEgFigmaReactPython": "required tools (e.g., Figma, React, Python) zoeken...",
       "searchNicetohaveTools": "nice-to-have tools zoeken..."
     },
     "badge": {
       "active": "Actief"
     },
-    "linkToWhereThisJobIsPostedOnlineLinkedin": "Link to where this job is posted online (LinkedIn, company website, etc.)",
-    "noRequiredToolsSelectedAddToolsThatAreEs": "No required tools selected. Add tools that are essential for this role.",
-    "noNicetohaveToolsSelectedAddToolsThatWou": "No nice-to-have tools selected. Add tools that would be a plus.",
-    "currentDocumentUploaded": "Current document uploaded",
-    "uploadANewFileToReplaceIt": "Upload a new file to replace it",
-    "dragDropOrClickToUpload": "Drag & drop or click to upload",
-    "uploadMultipleFilesAtOnce": "Upload multiple files at once",
+    "linkToWhereThisJobIsPostedOnlineLinkedin": "Link naar waar deze functie online is geplaatst (LinkedIn, bedrijfswebsite, etc.)",
+    "noRequiredToolsSelectedAddToolsThatAreEs": "Geen vereiste tools geselecteerd. Voeg tools toe die essentieel zijn voor deze rol.",
+    "noNicetohaveToolsSelectedAddToolsThatWou": "Geen 'nice-to-have' tools geselecteerd. Voeg tools toe die een pluspunt zouden zijn.",
+    "currentDocumentUploaded": "Huidig document geüpload",
+    "uploadANewFileToReplaceIt": "Upload een nieuw bestand om het te vervangen",
+    "dragDropOrClickToUpload": "Sleep & plaats of klik om te uploaden",
+    "uploadMultipleFilesAtOnce": "Upload meerdere bestanden tegelijk",
     "description": "the core information about this position bijwerken",
     "option": {
-      "fulltime": "Full-time",
-      "parttime": "Part-time",
+      "fulltime": "Voltijd",
+      "parttime": "Deeltijd",
       "contract": "Contract",
       "freelance": "Freelance",
       "internship": "Stage"
@@ -1131,65 +1131,65 @@
   "internalReviewPanel": {
     "toast": {
       "selectAtLeastOneCandidate": "Selecteer at least one candidate.",
-      "rejectionNoteIsRequired": "Rejection note is required.",
-      "undoIsNotYetAvailableForThisAction": "Undo is not yet available for this action."
+      "rejectionNoteIsRequired": "Een afwijzingsnotitie is vereist.",
+      "undoIsNotYetAvailableForThisAction": "Ongedaan maken is nog niet beschikbaar voor deze actie."
     },
     "placeholder": {
       "searchByNameTitleOrSkill": "by name, title, or skill zoeken...",
-      "rejectionReason": "Rejection reason..."
+      "rejectionReason": "Reden voor afwijzing..."
     },
     "allClear": "Alle clear",
-    "noCandidatesAwaitingInternalReview": "No candidates awaiting internal review.",
-    "dialogDescription": "Provide a reason for rejecting this candidate from the pipeline."
+    "noCandidatesAwaitingInternalReview": "Geen kandidaten in afwachting van interne beoordeling.",
+    "dialogDescription": "Geef een reden op voor het afwijzen van deze kandidaat uit de pijplijn."
   },
   "interviewFeedbackDialog": {
     "dialogTitle": "Interview Feedback",
     "toast": {
-      "pleaseSelectARecommendation": "Please select a recommendation",
-      "feedbackSubmittedSuccessfully": "Feedback submitted successfully"
+      "pleaseSelectARecommendation": "Selecteer alstublieft een aanbeveling",
+      "feedbackSubmittedSuccessfully": "Feedback succesvol ingediend"
     },
     "label": {
-      "recommendation": "Recommendation *",
-      "keyStrengths": "Key Strengths",
-      "concernsAreasForImprovement": "Concerns / Areas for Improvement",
-      "keyObservations": "Key Observations",
-      "detailedNotes": "Detailed Notes"
+      "recommendation": "Aanbeveling *",
+      "keyStrengths": "Belangrijkste Sterke Punten",
+      "concernsAreasForImprovement": "Aandachtspunten / Gebieden voor Verbetering",
+      "keyObservations": "Belangrijkste Observaties",
+      "detailedNotes": "Gedetailleerde Notities"
     },
     "placeholder": {
-      "egStrongProblemsolvingSkills": "E.g., Strong problem-solving skills",
-      "egLimitedExperienceWithXTechnology": "E.g., Limited experience with X technology",
-      "egHandledPressureWellDuringTechnicalChal": "E.g., Handled pressure well during technical challenge",
-      "provideComprehensiveNotesAboutTheIntervi": "Provide comprehensive notes about the interview..."
+      "egStrongProblemsolvingSkills": "Bijv. Sterke probleemoplossende vaardigheden",
+      "egLimitedExperienceWithXTechnology": "Bijv. Beperkte ervaring met X-technologie",
+      "egHandledPressureWellDuringTechnicalChal": "Bijv. Goed omgegaan met druk tijdens technische uitdaging",
+      "provideComprehensiveNotesAboutTheIntervi": "Geef uitgebreide aantekeningen over het interview..."
     },
-    "strongYesExceptionalCandidate": "Strong Yes - Exceptional candidate",
-    "yesGoodFitRecommendToProceed": "Yes - Good fit, recommend to proceed",
-    "maybeHasPotentialButConcernsExist": "Maybe - Has potential but concerns exist",
-    "noNotTheRightFit": "No - Not the right fit",
-    "strongNoDefinitelyNotSuitable": "Strong No - Definitely not suitable"
+    "strongYesExceptionalCandidate": "Sterk Ja - Uitzonderlijke kandidaat",
+    "yesGoodFitRecommendToProceed": "Ja - Goede match, aanbevolen om door te gaan",
+    "maybeHasPotentialButConcernsExist": "Misschien - Heeft potentieel, maar er zijn zorgen",
+    "noNotTheRightFit": "Nee - Niet de juiste match",
+    "strongNoDefinitelyNotSuitable": "Sterk Nee - Absoluut niet geschikt"
   },
   "jobAnalytics": {
-    "title": "Stage Conversion Rates",
+    "title": "Stage Conversiepercentages",
     "noAnalyticsDataAvailable": "Geen analytics data beschikbaar",
     "totalApplications": "Totaal sollicitaties",
     "active": "Actief",
-    "hires": "Hires",
-    "avgTimeToHire": "Avg Time to Hire",
-    "fastestHire": "Fastest Hire",
+    "hires": "Aanwervingen",
+    "avgTimeToHire": "Gem. tijd tot aanwerving",
+    "fastestHire": "Snelste aanwerving",
     "average": "Gemiddeld",
-    "slowestHire": "Slowest Hire",
-    "avgFitScore": "Avg Fit Score",
-    "engagementRate": "Engagement Rate",
+    "slowestHire": "Langzaamste aanwerving",
+    "avgFitScore": "Gem. Fit Score",
+    "engagementRate": "Betrokkenheidspercentage",
     "interviewPass": "Interview Pass",
-    "offerAcceptance": "Offer Acceptance",
+    "offerAcceptance": "Aanbieding Acceptatie",
     "clubSync": "Club Sync",
-    "directApply": "Direct Apply",
+    "directApply": "Direct Solliciteren",
     "referrals": "Verwijzingen",
-    "description": "Where candidates are coming from"
+    "description": "Waar kandidaten vandaan komen"
   },
   "jobCard": {
     "toast": {
-      "headhunterAgentActivatedAnalyzingJobRequ": "Headhunter Agent activated... analyzing job requirements.",
-      "agentFinishedSearchButFoundNoNewStrongMa": "Agent finished search but found no new strong matches."
+      "headhunterAgentActivatedAnalyzingJobRequ": "Headhunter Agent geactiveerd... analyseert functie-eisen.",
+      "agentFinishedSearchButFoundNoNewStrongMa": "Agent heeft de zoektocht afgerond, maar geen nieuwe sterke matches gevonden."
     },
     "viewOriginalPosting": "original posting bekijken"
   },
@@ -1198,41 +1198,41 @@
     "toast": {
       "failedToLoadCandidates": "Laden van kandidaten mislukt"
     },
-    "applicationsWillAppearHereOnceCandidates": "Applications will appear here once candidates start applying",
-    "reviewAndAdvancePremiumCandidatesFasterW": "Review and advance premium candidates faster with our exclusive vetting",
-    "noCandidatesInThisStage": "No candidates in this stage"
+    "applicationsWillAppearHereOnceCandidates": "Sollicitaties verschijnen hier zodra kandidaten beginnen met solliciteren",
+    "reviewAndAdvancePremiumCandidatesFasterW": "Beoordeel en bevorder premium kandidaten sneller met onze exclusieve screening",
+    "noCandidatesInThisStage": "Geen kandidaten in deze fase"
   },
   "jobDocuments": {
     "toast": {
       "failedToLoadDocuments": "Laden van documenten mislukt",
-      "jobDescriptionUploadedSuccessfully": "Job description uploaded successfully",
-      "documentRemovedSuccessfully": "Document removed successfully",
+      "jobDescriptionUploadedSuccessfully": "Functiebeschrijving succesvol geüpload",
+      "documentRemovedSuccessfully": "Document succesvol verwijderd",
       "failedToRemoveDocument": "remove document mislukt",
-      "downloadStarted": "Download started",
+      "downloadStarted": "Download gestart",
       "failedToDownloadDocument": "download document mislukt",
       "failedToOpenDocumentViewer": "open document viewer mislukt"
     },
     "label": {
-      "existingDocuments": "Existing Documents",
+      "existingDocuments": "Bestaande Documenten",
       "addMoreDocuments": "More Documents toevoegen"
     },
-    "currentJobDescription": "Current Job Description",
-    "uploadedDocumentReadyToView": "Uploaded document ready to view",
+    "currentJobDescription": "Huidige Functiebeschrijving",
+    "uploadedDocumentReadyToView": "Geüpload document klaar om te bekijken",
     "noJobDescriptionUploadedYet": "Nog geen job description uploaded",
-    "fileWillBeUploadedAutomaticallyWhenSelec": "File will be uploaded automatically when selected",
+    "fileWillBeUploadedAutomaticallyWhenSelec": "Bestand wordt automatisch geüpload wanneer geselecteerd",
     "noSupportingDocumentsUploadedYet": "Nog geen supporting documents uploaded",
-    "filesWillBeUploadedAutomaticallyWhenSele": "Files will be uploaded automatically when selected",
-    "poweredByGoogleDocsViewer": "Powered by Google Docs Viewer",
-    "previewNotAvailableForThisFileType": "Preview not available for this file type",
-    "uploadInProgress": "Upload in progress"
+    "filesWillBeUploadedAutomaticallyWhenSele": "Bestanden worden automatisch geüpload wanneer geselecteerd",
+    "poweredByGoogleDocsViewer": "Mogelijk gemaakt door Google Docs Viewer",
+    "previewNotAvailableForThisFileType": "Voorbeeld niet beschikbaar voor dit bestandstype",
+    "uploadInProgress": "Upload bezig"
   },
   "jobManagement": {
-    "jobPostings": "Job Postings",
+    "jobPostings": "Vacatures",
     "noJobsYet": "Nog geen vacatures",
     "toast": {
       "failedToLoadJobs": "Laden van vacatures mislukt",
-      "jobArchived": "Job archived",
-      "jobDeleted": "Job deleted",
+      "jobArchived": "Vacature gearchiveerd",
+      "jobDeleted": "Vacature verwijderd",
       "failedToUpdateJobStatus": "update job status mislukt"
     },
     "createYourFirstJobPostingToStartReceivin": "your first job posting to start receiving applications aanmaken"
@@ -1240,17 +1240,17 @@
   "jobTeamPanel": {
     "toast": {
       "failedToLoadTeamMembers": "Laden van team members mislukt",
-      "teamMemberRemoved": "Team member removed",
+      "teamMemberRemoved": "Teamlid verwijderd",
       "failedToRemoveTeamMember": "remove team member mislukt"
     },
     "badge": {
-      "primary": "Primary"
+      "primary": "Primair"
     },
     "noTeamMembersYet": "Nog geen team members",
     "menu": {
-      "removeFromTeam": "Remove from team"
+      "removeFromTeam": "Verwijderen uit team"
     },
-    "teamMemberOptions": "Team Member Options"
+    "teamMemberOptions": "Teamlid Opties"
   },
   "offerPipelineWidget": {
     "badge": {
@@ -1263,46 +1263,46 @@
       "pipelineHealth": "Pipeline Health",
       "conversionRates": "Conversion Rates"
     },
-    "description": "Current distribution across pipeline stages"
+    "description": "Huidige verdeling over de pipelinefasen"
   },
   "partnerConciergeCard": {
     "badge": {
       "inProgress": "Bezig"
     },
-    "yourDedicatedConcierge": "Your Dedicated Concierge",
-    "directContact": "Direct Contact"
+    "yourDedicatedConcierge": "Uw toegewijde Concierge",
+    "directContact": "Direct contact"
   },
   "partnerDomainSettings": {
     "toast": {
-      "pleaseEnterAValidDomainEgExamplecom": "Please enter a valid domain (e.g., example.com)",
-      "thisDomainIsAlreadyConfigured": "This domain is already configured",
-      "domainRequestSubmittedForAdminApproval": "Domain request submitted for admin approval",
+      "pleaseEnterAValidDomainEgExamplecom": "Voer een geldige domeinnaam in (bijv. example.com)",
+      "thisDomainIsAlreadyConfigured": "Dit domein is al geconfigureerd",
+      "domainRequestSubmittedForAdminApproval": "Domeinaanvraag ingediend ter goedkeuring door de beheerder",
       "failedToSubmitDomainRequest": "submit domain request mislukt"
     },
     "label": {
-      "requestNewDomain": "Request New Domain"
+      "requestNewDomain": "Nieuw domein aanvragen"
     },
     "noDomainsConfiguredYet": "Nog geen domains configured",
-    "contactYourAdministratorToSetUpAuthorize": "Contact your administrator to set up authorized domains",
-    "domainRequestsRequireAdminApprovalBefore": "Domain requests require admin approval before they become active",
-    "description": "Team members can only be invited from these email domains",
+    "contactYourAdministratorToSetUpAuthorize": "Neem contact op met uw beheerder om geautoriseerde domeinen in te stellen",
+    "domainRequestsRequireAdminApprovalBefore": "Domeinaanvragen vereisen goedkeuring van de beheerder voordat ze actief worden",
+    "description": "Teamleden kunnen alleen worden uitgenodigd vanaf deze e-maildomeinen",
     "loadingDomainSettings": "domain settings laden..."
   },
   "partnerFirstReviewPanel": {
     "toast": {
       "selectARejectionReason": "Selecteer een rejection reason.",
-      "rejectionNotesAreRequired": "Rejection notes are required."
+      "rejectionNotesAreRequired": "Afwijzingsnotities zijn verplicht."
     }
   },
   "partnerJobsHome": {
     "noJobsFound": "Geen vacatures gevonden",
     "toast": {
       "failedToLoadJobs": "Laden van vacatures mislukt",
-      "noDraftJobsSelectedToPublish": "No draft jobs selected to publish",
+      "noDraftJobsSelectedToPublish": "Geen conceptvacatures geselecteerd om te publiceren",
       "failedToPublishSelectedJobs": "publish selected jobs mislukt",
-      "noPublishedJobsSelectedToClose": "No published jobs selected to close",
+      "noPublishedJobsSelectedToClose": "Geen gepubliceerde vacatures geselecteerd om te sluiten",
       "failedToCloseSelectedJobs": "close selected jobs mislukt",
-      "noJobsSelectedToArchive": "No jobs selected to archive",
+      "noJobsSelectedToArchive": "Geen vacatures geselecteerd om te archiveren",
       "failedToArchiveSelectedJobs": "archive selected jobs mislukt",
       "failedToPublishJob": "publish job mislukt",
       "failedToUnpublishJob": "unpublish job mislukt",
@@ -1311,78 +1311,78 @@
       "failedToArchiveJob": "archive job mislukt",
       "failedToRestoreJob": "restore job mislukt"
     },
-    "yourPremiumHiringAccelerator": "Your premium hiring accelerator.",
-    "getVettedCandidatesInDaysNotWeeks": "Get vetted candidates in days, not weeks",
-    "prevettedTalent": "Pre-Vetted Talent",
-    "everyCandidateIsClubverifiedForQuality": "Every candidate is Club-verified for quality",
-    "dedicatedSupport": "Dedicated Support",
-    "personalRecruiterAssistanceIncluded": "Personal recruiter assistance included",
-    "liveUpdatesEnabled": "Live updates enabled",
+    "yourPremiumHiringAccelerator": "Uw premium wervingsversneller.",
+    "getVettedCandidatesInDaysNotWeeks": "Krijg doorgelichte kandidaten in dagen, niet in weken",
+    "prevettedTalent": "Vooraf gescreend talent",
+    "everyCandidateIsClubverifiedForQuality": "Elke kandidaat is Club-geverifieerd op kwaliteit",
+    "dedicatedSupport": "Toegewijde ondersteuning",
+    "personalRecruiterAssistanceIncluded": "Persoonlijke recruiter-assistentie inbegrepen",
+    "liveUpdatesEnabled": "Live updates ingeschakeld",
     "desc": {
-      "candidatesCanNowSeeAndApplyToThisJob": "Candidates can now see and apply to this job"
+      "candidatesCanNowSeeAndApplyToThisJob": "Kandidaten kunnen deze vacature nu bekijken en erop solliciteren"
     }
   },
   "pipelineAuditLog": {
-    "title": "Job Audit Log",
+    "title": "Vacature Audit Log",
     "badge": {
-      "overrideDuplicate": "Override Duplicate"
+      "overrideDuplicate": "Duplicaat overschrijven"
     },
-    "description": "Comprehensive tracking of all job interactions and modifications"
+    "description": "Uitgebreide tracking van alle vacature-interacties en -wijzigingen"
   },
   "pipelineCustomizer": {
     "title": "Premium Pipeline Editor",
     "toast": {
-      "stageRemoved": "Stage removed",
+      "stageRemoved": "Fase verwijderd",
       "selectAReviewerFirst": "Selecteer een reviewer first.",
-      "reviewerAssigned": "Reviewer assigned",
+      "reviewerAssigned": "Reviewer toegewezen",
       "failedToAssignReviewer": "assign reviewer mislukt",
       "failedToRemoveReviewer": "remove reviewer mislukt",
-      "reviewerRemoved": "Reviewer removed",
-      "pipelineSaved": "Pipeline saved",
-      "signatureSecure": "Signature Secure ✓"
+      "reviewerRemoved": "Reviewer verwijderd",
+      "pipelineSaved": "Pipeline opgeslagen",
+      "signatureSecure": "Handtekening beveiligd ✓"
     },
     "label": {
-      "stageOwner": "Stage Owner",
-      "format": "Format",
+      "stageOwner": "Fase-eigenaar",
+      "format": "Formaat",
       "description": "Beschrijving",
-      "primary": "Primary"
+      "primary": "Primair"
     },
     "placeholder": {
-      "describeWhatHappensInThisStage": "Describe what happens in this stage..."
+      "describeWhatHappensInThisStage": "Beschrijf wat er in deze fase gebeurt..."
     },
-    "reviewGateAssignments": "Review Gate Assignments",
-    "onlyAdminAndStrategistRolesCanChangeRevi": "Only admin and strategist roles can change reviewer assignments.",
-    "primary": "Primary",
-    "description": "Customize your exclusive hiring pipeline stages",
+    "reviewGateAssignments": "Review Gate Toewijzingen",
+    "onlyAdminAndStrategistRolesCanChangeRevi": "Alleen beheerders- en strateegrollen kunnen reviewer-toewijzingen wijzigen.",
+    "primary": "Primair",
+    "description": "Pas uw exclusieve wervingspijplijnfasen aan",
     "option": {
       "online": "Online",
-      "inperson": "In-Person",
+      "inperson": "Persoonlijk",
       "hybrid": "Hybride",
       "noReviewersAvailable": "Geen reviewers beschikbaar"
     }
   },
   "pipelineDisplaySettings": {
     "label": {
-      "showOwnershipIcons": "Show Ownership Icons",
-      "showFormatDetails": "Show Format Details",
-      "showTeamAssignments": "Show Team Assignments",
-      "showLocationmeetingInfo": "Show Location/Meeting Info",
-      "showEvaluationSetup": "Show Evaluation Setup",
-      "showSchedulingDetails": "Show Scheduling Details",
-      "showAdvancedMetadata": "Show Advanced Metadata"
+      "showOwnershipIcons": "Toon eigendomsiconen",
+      "showFormatDetails": "Toon formatdetails",
+      "showTeamAssignments": "Toon teamtoewijzingen",
+      "showLocationmeetingInfo": "Toon locatie-/vergaderinformatie",
+      "showEvaluationSetup": "Toon evaluatie-instellingen",
+      "showSchedulingDetails": "Toon planningsdetails",
+      "showAdvancedMetadata": "Toon geavanceerde metadata"
     },
-    "customizeWhatInformationIsShownInThePipe": "Customize what information is shown in the pipeline breakdown"
+    "customizeWhatInformationIsShownInThePipe": "Pas aan welke informatie wordt weergegeven in de pijplijnweergave"
   },
   "pipelineMeetingCard": {
     "badge": {
       "scheduled": "Gepland"
     },
-    "prepSent": "Prep sent",
-    "prepPending": "Prep pending"
+    "prepSent": "Voorbereiding verzonden",
+    "prepPending": "Voorbereiding in behandeling"
   },
   "scheduleInterviewButton": {
     "toast": {
-      "interviewScheduledSuccessfully": "Interview scheduled successfully"
+      "interviewScheduledSuccessfully": "Interview succesvol ingepland"
     }
   },
   "smartSchedulingPanel": {
@@ -1390,12 +1390,12 @@
       "excellent": "Uitstekend",
       "good": "Goed",
       "fair": "Redelijk",
-      "limited": "Limited",
-      "googleCalendar": "Google Calendar",
-      "bestMatch": "Best Match"
+      "limited": "Beperkt",
+      "googleCalendar": "Google Agenda",
+      "bestMatch": "Beste overeenkomst"
     },
     "noAvailableSlotsFound": "Geen available slots gevonden",
-    "tryAdjustingTheDurationOrSelectingDiffer": "Try adjusting the duration or selecting different interviewers"
+    "tryAdjustingTheDurationOrSelectingDiffer": "Probeer de duur aan te passen of andere interviewers te selecteren"
   },
   "teamActivityCard": {
     "title": "Team Activiteit",
@@ -1403,83 +1403,83 @@
   },
   "teamInviteWidget": {
     "label": {
-      "recentInvitations": "Recent Invitations",
+      "recentInvitations": "Recente uitnodigingen",
       "allInvitations": "Alle invitations"
     },
-    "dialogDescription": "Send an invitation to join your organization"
+    "dialogDescription": "Stuur een uitnodiging om lid te worden van uw organisatie"
   },
   "teamManagement": {
     "teamMembers": "Team Leden",
     "noTeamMembersYet": "Nog geen team members",
     "toast": {
       "failedToLoadTeamMembers": "Laden van team members mislukt",
-      "teamMemberRemoved": "Team member removed",
+      "teamMemberRemoved": "Teamlid verwijderd",
       "failedToRemoveTeamMember": "remove team member mislukt"
     },
-    "inviteTeamMembersToCollaborateOnJobPosti": "Invite team members to collaborate on job postings"
+    "inviteTeamMembersToCollaborateOnJobPosti": "Nodig teamleden uit om samen te werken aan vacatures"
   },
   "textDocumentCreator": {
     "toast": {
-      "pleaseEnterSomeContent": "Please enter some content",
-      "pleaseEnterADocumentTitle": "Please enter a document title"
+      "pleaseEnterSomeContent": "Voer alstublieft wat inhoud in",
+      "pleaseEnterADocumentTitle": "Voer alstublieft een documenttitel in"
     },
     "label": {
-      "documentTitle": "Document Title *",
-      "documentContent": "Document Content *"
+      "documentTitle": "Documenttitel *",
+      "documentContent": "Documentinhoud *"
     },
     "placeholder": {
-      "typeOrPasteYourContentHere1010youCanIncl": "Type or paste your content here...&#10;&#10;You can include:&#10;• Interview questions&#10;• Company information&#10;• Benefits details&#10;• Technical requirements&#10;• Any other relevant text"
+      "typeOrPasteYourContentHere1010youCanIncl": "Typ of plak hier uw inhoud...&#10;&#10;U kunt het volgende opnemen:&#10;• Interviewvragen&#10;• Bedrijfsinformatie&#10;• Details over secundaire arbeidsvoorwaarden&#10;• Technische vereisten&#10;• Alle andere relevante tekst"
     },
-    "giveYourDocumentADescriptiveName": "Give your document a descriptive name",
-    "plainTextFormatPerfectForQuickReferenceD": "Plain text format - perfect for quick reference documents"
+    "giveYourDocumentADescriptiveName": "Geef uw document een beschrijvende naam",
+    "plainTextFormatPerfectForQuickReferenceD": "Platte tekstindeling - perfect voor snelle referentiedocumenten"
   },
   "upcomingInterviewsWidget": {
-    "dialogTitle": "Interview Prep Document",
+    "dialogTitle": "Document ter voorbereiding van het interview",
     "today": "Vandaag",
     "thisWeek": "Deze week",
-    "upcoming": "Upcoming",
+    "upcoming": "Aankomend",
     "toast": {
-      "pleaseEnterFeedback": "Please enter feedback",
-      "feedbackSubmittedSuccessfully": "Feedback submitted successfully"
+      "pleaseEnterFeedback": "Voer alstublieft feedback in",
+      "feedbackSubmittedSuccessfully": "Feedback succesvol ingediend"
     },
     "label": {
-      "currentDocument": "Current Document",
+      "currentDocument": "Huidig document",
       "feedback": "Feedback"
     },
     "placeholder": {
-      "enterYourFeedbackAboutTheCandidateAndInt": "Enter your feedback about the candidate and interview..."
+      "enterYourFeedbackAboutTheCandidateAndInt": "Voer uw feedback in over de kandidaat en het interview..."
     },
     "loadingInterviews": "interviews laden...",
-    "pleaseSubmitFeedbackToKeepThePipelineMov": "Please submit feedback to keep the pipeline moving",
-    "noPrepDocumentUploadedYetUseTheManualEnt": "No prep document uploaded yet. Use the manual entry or calendar linker to add one."
+    "pleaseSubmitFeedbackToKeepThePipelineMov": "Dien alstublieft feedback in om de pijplijn in beweging te houden",
+    "noPrepDocumentUploadedYetUseTheManualEnt": "Er is nog geen voorbereidingsdocument geüpload. Gebruik de handmatige invoer of de agendalink om er een toe te voegen."
   },
   "bulkEmailDialog": {
-    "dialogDescription": "Send an email to all selected candidates"
+    "dialogDescription": "Stuur een e-mail naar alle geselecteerde kandidaten"
   },
   "candidateReviewCard": {
-    "internalReviewNotes": "Internal Review Notes"
+    "internalReviewNotes": "Interne beoordelingsnotities"
   },
   "candidateShortlistWidget": {
-    "starCandidatesFromApplicationsToAccessTh": "Star candidates from applications to access them quickly"
+    "starCandidatesFromApplicationsToAccessTh": "Markeer kandidaten met een ster vanuit sollicitaties om ze snel te kunnen openen"
   },
   "candidateWorkAuthCard": {
     "noWorkAuthorizationDataAvailable": "Geen work authorization data beschikbaar",
-    "requiresSponsorship": "Requires sponsorship",
-    "noSponsorshipRequired": "No sponsorship required"
+    "requiresSponsorship": "Vereist sponsoring",
+    "noSponsorshipRequired": "Geen sponsoring vereist"
   },
   "changeOrdersPanel": {
     "noChangeOrdersYet": "Nog geen change orders",
     "noProcessedChangeOrdersYet": "Nog geen processed change orders"
   },
   "contractBudgetDashboard": {
-    "awaitingYourApproval": "Awaiting your approval",
-    "activeMilestoneWork": "Active milestone work"
+    "awaitingYourApproval": "Wacht op uw goedkeuring",
+    "activeMilestoneWork": "Actief mijlpaalwerk"
   },
   "dailyBriefing": {
-    "letQuinAnalyzeYourHiringActivity": "Let QUIN analyze your hiring activity"
+    "letQuinAnalyzeYourHiringActivity": "Laat QUIN uw wervingsactiviteit analyseren"
   },
   "dossierActivityWidget": {
-    "browseCandidatesToSeeTheirProfilesHere": "Browse candidates to see their profiles here"
+    "browseCandidatesToSeeTheirProfilesHere": "Bekijk kandidaten om hier hun profielen te zien"
   },
   "editCandidateDialog": {
     "dialogDescription": "candidate information. All changes will be logged. bijwerken"
@@ -1487,39 +1487,39 @@
   "enhancedCandidateActionDialog": {
     "selectWhichStageToMoveThisCandidateTo": "Selecteer which stage to move this candidate to",
     "selectWhichPreviousStageToMoveThisCandid": "Selecteer which previous stage to move this candidate to",
-    "aReasonIsRequiredForAccountability": "A reason is required for accountability"
+    "aReasonIsRequiredForAccountability": "Een reden is vereist voor verantwoording"
   },
   "enhancedCandidateDetails": {
     "alert": {
-      "limitedCandidateInformationAvailableFullDesc": "Limited candidate information available. Full details visible when candidate applies to your jobs."
+      "limitedCandidateInformationAvailableFullDesc": "Beperkte kandidaatinformatie beschikbaar. Volledige details zichtbaar wanneer de kandidaat solliciteert op uw vacatures."
     }
   },
   "interviewSuccessWidget": {
-    "noApplicationsYetPostAJobToStartHiring": "No applications yet. Post a job to start hiring."
+    "noApplicationsYetPostAJobToStartHiring": "Nog geen sollicitaties. Plaats een vacature om te beginnen met werven."
   },
   "linkedInJobImport": {
-    "byConnectingYouAuthorizeTheQuantumClubTo": "By connecting, you authorize The Quantum Club to access your company's \n              job postings on LinkedIn.",
-    "dialogDescription": "Connect your LinkedIn account to automatically import your company's job postings.",
+    "byConnectingYouAuthorizeTheQuantumClubTo": "Door verbinding te maken, autoriseert u The Quantum Club om toegang te krijgen tot de vacatures van uw bedrijf op LinkedIn.",
+    "dialogDescription": "Verbind uw LinkedIn-account om automatisch de vacatures van uw bedrijf te importeren.",
     "alert": {
-      "thisWillImportAllActiveJobPostingsFromYoDesc": "This will import all active job postings from your LinkedIn company page. \n              Make sure you have admin access to your company's LinkedIn page."
+      "thisWillImportAllActiveJobPostingsFromYoDesc": "Dit importeert alle actieve vacatures van uw LinkedIn-bedrijfspagina. Zorg ervoor dat u beheerdersrechten heeft voor de LinkedIn-pagina van uw bedrijf."
     }
   },
   "manualInterviewEntryDialog": {
     "dialogDescription": "an interview that's already scheduled but not yet in the system toevoegen"
   },
   "partnerInterviewHub": {
-    "noUpcomingInterviewsScheduled": "No upcoming interviews scheduled",
+    "noUpcomingInterviewsScheduled": "Geen aankomende interviews gepland",
     "noCompletedInterviewsYet": "Nog geen completed interviews",
-    "noCandidatesReadyForDecision": "No candidates ready for decision",
-    "interviewsNeedScorecardsBeforeDecisions": "Interviews need scorecards before decisions",
-    "description": "Track interviews, review insights, and make hiring decisions",
+    "noCandidatesReadyForDecision": "Geen kandidaten klaar voor een beslissing",
+    "interviewsNeedScorecardsBeforeDecisions": "Interviews hebben scorekaarten nodig voordat er beslissingen kunnen worden genomen",
+    "description": "Volg interviews, bekijk inzichten en neem wervingsbeslissingen",
     "allEvaluatorsHaveSubmittedScorecards": "Alle evaluators have submitted scorecards"
   },
   "positionFillCountdown": {
     "allPositionsFilledGreatWork": "Alle positions filled! great work."
   },
   "reviewShortcutOverlay": {
-    "dialogDescription": "Speed up your review workflow with these shortcuts."
+    "dialogDescription": "Versnel uw beoordelingsworkflow met deze snelkoppelingen."
   },
   "targetCompanies": {
     "beheerBedrijvenVoorHeadhuntingKandidaten": "Beheer bedrijven voor headhunting kandidaten"
@@ -1539,50 +1539,50 @@
     "noCandidatesInFinalStageYet": "Nog geen candidates in final stage"
   },
   "hiringManagerDashboard": {
-    "feedbackManagementComingSoon": "Feedback management coming soon"
+    "feedbackManagementComingSoon": "Feedback management komt binnenkort"
   },
   "observerDashboard": {
-    "youHaveObserverAccessToThisRoleViewPipel": "You have observer access to this role. View pipeline in the Pipeline tab above."
+    "youHaveObserverAccessToThisRoleViewPipel": "U heeft observatietoegang tot deze rol. Bekijk de pijplijn in het tabblad Pijplijn hierboven."
   },
   "adminNotesEditor": {
-    "theseNotesAreForInternalUseOnlyAndWillNo": "These notes are for internal use only and will not be shared with the candidate or partners."
+    "theseNotesAreForInternalUseOnlyAndWillNo": "Deze notities zijn alleen voor intern gebruik en worden niet gedeeld met de kandidaat of partners."
   },
   "jobBulkActionBar": {
     "menu": {
-      "bulkActions": "Bulk Actions"
+      "bulkActions": "Bulkacties"
     },
     "publish": "Publiceren"
   },
   "jobTableView": {
     "menu": {
-      "visibleColumns": "Visible Columns"
+      "visibleColumns": "Zichtbare kolommen"
     },
     "tooltip": {
-      "confidential": "Confidential"
+      "confidential": "Vertrouwelijk"
     },
     "noJobsFound": "Geen vacatures gevonden"
   },
   "jobsAIInsightsWidget": {
-    "title": "QUIN Insights",
+    "title": "QUIN Inzichten",
     "noInsightsAvailableYet": "Nog geen insights available",
     "addMoreJobsToGenerateAiPredictions": "more jobs to generate AI predictions toevoegen",
-    "quinInsightsTemporarilyUnavailable": "QUIN Insights temporarily unavailable",
-    "hiringForecast": "Hiring Forecast",
-    "strategicRecommendations": "Strategic Recommendations"
+    "quinInsightsTemporarilyUnavailable": "QUIN Inzichten tijdelijk niet beschikbaar",
+    "hiringForecast": "Wervingsvoorspelling",
+    "strategicRecommendations": "Strategische aanbevelingen"
   },
   "keyboardShortcutsDialog": {
-    "dialogTitle": "Keyboard Shortcuts",
-    "dialogDescription": "Navigate and manage jobs efficiently with these shortcuts"
+    "dialogTitle": "Sneltoetsen",
+    "dialogDescription": "Navigeer en beheer vacatures efficiënt met deze sneltoetsen"
   },
   "savedFilterPresets": {
     "dialogTitle": "Filter Preset opslaan",
     "toast": {
-      "pleaseEnterANameForYourPreset": "Please enter a name for your preset"
+      "pleaseEnterANameForYourPreset": "Voer een naam in voor uw preset"
     },
-    "noSavedPresets": "No saved presets",
+    "noSavedPresets": "Geen opgeslagen presets",
     "saveYourCurrentFiltersForQuickAccess": "your current filters for quick access opslaan",
     "presets": "Presets",
-    "savedViews": "Saved Views",
+    "savedViews": "Opgeslagen weergaven",
     "dialogDescription": "your current filters for quick access later. opslaan"
   },
   "jobsCompactHeader": {
@@ -1590,54 +1590,54 @@
       "searchJobs": "vacatures zoeken..."
     },
     "menu": {
-      "navigation": "Navigation",
+      "navigation": "Navigatie",
       "adminTools": "Beheer Tools"
     },
-    "newJob": "New Job",
+    "newJob": "Nieuwe vacature",
     "jobs": "Vacatures"
   },
   "jobsUnifiedFilterBar": {
     "menu": {
       "company": "Bedrijf",
-      "createdDate": "Created Date",
-      "layout": "Layout",
-      "savedViews": "Saved Views"
+      "createdDate": "Aanmaakdatum",
+      "layout": "Lay-out",
+      "savedViews": "Opgeslagen Weergaven"
     },
-    "advancedFilters": "Advanced Filters",
-    "views": "Views"
+    "advancedFilters": "Geavanceerde Filters",
+    "views": "Weergaven"
   },
   "jobListView": {
-    "noActivity": "No activity",
+    "noActivity": "Geen activiteit",
     "dashboard": "Dashboard",
     "tooltip": {
-      "confidential": "Confidential"
+      "confidential": "Vertrouwelijk"
     },
     "noJobsFound": "Geen vacatures gevonden"
   },
   "jobStatusSummaryBar": {
-    "publishedJobsWillAppearInSearchResultsAn": "Published jobs will appear in search results and candidates can apply to them."
+    "publishedJobsWillAppearInSearchResultsAn": "Gepubliceerde vacatures verschijnen in zoekresultaten en kandidaten kunnen erop solliciteren."
   },
   "jobsAnalyticsWidget": {
     "openJobs": "Open Vacatures",
-    "avgDaysOpen": "Avg Days Open",
-    "fillRate": "Fill Rate",
+    "avgDaysOpen": "Gem. Dagen Open",
+    "fillRate": "Invulpercentage",
     "activePipeline": "Actief Pipeline"
   },
   "jobCardHeader": {
     "viewOriginalPosting": "original posting bekijken",
-    "thisJobIsOnlyVisibleToSelectedUsers": "This job is only visible to selected users"
+    "thisJobIsOnlyVisibleToSelectedUsers": "Deze vacature is alleen zichtbaar voor geselecteerde gebruikers"
   },
   "jobCardLastActivity": {
     "lastActivity": "Laatste activiteit"
   },
   "jobCardMetrics": {
-    "hiringProgress": "Hiring Progress",
+    "hiringProgress": "Wervingsvoortgang",
     "conversion": "Conversie",
     "interviews": "Interviews"
   },
   "compactJobCard": {
     "tooltip": {
-      "confidential": "Confidential"
+      "confidential": "Vertrouwelijk"
     }
   },
   "jobsInlineStats": {
@@ -1645,46 +1645,46 @@
   },
   "liveInterview": {
     "title": "Interview Sentinel",
-    "subtitle": "Real-time Fact Checking & Copilot",
-    "micDenied": "Microphone access denied.",
-    "noSpeechSupport": "Browser does not support Speech Recognition.",
-    "listening": "Sentinel is listening...",
+    "subtitle": "Real-time feitencontrole & Copilot",
+    "micDenied": "Toegang tot microfoon geweigerd.",
+    "noSpeechSupport": "Browser biedt geen ondersteuning voor spraakherkenning.",
+    "listening": "Sentinel luistert...",
     "stop": "Stop",
     "start": "Starten",
     "liveTranscript": "Live Transcript",
-    "speechToText": "Real-time speech-to-text stream",
-    "waitingForSpeech": "Waiting for speech...",
+    "speechToText": "Real-time spraak-naar-tekst stream",
+    "waitingForSpeech": "Wachten op spraak...",
     "sentinelHud": "Sentinel HUD",
     "liveAiInsights": "Live AI Insights",
-    "noAlerts": "No alerts yet. System is monitoring..."
+    "noAlerts": "Nog geen waarschuwingen. Systeem houdt toezicht..."
   },
   "billing": {
-    "title": "Billing & Invoices",
+    "title": "Facturering & Facturen",
     "description": "your billing details and view invoices beheren",
     "tabDetails": "Facturering Details",
     "tabInvoices": "Facturen",
-    "billingInfo": "Billing Information",
+    "billingInfo": "Factuurgegevens",
     "billingInfoDesc": "your company billing details for invoicing bijwerken",
-    "yourInvoices": "Your Invoices",
+    "yourInvoices": "Uw Facturen",
     "yourInvoicesDesc": "and download your placement fee invoices bekijken"
   },
   "sla": {
-    "responseTime": "Response Time",
-    "responseTimeDesc": "Time to first response",
-    "shortlistDelivery": "Shortlist Delivery",
-    "shortlistDeliveryDesc": "Candidate shortlist delivery",
-    "interviewScheduling": "Interview Scheduling",
-    "interviewSchedulingDesc": "Interview setup time",
-    "replacementGuarantee": "Replacement Guarantee",
-    "replacementGuaranteeDesc": "Candidate replacement window",
+    "responseTime": "Reactietijd",
+    "responseTimeDesc": "Tijd tot eerste reactie",
+    "shortlistDelivery": "Levering Shortlist",
+    "shortlistDeliveryDesc": "Levering kandidaten shortlist",
+    "interviewScheduling": "Interviewplanning",
+    "interviewSchedulingDesc": "Tijd voor het opzetten van interviews",
+    "replacementGuarantee": "Vervangingsgarantie",
+    "replacementGuaranteeDesc": "Venster voor kandidaatvervanging",
     "target": "Doelstelling",
-    "belowTarget": "Below target compliance. Review processes to improve performance.",
-    "recentPerformance": "Recent SLA Performance",
-    "last30Days": "Last 30 days of SLA tracking",
+    "belowTarget": "Onder de doelstelling. Evalueer processen om de prestaties te verbeteren.",
+    "recentPerformance": "Recente SLA-prestaties",
+    "last30Days": "Afgelopen 30 dagen van SLA-tracking",
     "noMetrics": "Nog geen sla metrics recorded"
   },
   "billingDashboard": {
-    "recentInvoices": "Recent Invoices",
+    "recentInvoices": "Recente facturen",
     "viewDownload": "and download your invoices bekijken",
     "download": "Downloaden",
     "noInvoices": "Geen facturen gevonden"
@@ -1692,10 +1692,10 @@
   "auditLog": {
     "searchPlaceholder": "by user or action zoeken...",
     "allActions": "Alle actions",
-    "candidateMoved": "Candidate Moved",
-    "jobCreated": "Job Created",
-    "teamInvited": "Team Invited",
-    "applicationRejected": "Application Rejected",
+    "candidateMoved": "Kandidaat verplaatst",
+    "jobCreated": "Vacature aangemaakt",
+    "teamInvited": "Team uitgenodigd",
+    "applicationRejected": "Sollicitatie afgewezen",
     "noEntries": "Geen audit log entries gevonden"
   },
   " ": "",
@@ -1730,221 +1730,221 @@
   "30_minutes": "30_minutes",
   "45_minutes": "45_minutes",
   "a": "A",
-  "aanvullende_opmerkingen_strategie_etc": "Aanvullende_opmerkingen_strategie_etc",
-  "accepted": "Accepted",
-  "across_all_pipeline_stages": "Across_all_pipeline_stages",
+  "aanvullende_opmerkingen_strategie_etc": "aanvullende_opmerkingen_strategie_etc",
+  "accepted": "Geaccepteerd",
+  "across_all_pipeline_stages": "across_all_pipeline_stages",
   "acties": "Acties",
-  "active_candidates": "Active_candidates",
-  "add_a_concern": "Add_a_concern",
-  "add_a_strength": "Add_a_strength",
-  "add_any_additional_notes": "Add_any_additional_notes",
-  "add_internal_notes_about": "Add_internal_notes_about",
-  "add_interview_from_calendar": "Add_interview_from_calendar",
-  "add_interview_manually": "Add_interview_manually",
+  "active_candidates": "active_candidates",
+  "add_a_concern": "Voeg een aandachtspunt toe",
+  "add_a_strength": "Voeg een sterk punt toe",
+  "add_any_additional_notes": "Voeg eventuele aanvullende notities toe",
+  "add_internal_notes_about": "Voeg interne notities toe over",
+  "add_interview_from_calendar": "Voeg een interview toe vanuit de agenda",
+  "add_interview_manually": "Voeg handmatig een interview toe",
   "addCandidate": {
-    "addedButAuditFailed": "Added But Audit Failed",
-    "addedButLogFailed": "Added But Log Failed",
-    "addedSuccessfully": "Added Successfully",
-    "addedToPipeline": "Added To Pipeline",
-    "adding": "Adding",
+    "addedButAuditFailed": "Toegevoegd, maar audit mislukt",
+    "addedButLogFailed": "Toegevoegd, maar log mislukt",
+    "addedSuccessfully": "Succesvol toegevoegd",
+    "addedToPipeline": "Toegevoegd aan pijplijn",
+    "adding": "Toevoegen",
     "addToPipeline": "To Pipeline toevoegen",
     "adminNotes": "Beheer Notities",
-    "aiFillDetails": "Ai Fill Details",
-    "alreadyInPipeline": "Already In Pipeline",
+    "aiFillDetails": "AI-details invullen",
+    "alreadyInPipeline": "Al in pijplijn",
     "contactRequired": "Contact Verplicht",
-    "contactRequiredDesc": "Contact Required Desc",
-    "creditAssignment": "Credit Assignment",
-    "creditDescription": "Credit Description",
-    "currentCompany": "Current Company",
-    "currentTitle": "Current Title",
-    "duplicateCheckFailed": "Duplicate Check Failed",
+    "contactRequiredDesc": "Contact vereist beschrijving",
+    "creditAssignment": "Credit Toewijzing",
+    "creditDescription": "Credit Beschrijving",
+    "currentCompany": "Huidig bedrijf",
+    "currentTitle": "Huidige functie",
+    "duplicateCheckFailed": "Duplicaatcontrole mislukt",
     "emailOptional": "E-mail Optioneel",
-    "enterDetailsManually": "Enter Details Manually",
-    "enterLinkedInUrl": "Enter Linked In Url",
-    "existing": "Existing",
-    "existingProfileLinked": "Existing Profile Linked",
-    "failedImportLinkedIn": "Failed Import Linked In",
+    "enterDetailsManually": "Handmatig details invoeren",
+    "enterLinkedInUrl": "Voer LinkedIn-URL in",
+    "existing": "Bestaand",
+    "existingProfileLinked": "Bestaand profiel gekoppeld",
+    "failedImportLinkedIn": "Import LinkedIn mislukt",
     "failedToAdd": "Add mislukt",
-    "fullName": "Full Name",
-    "fullNameRequired": "Full Name Required",
-    "importing": "Importing",
+    "fullName": "Volledige naam",
+    "fullNameRequired": "Volledige naam vereist",
+    "importing": "Importeren",
     "importProfile": "Importeren Profiel",
-    "linkedinImporter": "Linkedin Importer",
-    "linkedinImporterDesc": "Linkedin Importer Desc",
-    "linkedinProfileImported": "Linkedin Profile Imported",
-    "linkedinProfileRecommended": "Linkedin Profile Recommended",
-    "linkedinProfileUrl": "Linkedin Profile Url",
-    "linkedinRecommended": "Linkedin Recommended",
-    "linkedinRecommendedDesc": "Linkedin Recommended Desc",
-    "linkedinTimedOut": "Linkedin Timed Out",
-    "linkedinUrlFormat": "Linkedin Url Format",
-    "linkExisting": "Link Existing",
-    "linkExistingDesc": "Link Existing Desc",
-    "nameAndPhotoExtracted": "Name And Photo Extracted",
-    "nameExtractedManual": "Name Extracted Manual",
-    "nameExtractedVerify": "Name Extracted Verify",
-    "nameFromLinkedIn": "Name From Linked In",
+    "linkedinImporter": "LinkedIn-importeerder",
+    "linkedinImporterDesc": "LinkedIn-importeerder beschrijving",
+    "linkedinProfileImported": "LinkedIn-profiel geïmporteerd",
+    "linkedinProfileRecommended": "LinkedIn-profiel aanbevolen",
+    "linkedinProfileUrl": "LinkedIn-profiel URL",
+    "linkedinRecommended": "LinkedIn aanbevolen",
+    "linkedinRecommendedDesc": "LinkedIn aanbevolen beschrijving",
+    "linkedinTimedOut": "LinkedIn-time-out",
+    "linkedinUrlFormat": "LinkedIn-URL-formaat",
+    "linkExisting": "Bestaande koppelen",
+    "linkExistingDesc": "Bestaande koppelen beschrijving",
+    "nameAndPhotoExtracted": "Naam en foto geëxtraheerd",
+    "nameExtractedManual": "Naam handmatig geëxtraheerd",
+    "nameExtractedVerify": "Naam geëxtraheerd verifiëren",
+    "nameFromLinkedIn": "Naam van LinkedIn",
     "noCandidatesFound": "Geen kandidaten gevonden",
     "noTeamMemberFound": "Geen team member gevonden",
     "notesOptional": "Notities Optioneel",
     "phoneOptional": "Telefoon Optioneel",
-    "profileImported": "Profile Imported",
-    "resumeCV": "Resume C V",
-    "searchPlaceholder": "Search Placeholder",
+    "profileImported": "Profiel geïmporteerd",
+    "resumeCV": "CV",
+    "searchPlaceholder": "Zoek placeholder",
     "searchTeamMembers": "Zoeken Team Leden",
-    "selectedCount": "Selected Count",
+    "selectedCount": "Aantal geselecteerd",
     "selectTeamMembers": "Selecteer team members",
-    "startingPipelineStage": "Starting Pipeline Stage",
-    "startTypingToSearch": "Start Typing To Search",
-    "step1Description": "Step1 Description",
-    "step1Title": "Step1 Title",
+    "startingPipelineStage": "Startende pijplijnfase",
+    "startTypingToSearch": "Begin met typen om te zoeken",
+    "step1Description": "Stap 1 beschrijving",
+    "step1Title": "Stap 1 titel",
     "title": "Titel",
     "toast": {
       "failedToAdd": "Add Candidate mislukt",
-      "unexpectedError": "An unexpected error occurred. Please try again or contact support."
+      "unexpectedError": "Er is een onverwachte fout opgetreden. Probeer het opnieuw of neem contact op met de ondersteuning."
     },
-    "tryAgainOrManual": "Try Again Or Manual",
-    "validEmailRequired": "Valid Email Required",
-    "verifyManually": "Verify Manually",
-    "whyAddingCandidate": "Why Adding Candidate"
+    "tryAgainOrManual": "Opnieuw proberen of handmatig",
+    "validEmailRequired": "Geldig e-mailadres vereist",
+    "verifyManually": "Handmatig verifiëren",
+    "whyAddingCandidate": "Waarom kandidaat toevoegen"
   },
   "added": "Toegevoegd",
-  "additional_details": "Additional_details",
-  "additional_locations": "Additional_locations",
-  "additional_work_authorization_details": "Additional_work_authorization_details",
+  "additional_details": "Aanvullende details",
+  "additional_locations": "Aanvullende locaties",
+  "additional_work_authorization_details": "Aanvullende details over werkvergunning",
   "admin": "Beheer",
-  "advance_to_stage": "Advance_to_stage",
-  "ai_summary": "Ai_summary",
-  "aigenerated_summary": "Aigenerated_summary",
-  "all_clear": "All_clear",
-  "all_slas_met": "All_slas_met",
-  "all_stages": "All_stages",
-  "alle_bedrijven": "Alle_bedrijven",
-  "alle_jobs": "Alle_jobs",
+  "advance_to_stage": "Doorgaan naar fase",
+  "ai_summary": "AI-samenvatting",
+  "aigenerated_summary": "AI-gegenereerde samenvatting",
+  "all_clear": "Alles in orde",
+  "all_slas_met": "Alle SLA's behaald",
+  "all_stages": "Alle fasen",
+  "alle_bedrijven": "Alle bedrijven",
+  "alle_jobs": "Alle jobs",
   "allowed": "Toegestaan",
-  "allowed_domains": "Allowed_domains",
-  "andere_rol": "Andere_rol",
-  "annual_revenue_goal": "Annual_revenue_goal",
-  "any_additional_details_about": "Any_additional_details_about",
+  "allowed_domains": "Toegestane domeinen",
+  "andere_rol": "Andere rol",
+  "annual_revenue_goal": "Jaarlijkse omzetdoelstelling",
+  "any_additional_details_about": "Eventuele aanvullende details over",
   "applied": "Gesolliciteerd",
-  "assessment": "Assessment",
-  "assessment_type": "Assessment_type",
-  "attach_files_links_or": "Attach_files_links_or",
-  "average_rejection_stage": "Average_rejection_stage",
-  "avg_days": "Avg_days",
-  "avg_feedback_time": "Avg_feedback_time",
-  "avg_time_in_stage": "Avg_time_in_stage",
-  "avg_time_to_hire": "Avg_time_to_hire",
-  "basic_information": "Basic_information",
-  "be_specific_about_what": "Be_specific_about_what",
-  "bedrijf_bijgewerkt": "Bedrijf_bijgewerkt",
-  "bedrijf_toegevoegd": "Bedrijf_toegevoegd",
-  "bedrijf_verwijderd": "Bedrijf_verwijderd",
+  "assessment": "Beoordeling",
+  "assessment_type": "Type beoordeling",
+  "attach_files_links_or": "Bestanden, links of",
+  "average_rejection_stage": "Gemiddelde afwijzingsfase",
+  "avg_days": "Gem. dagen",
+  "avg_feedback_time": "Gem. feedbacktijd",
+  "avg_time_in_stage": "Gem. tijd in fase",
+  "avg_time_to_hire": "Gem. tijd tot aanwerving",
+  "basic_information": "Basis informatie",
+  "be_specific_about_what": "Wees specifiek over wat",
+  "bedrijf_bijgewerkt": "Bedrijf bijgewerkt",
+  "bedrijf_toegevoegd": "Bedrijf toegevoegd",
+  "bedrijf_verwijderd": "Bedrijf verwijderd",
   "bedrijfsnaam": "Bedrijfsnaam",
-  "behavioral": "Behavioral",
-  "behavioral_interview": "Behavioral_interview",
-  "bijv_amsterdam_nederland": "Bijv_amsterdam_nederland",
-  "bonus_tools": "Bonus_tools",
-  "brief_summary_of_candidates": "Brief_summary_of_candidates",
-  "browse_applications": "Browse_applications",
-  "cad": "Cad",
-  "calculating_skill_match_scores": "Calculating_skill_match_scores",
-  "calendar_event": "Calendar_event",
+  "behavioral": "Gedragsmatig",
+  "behavioral_interview": "Gedragsinterview",
+  "bijv_amsterdam_nederland": "Bijv. Amsterdam, Nederland",
+  "bonus_tools": "Bonus tools",
+  "brief_summary_of_candidates": "Korte samenvatting van kandidaten",
+  "browse_applications": "Blader door sollicitaties",
+  "cad": "CAD",
+  "calculating_skill_match_scores": "Vaardigheidsovereenkomstscores berekenen",
+  "calendar_event": "Agenda-afspraak",
   "candidate": "Kandidaat",
-  "candidate_contacted": "Candidate_contacted",
-  "candidate_expectations_align_with": "Candidate_expectations_align_with",
-  "candidate_id": "Candidate_id",
+  "candidate_contacted": "Kandidaat gecontacteerd",
+  "candidate_expectations_align_with": "Verwachtingen van de kandidaat komen overeen met",
+  "candidate_id": "Kandidaat-ID",
   "candidate_id, candidate_email, candidate_full_name": "Candidate_id, candidate_email, candidate_full_name",
-  "candidate_moved_back_to": "Candidate_moved_back_to",
-  "candidate_profile_link_copied": "Candidate_profile_link_copied",
-  "candidate_profile_updated_successfully": "Candidate_profile_updated_successfully",
-  "candidate_shortlisted": "Candidate_shortlisted",
-  "candidates_exported_successfully": "Candidates_exported_successfully",
-  "candidates_ready_for_your": "Candidates_ready_for_your",
-  "candidates_will_appear_here": "Candidates_will_appear_here",
-  "candidates_worldwide_will_be": "Candidates_worldwide_will_be",
-  "case_study": "Case_study",
+  "candidate_moved_back_to": "Kandidaat teruggeplaatst naar",
+  "candidate_profile_link_copied": "Link naar kandidaatprofiel gekopieerd",
+  "candidate_profile_updated_successfully": "Kandidaatprofiel succesvol bijgewerkt",
+  "candidate_shortlisted": "Kandidaat op de shortlist geplaatst",
+  "candidates_exported_successfully": "Kandidaten succesvol geëxporteerd",
+  "candidates_ready_for_your": "Kandidaten klaar voor uw",
+  "candidates_will_appear_here": "Kandidaten verschijnen hier",
+  "candidates_worldwide_will_be": "Kandidaten wereldwijd zullen",
+  "case_study": "Casestudy",
   "category": "Categorie",
-  "change_order_history": "Change_order_history",
+  "change_order_history": "Wijzigingsgeschiedenis",
   "channel": "Kanaal",
-  "chatmessaging": "Chatmessaging",
-  "choose_a_candidate": "Choose_a_candidate",
-  "choose_a_clear_descriptive": "Choose_a_clear_descriptive",
-  "choose_how_this_stage": "Choose_how_this_stage",
-  "clear_schedule": "Clear_schedule",
-  "click_scan_calendar_to": "Click_scan_calendar_to",
-  "coding_challenge": "Coding_challenge",
-  "comment_toegevoegd": "Comment_toegevoegd",
+  "chatmessaging": "Chatberichten",
+  "choose_a_candidate": "Kies een kandidaat",
+  "choose_a_clear_descriptive": "Kies een duidelijke, beschrijvende",
+  "choose_how_this_stage": "Kies hoe deze fase",
+  "clear_schedule": "Rooster leegmaken",
+  "click_scan_calendar_to": "Klik op agenda scannen om",
+  "coding_challenge": "Codeeruitdaging",
+  "comment_toegevoegd": "Opmerking toegevoegd",
   "comments": "Opmerkingen",
-  "committed": "Committed",
-  "company_actions": "Company_actions",
-  "company_id": "Company_id",
+  "committed": "Toegewijd",
+  "company_actions": "Bedrijfsacties",
+  "company_id": "Bedrijfs-ID",
   "company_id, companies(id, name)": "Company_id, companies(id, name)",
-  "company_insiders": "Company_insiders",
+  "company_insiders": "Inside-informatie van het bedrijf",
   "company_member_id, external_user_id": "Company_member_id, external_user_id",
   "compensation": "Compensatie",
-  "compensation_expectations": "Compensation_expectations",
-  "complete_interviews_and_submit": "Complete_interviews_and_submit",
+  "compensation_expectations": "Verwachtingen qua vergoeding",
+  "complete_interviews_and_submit": "Voltooi de interviews en dien in",
   "confirmed": "Bevestigd",
-  "consider": "Consider",
-  "contact_information": "Contact_information",
-  "contact_toegevoegd": "Contact_toegevoegd",
-  "contact_verwijderd": "Contact_verwijderd",
-  "continue_where_you_left": "Continue_where_you_left",
-  "contract_breakdown": "Contract_breakdown",
-  "convert": "Convert",
-  "coordinates_captured_for_map": "Coordinates_captured_for_map",
-  "create_new_role": "Create_new_role",
+  "consider": "Overweeg",
+  "contact_information": "Contactinformatie",
+  "contact_toegevoegd": "Contactpersoon toegevoegd",
+  "contact_verwijderd": "Contactpersoon verwijderd",
+  "continue_where_you_left": "Ga verder waar u gebleven was",
+  "contract_breakdown": "Contractspecificatie",
+  "convert": "Converteren",
+  "coordinates_captured_for_map": "Coördinaten vastgelegd voor kaart",
+  "create_new_role": "Nieuwe rol aanmaken",
   "created": "Aangemaakt",
   "created_at, source_channel, created_by": "Created_at, source_channel, created_by",
   "created_at, submitted_at, meeting_id": "Created_at, submitted_at, meeting_id",
-  "csv_exported_successfully": "Csv_exported_successfully",
-  "culture_fit": "Culture_fit",
+  "csv_exported_successfully": "CSV succesvol geëxporteerd",
+  "culture_fit": "Culturele fit",
   "currency": "Valuta",
-  "current_company": "Current_company",
-  "current_position": "Current_position",
-  "current_salary": "Current_salary",
-  "current_schedule": "Current_schedule",
-  "current_stage": "Current_stage",
-  "current_title": "Current_title",
-  "daily_briefing_generated": "Daily_briefing_generated",
+  "current_company": "Huidig bedrijf",
+  "current_position": "Huidige functie",
+  "current_salary": "Huidig salaris",
+  "current_schedule": "Huidig schema",
+  "current_stage": "Huidige fase",
+  "current_title": "Huidige titel",
+  "daily_briefing_generated": "Dagelijkse briefing gegenereerd",
   "date": "Datum",
-  "days_in_pipeline": "Days_in_pipeline",
-  "define_scoring_criteria_rubric": "Define_scoring_criteria_rubric",
-  "define_scoring_feedback_requirements": "Define_scoring_feedback_requirements",
+  "days_in_pipeline": "Dagen in de pijplijn",
+  "define_scoring_criteria_rubric": "Definieer scoringscriteria rubric",
+  "define_scoring_feedback_requirements": "Definieer vereisten voor scorefeedback",
   "department": "Afdeling",
   "description": "Beschrijving",
-  "desired_locations_commaseparated": "Desired_locations_commaseparated",
-  "desired_salary": "Desired_salary",
-  "detailed_feedback": "Detailed_feedback",
-  "detected_at": "Detected_at",
-  "difficulty": "Difficulty",
+  "desired_locations_commaseparated": "Gewenste locaties (komma-gescheiden)",
+  "desired_salary": "Gewenst salaris",
+  "detailed_feedback": "Gedetailleerde feedback",
+  "detected_at": "Gedetecteerd op",
+  "difficulty": "Moeilijkheidsgraad",
   "documents": "Documenten",
-  "draft_restored": "Draft_restored",
-  "duration_min": "Duration_min",
-  "duration_minutes": "Duration_minutes",
-  "easy": "Easy",
-  "edit_candidate_profile": "Edit_candidate_profile",
-  "eg_1_234_567": "Eg_1_234_567",
-  "eg_1_month_2": "Eg_1_month_2",
-  "eg_100000": "Eg_100000",
-  "eg_120000": "Eg_120000",
-  "eg_150000": "Eg_150000",
-  "eg_5": "Eg_5",
-  "eg_5_years_typescript": "Eg_5_years_typescript",
-  "eg_80000": "Eg_80000",
-  "eg_acme_corp": "Eg_acme_corp",
-  "eg_amsterdam_berlin_london": "Eg_amsterdam_berlin_london",
-  "eg_candidate_requested_different": "Eg_candidate_requested_different",
-  "eg_english_dutch_german": "Eg_english_dutch_german",
-  "eg_english_native_spanish": "Eg_english_native_spanish",
-  "eg_experience_with_figma": "Eg_experience_with_figma",
-  "eg_fintech_saas": "Eg_fintech_saas",
-  "eg_h1b_green_card": "Eg_h1b_green_card",
-  "eg_hackerrank_leetcode_custom": "Eg_hackerrank_leetcode_custom",
-  "eg_hybrid_remote_onsite": "Eg_hybrid_remote_onsite",
-  "eg_lena_jude": "Eg_lena_jude",
-  "eg_lenaexamplecom": "Eg_lenaexamplecom",
+  "draft_restored": "Concept hersteld",
+  "duration_min": "Duur (min)",
+  "duration_minutes": "Duur (minuten)",
+  "easy": "Makkelijk",
+  "edit_candidate_profile": "Bewerk kandidaatprofiel",
+  "eg_1_234_567": "Bijv. 1.234.567",
+  "eg_1_month_2": "Bijv. 1 maand, 2",
+  "eg_100000": "Bijv. 100000",
+  "eg_120000": "Bijv. 120000",
+  "eg_150000": "Bijv. 150000",
+  "eg_5": "Bijv. 5",
+  "eg_5_years_typescript": "Bijv. 5 jaar TypeScript",
+  "eg_80000": "Bijv. 80000",
+  "eg_acme_corp": "Bijv. Acme Corp",
+  "eg_amsterdam_berlin_london": "Bijv. Amsterdam, Berlijn, Londen",
+  "eg_candidate_requested_different": "Bijv. kandidaat verzocht anders",
+  "eg_english_dutch_german": "Bijv. Engels, Nederlands, Duits",
+  "eg_english_native_spanish": "Bijv. Engels (moedertaal), Spaans",
+  "eg_experience_with_figma": "Bijv. ervaring met Figma",
+  "eg_fintech_saas": "Bijv. Fintech, SaaS",
+  "eg_h1b_green_card": "Bijv. H1B, Green Card",
+  "eg_hackerrank_leetcode_custom": "Bijv. HackerRank, LeetCode, Aangepast",
+  "eg_hybrid_remote_onsite": "Bijv. Hybride, Remote, On-site",
+  "eg_lena_jude": "Bijv. Lena Jude",
+  "eg_lenaexamplecom": "Bijv. lena@example.com",
   "eg_pmp_aws_certified": "Eg_pmp_aws_certified",
   "eg_react_python_project": "Eg_react_python_project",
   "eg_react_typescript_nodejs": "Eg_react_typescript_nodejs",
@@ -1955,73 +1955,73 @@
   "eg_technical_interview_culture": "Eg_technical_interview_culture",
   "eg_united_states": "Eg_united_states",
   "email": "E-mail",
-  "email_address": "Email_address",
-  "email_body": "Email_body",
-  "email_subject": "Email_subject",
-  "email_template": "Email_template",
+  "email_address": "Emailadres",
+  "email_body": "Emailtekst",
+  "email_subject": "Emailonderwerp",
+  "email_template": "Emailsjabloon",
   "emailbedrijfnl": "Emailbedrijfnl",
-  "employment_type": "Employment_type",
-  "en-US": "En- U S",
+  "employment_type": "Dienstverband",
+  "en-US": "En-VS",
   "engagement_score, fit_score": "Engagement_score, fit_score",
   "enterprise_500": "Enterprise_500",
   "eur": "Eur",
-  "executive_summary": "Executive_summary",
-  "expected_start_date_optional": "Expected_start_date_optional",
-  "experience_level_aligns_well": "Experience_level_aligns_well",
+  "executive_summary": "Samenvatting",
+  "expected_start_date_optional": "Verwachte startdatum (optioneel)",
+  "experience_level_aligns_well": "Ervaringsniveau komt goed overeen",
   "expired": "Verlopen",
-  "explain_hybrid_options_to": "Explain_hybrid_options_to",
-  "explain_why_this_candidate": "Explain_why_this_candidate",
-  "explain_why_youre_making": "Explain_why_youre_making",
-  "external_job_url_optional": "External_job_url_optional",
-  "external_user_id": "External_user_id",
-  "extra_informatie_over_contact": "Extra_informatie_over_contact",
-  "failed_to_confirm_interview": "Failed_to_confirm_interview",
-  "failed_to_dismiss_interview": "Failed_to_dismiss_interview",
-  "failed_to_export_candidates": "Failed_to_export_candidates",
-  "failed_to_generate_briefing": "Failed_to_generate_briefing",
-  "failed_to_generate_report": "Failed_to_generate_report",
-  "failed_to_link_interview": "Failed_to_link_interview",
-  "failed_to_load_calendar": "Failed_to_load_calendar",
-  "failed_to_load_companies": "Failed_to_load_companies",
-  "failed_to_load_pipeline": "Failed_to_load_pipeline",
-  "failed_to_load_rejected": "Failed_to_load_rejected",
-  "failed_to_load_your": "Failed_to_load_your",
-  "failed_to_reconsider_candidate": "Failed_to_reconsider_candidate",
-  "failed_to_reschedule_interview": "Failed_to_reschedule_interview",
-  "failed_to_revoke_invitation": "Failed_to_revoke_invitation",
-  "failed_to_scan_calendar": "Failed_to_scan_calendar",
-  "failed_to_send_bulk": "Failed_to_send_bulk",
-  "failed_to_send_invitation": "Failed_to_send_invitation",
-  "failed_to_update_candidate": "Failed_to_update_candidate",
-  "fee_amount": "Fee_amount",
-  "fee_override": "Fee_override",
+  "explain_hybrid_options_to": "Leg hybride opties uit aan",
+  "explain_why_this_candidate": "Leg uit waarom deze kandidaat",
+  "explain_why_youre_making": "Leg uit waarom u deze",
+  "external_job_url_optional": "Externe vacature URL (optioneel)",
+  "external_user_id": "Externe gebruikers-ID",
+  "extra_informatie_over_contact": "Extra informatie over contact",
+  "failed_to_confirm_interview": "Kon interview niet bevestigen",
+  "failed_to_dismiss_interview": "Kon interview niet afwijzen",
+  "failed_to_export_candidates": "Kon kandidaten niet exporteren",
+  "failed_to_generate_briefing": "Kon briefing niet genereren",
+  "failed_to_generate_report": "Kon rapport niet genereren",
+  "failed_to_link_interview": "Kon interview niet koppelen",
+  "failed_to_load_calendar": "Kon agenda niet laden",
+  "failed_to_load_companies": "Kon bedrijven niet laden",
+  "failed_to_load_pipeline": "Kon pijplijn niet laden",
+  "failed_to_load_rejected": "Kon afgewezen kandidaten niet laden",
+  "failed_to_load_your": "Kon uw niet laden",
+  "failed_to_reconsider_candidate": "Kon kandidaat niet heroverwegen",
+  "failed_to_reschedule_interview": "Kon interview niet opnieuw inplannen",
+  "failed_to_revoke_invitation": "Kon uitnodiging niet intrekken",
+  "failed_to_scan_calendar": "Kon agenda niet scannen",
+  "failed_to_send_bulk": "Kon bulk niet verzenden",
+  "failed_to_send_invitation": "Kon uitnodiging niet verzenden",
+  "failed_to_update_candidate": "Kon kandidaat niet bijwerken",
+  "fee_amount": "Fee bedrag",
+  "fee_override": "Fee overschrijven",
   "feedback": "Feedback",
-  "final_interview": "Final_interview",
-  "flexible": "Flexible",
-  "for_internal_use_only": "For_internal_use_only",
-  "format": "Format",
-  "fout_bij_laden_van": "Fout_bij_laden_van",
-  "fout_bij_opslaan_van": "Fout_bij_opslaan_van",
-  "fout_bij_stemmen": "Fout_bij_stemmen",
-  "fout_bij_toevoegen_comment": "Fout_bij_toevoegen_comment",
-  "fout_bij_toevoegen_contact": "Fout_bij_toevoegen_contact",
-  "fout_bij_verwijderen_contact": "Fout_bij_verwijderen_contact",
-  "fout_bij_verwijderen_van": "Fout_bij_verwijderen_van",
-  "freelance_rate": "Freelance_rate",
-  "full_name": "Full_name",
+  "final_interview": "Laatste interview",
+  "flexible": "Flexibel",
+  "for_internal_use_only": "Alleen voor intern gebruik",
+  "format": "Formaat",
+  "fout_bij_laden_van": "Fout bij het laden van",
+  "fout_bij_opslaan_van": "Fout bij het opslaan van",
+  "fout_bij_stemmen": "Fout bij stemmen",
+  "fout_bij_toevoegen_comment": "Fout bij toevoegen commentaar",
+  "fout_bij_toevoegen_contact": "Fout bij toevoegen contact",
+  "fout_bij_verwijderen_contact": "Fout bij verwijderen contact",
+  "fout_bij_verwijderen_van": "Fout bij verwijderen van",
+  "freelance_rate": "Freelance tarief",
+  "full_name": "Volledige naam",
   "full_name, avatar_url": "Full_name, avatar_url",
   "full_name, email, current_title, current_company": "Full_name, email, current_title, current_company",
-  "functie_specificaties": "Functie_specificaties",
+  "functie_specificaties": "Functie specificaties",
   "functies": "Functies",
-  "gbp": "Gbp",
-  "geen_votes": "Geen_votes",
-  "github_url": "Github_url",
+  "gbp": "GBP",
+  "geen_votes": "Geen stemmen",
+  "github_url": "Github URL",
   "good": "Goed",
-  "handmatig_toevoegen": "Handmatig_toevoegen",
-  "hard": "Hard",
-  "hire_rate": "Hire_rate",
-  "hires_this_month": "Hires_this_month",
-  "hoog_10": "Hoog_10",
+  "handmatig_toevoegen": "Handmatig toevoegen",
+  "hard": "Moeilijk",
+  "hire_rate": "Aanstellingspercentage",
+  "hires_this_month": "Aanstellingen deze maand",
+  "hoog_10": "Hoog 10",
   "hybrid": "Hybride",
   "id": "Id",
   "id, candidate_full_name, candidate_email, current_stage_index": "Id, candidate_full_name, candidate_email, current_stage_index",
@@ -2039,7 +2039,7 @@
   "id, job_title, user_id": "Id, job_title, user_id",
   "id, name": "Id, name",
   "id, reviewer_id, is_primary, assigned_at": "Id, reviewer_id, is_primary, assigned_at",
-  "id, role, profiles:user_id (full_name, avatar_url)": "Id, role, profiles:user_id (full_name, avatar_url)",
+  "id, role, profiles:user_id (full_name, avatar_url)": "Id, rol, profielen:user_id (volledige naam, avatar_url)",
   "id, status": "Id, status",
   "id, status, scheduled_start": "Id, status, scheduled_start",
   "id, status, updated_at": "Id, status, updated_at",
@@ -2051,319 +2051,319 @@
   "id, user_id, full_name, title, bio, email, availability, photo_url": "Id, user_id, full_name, title, bio, email, availability, photo_url",
   "id, user_id, granted_by, granted_at": "Id, user_id, granted_by, granted_at",
   "id, user_id, job_title": "Id, user_id, job_title",
-  "immediate": "Immediate",
-  "import_jobs_from_linkedin": "Import_jobs_from_linkedin",
-  "in_person": "In_person",
-  "in_progress": "In_progress",
-  "inbox_zero": "Inbox_zero",
-  "incomplete": "Incomplete",
+  "immediate": "Direct",
+  "import_jobs_from_linkedin": "Importeer vacatures van LinkedIn",
+  "in_person": "Persoonlijk",
+  "in_progress": "Bezig",
+  "inbox_zero": "Inbox zero",
+  "incomplete": "Incompleet",
   "industrie": "Industrie",
-  "industry_preferences": "Industry_preferences",
-  "initial_note": "Initial_note",
-  "internal_notes_for_the": "Internal_notes_for_the",
-  "interview_added_successfully": "Interview_added_successfully",
-  "interview_confirmed": "Interview_confirmed",
-  "interview_dismissed": "Interview_dismissed",
-  "interview_linked_successfully": "Interview_linked_successfully",
-  "interview_rescheduled_successfully": "Interview_rescheduled_successfully",
-  "interview_type": "Interview_type",
+  "industry_preferences": "Industrie voorkeuren",
+  "initial_note": "Initiële notitie",
+  "internal_notes_for_the": "Interne notities voor de",
+  "interview_added_successfully": "Interview succesvol toegevoegd",
+  "interview_confirmed": "Interview bevestigd",
+  "interview_dismissed": "Interview afgewezen",
+  "interview_linked_successfully": "Interview succesvol gekoppeld",
+  "interview_rescheduled_successfully": "Interview succesvol verplaatst",
+  "interview_type": "Interviewtype",
   "interviewers": "Interviewers",
-  "interviews_conducted": "Interviews_conducted",
-  "interviews_this_week": "Interviews_this_week",
-  "invalid_target_stage": "Invalid_target_stage",
-  "invitation_revoked": "Invitation_revoked",
+  "interviews_conducted": "Interviews uitgevoerd",
+  "interviews_this_week": "Interviews deze week",
+  "invalid_target_stage": "Ongeldige doel-fase",
+  "invitation_revoked": "Uitnodiging ingetrokken",
   "invite": "Uitnodigen",
-  "invite_colleagues_to_collaborate": "Invite_colleagues_to_collaborate",
-  "jd_file": "Jd_file",
+  "invite_colleagues_to_collaborate": "Nodig collega's uit om samen te werken",
+  "jd_file": "Functieomschrijving bestand",
   "job": "Vacature",
-  "job_description_file_optional": "Job_description_file_optional",
+  "job_description_file_optional": "Functieomschrijving bestand (optioneel)",
   "job_description_url, supporting_documents": "Job_description_url, supporting_documents",
-  "job_id": "Job_id",
-  "job_link_copied_to": "Job_link_copied_to",
-  "job_not_found_it": "Job_not_found_it",
-  "justification": "Justification",
-  "key_strengths": "Key_strengths",
-  "laag_1": "Laag_1",
-  "languages_commaseparated": "Languages_commaseparated",
-  "latestage_rejections": "Latestage_rejections",
-  "link_copied_to_clipboard": "Link_copied_to_clipboard",
-  "link_interview_to_job": "Link_interview_to_job",
+  "job_id": "Vacature ID",
+  "job_link_copied_to": "Vacaturelink gekopieerd naar",
+  "job_not_found_it": "Vacature niet gevonden",
+  "justification": "Rechtvaardiging",
+  "key_strengths": "Belangrijkste sterke punten",
+  "laag_1": "Laag 1",
+  "languages_commaseparated": "Talen (komma-gescheiden)",
+  "latestage_rejections": "Afwijzingen in late fase",
+  "link_copied_to_clipboard": "Link gekopieerd naar klembord",
+  "link_interview_to_job": "Koppel interview aan vacature",
   "linked": "Gekoppeld",
-  "linked_to_user_account": "Linked_to_user_account",
-  "linkedin": "Linkedin",
-  "linkedin_url": "Linkedin_url",
+  "linked_to_user_account": "Gekoppeld aan gebruikersaccount",
+  "linkedin": "LinkedIn",
+  "linkedin_url": "LinkedIn URL",
   "links": "Links",
   "locatie": "Locatie",
   "location": "Locatie",
-  "location_fit": "Location_fit",
-  "location_mismatch": "Location_mismatch",
-  "location_not_aligned_with": "Location_not_aligned_with",
-  "location_or_remote_work": "Location_or_remote_work",
+  "location_fit": "Locatie komt overeen",
+  "location_mismatch": "Locatie komt niet overeen",
+  "location_not_aligned_with": "Locatie komt niet overeen met",
+  "location_or_remote_work": "Locatie of remote werk",
   "logo_url, website_url, headquarters_location": "Logo_url, website_url, headquarters_location",
   "manage": "Beheren",
   "max": "Max",
-  "max_salary": "Max_salary",
+  "max_salary": "Max. salaris",
   "medium": "Gemiddeld",
-  "meeting_link": "Meeting_link",
-  "meeting_type": "Meeting_type",
+  "meeting_link": "Vergaderlink",
+  "meeting_type": "Vergader type",
   "member": "Lid",
   "metadata": "Metadata",
-  "mijn_bedrijven": "Mijn_bedrijven",
+  "mijn_bedrijven": "Mijn bedrijven",
   "min": "Min",
-  "min_salary": "Min_salary",
-  "mismatch_analysis": "Mismatch_analysis",
-  "monitor_probation_periods_and": "Monitor_probation_periods_and",
-  "move_back_to_stage": "Move_back_to_stage",
-  "my_calendar": "My_calendar",
+  "min_salary": "Min. salaris",
+  "mismatch_analysis": "Mismatch-analyse",
+  "monitor_probation_periods_and": "Monitor proeftijdperiodes en",
+  "move_back_to_stage": "Terug naar fase",
+  "my_calendar": "Mijn agenda",
   "naam": "Naam",
-  "naam_contact": "Naam_contact",
-  "naam_van_het_bedrijf": "Naam_van_het_bedrijf",
+  "naam_contact": "Naam contactpersoon",
+  "naam_van_het_bedrijf": "Naam van het bedrijf",
   "name": "Naam",
-  "new_date": "New_date",
-  "nicetohave": "Nicetohave",
-  "nicetohave_tools": "Nicetohave_tools",
-  "nl-NL": "Nl- N L",
-  "no_authorized_to_work": "No_authorized_to_work",
-  "no_candidates_for_report": "No_candidates_for_report",
-  "no_candidates_in_pipeline": "No_candidates_in_pipeline",
-  "no_candidates_in_this": "No_candidates_in_this",
-  "no_candidates_to_export": "No_candidates_to_export",
-  "no_companies_found": "No_companies_found",
-  "no_interview_data": "No_interview_data",
-  "no_interview_recordings_yet": "No_interview_recordings_yet",
-  "no_jobs": "No_jobs",
-  "no_linked_interviews_yet": "No_linked_interviews_yet",
-  "no_new_interviews_detected": "No_new_interviews_detected",
-  "no_pending_commitments": "No_pending_commitments",
-  "no_pending_interviews_detected": "No_pending_interviews_detected",
-  "no_pending_offers": "No_pending_offers",
-  "no_pending_reviews": "No_pending_reviews",
-  "no_recent_activity": "No_recent_activity",
-  "no_rejected_candidates_match": "No_rejected_candidates_match",
-  "no_talent_matches_yet": "No_talent_matches_yet",
-  "no_team_members_available": "No_team_members_available",
-  "no_team_members_yet": "No_team_members_yet",
-  "no_unread_messages": "No_unread_messages",
-  "no_upcoming_calendar_events": "No_upcoming_calendar_events",
-  "no_urgent_actions_required": "No_urgent_actions_required",
-  "no_urgent_deadlines_this": "No_urgent_deadlines_this",
+  "new_date": "Nieuwe datum",
+  "nicetohave": "Nice-to-have",
+  "nicetohave_tools": "Nice-to-have tools",
+  "nl-NL": "nl-NL",
+  "no_authorized_to_work": "Geen toestemming om te werken",
+  "no_candidates_for_report": "Geen kandidaten voor rapport",
+  "no_candidates_in_pipeline": "Geen kandidaten in pijplijn",
+  "no_candidates_in_this": "Geen kandidaten in deze",
+  "no_candidates_to_export": "Geen kandidaten om te exporteren",
+  "no_companies_found": "Geen bedrijven gevonden",
+  "no_interview_data": "Geen interviewgegevens",
+  "no_interview_recordings_yet": "Nog geen interviewopnames",
+  "no_jobs": "Geen vacatures",
+  "no_linked_interviews_yet": "Nog geen gekoppelde interviews",
+  "no_new_interviews_detected": "Geen nieuwe interviews gedetecteerd",
+  "no_pending_commitments": "Geen openstaande verplichtingen",
+  "no_pending_interviews_detected": "Geen openstaande interviews gedetecteerd",
+  "no_pending_offers": "Geen openstaande aanbiedingen",
+  "no_pending_reviews": "Geen openstaande beoordelingen",
+  "no_recent_activity": "Geen recente activiteit",
+  "no_rejected_candidates_match": "Geen afgewezen kandidaten komen overeen",
+  "no_talent_matches_yet": "Nog geen talentmatches",
+  "no_team_members_available": "Geen teamleden beschikbaar",
+  "no_team_members_yet": "Nog geen teamleden",
+  "no_unread_messages": "Geen ongelezen berichten",
+  "no_upcoming_calendar_events": "Geen aankomende agenda-evenementen",
+  "no_urgent_actions_required": "Geen dringende acties vereist",
+  "no_urgent_deadlines_this": "Geen dringende deadlines deze",
   "none": "Geen",
-  "not_now_but_in": "Not_now_but_in",
+  "not_now_but_in": "Niet nu, maar over",
   "notes": "Notities",
-  "notes_optional": "Notes_optional",
-  "notice_period": "Notice_period",
+  "notes_optional": "Notities (optioneel)",
+  "notice_period": "Opzegtermijn",
   "notities": "Notities",
-  "of_custom_rol": "Of_custom_rol",
-  "offer_acceptance": "Offer_acceptance",
-  "offers_extended_to_candidates": "Offers_extended_to_candidates",
+  "of_custom_rol": "Van aangepaste rol",
+  "offer_acceptance": "Aanbieding acceptatie",
+  "offers_extended_to_candidates": "Aanbiedingen verstuurd naar kandidaten",
   "online": "Online",
-  "onsite": "Onsite",
-  "optional_if_you_upload": "Optional_if_you_upload",
-  "overall_spend": "Overall_spend",
+  "onsite": "On-site",
+  "optional_if_you_upload": "Optioneel als u uploadt",
+  "overall_spend": "Totale uitgaven",
   "overview": "Overzicht",
   "paid": "Betaald",
-  "paid_out": "Paid_out",
-  "panel_interview": "Panel_interview",
-  "partner_interview": "Partner_interview",
-  "partner_preference_pattern": "Partner_preference_pattern",
+  "paid_out": "Uitbetaald",
+  "panel_interview": "Panelgesprek",
+  "partner_interview": "Partnergesprek",
+  "partner_preference_pattern": "Partner voorkeurspatroon",
   "partnersthequantumclubcom": "Partnersthequantumclubcom",
-  "pass": "Pass",
+  "pass": "Geslaagd",
   "pending": "In afwachting",
-  "pending_actions": "Pending_actions",
-  "pending_offers": "Pending_offers",
-  "pending_release": "Pending_release",
-  "per_industrie": "Per_industrie",
-  "per_status": "Per_status",
-  "personality_assessment": "Personality_assessment",
+  "pending_actions": "Wachtende acties",
+  "pending_offers": "Wachtende aanbiedingen",
+  "pending_release": "Wachtende vrijgave",
+  "per_industrie": "Per industrie",
+  "per_status": "Per status",
+  "personality_assessment": "Persoonlijkheidsbeoordeling",
   "phone": "Telefoon",
-  "phone_call": "Phone_call",
-  "pipeline_display_options": "Pipeline_display_options",
-  "pipeline_journey": "Pipeline_journey",
-  "pipeline_settings_opening": "Pipeline_settings_opening",
-  "pipeline_stage_added_successfully": "Pipeline_stage_added_successfully",
-  "pipeline_stages": "Pipeline_stages",
+  "phone_call": "Telefoongesprek",
+  "pipeline_display_options": "Pipeline weergave opties",
+  "pipeline_journey": "Pipeline traject",
+  "pipeline_settings_opening": "Pipeline instellingen opening",
+  "pipeline_stage_added_successfully": "Pipeline fase succesvol toegevoegd",
+  "pipeline_stages": "Pipeline fasen",
   "platform": "Platform",
-  "please_enter_an_email": "Please_enter_an_email",
-  "please_fill_in_all": "Please_fill_in_all",
-  "please_fill_in_both": "Please_fill_in_both",
-  "please_fix_the_form": "Please_fix_the_form",
-  "please_provide_a_reason": "Please_provide_a_reason",
-  "please_select_a_date": "Please_select_a_date",
-  "please_select_a_rejection": "Please_select_a_rejection",
-  "please_select_a_target": "Please_select_a_target",
-  "please_use_an_email": "Please_use_an_email",
-  "portfolio_review": "Portfolio_review",
-  "portfolio_url": "Portfolio_url",
-  "potential_concerns": "Potential_concerns",
+  "please_enter_an_email": "Vul alstublieft een e-mailadres in",
+  "please_fill_in_all": "Vul alstublieft alles in",
+  "please_fill_in_both": "Vul alstublieft beide in",
+  "please_fix_the_form": "Corrigeer alstublieft het formulier",
+  "please_provide_a_reason": "Geef alstublieft een reden op",
+  "please_select_a_date": "Selecteer alstublieft een datum",
+  "please_select_a_rejection": "Selecteer alstublieft een afwijzing",
+  "please_select_a_target": "Selecteer alstublieft een doel",
+  "please_use_an_email": "Gebruik alstublieft een e-mailadres",
+  "portfolio_review": "Portfolio beoordeling",
+  "portfolio_url": "Portfolio URL",
+  "potential_concerns": "Potentiële zorgen",
   "preferences": "Voorkeuren",
-  "preferred_currency": "Preferred_currency",
-  "preferred_locations": "Preferred_locations",
-  "premium_vetting_candidate_management": "Premium_vetting_candidate_management",
-  "preparation_instructions": "Preparation_instructions",
-  "primary_rejection_reason": "Primary_rejection_reason",
+  "preferred_currency": "Voorkeursvaluta",
+  "preferred_locations": "Voorkeurslocaties",
+  "premium_vetting_candidate_management": "Premium screening kandidaatbeheer",
+  "preparation_instructions": "Voorbereidingsinstructies",
+  "primary_rejection_reason": "Primaire reden voor afwijzing",
   "prioriteit": "Prioriteit",
-  "proceed": "Proceed",
-  "provide_specific_reasons_for": "Provide_specific_reasons_for",
-  "publish_your_jobs_to": "Publish_your_jobs_to",
-  "published_at": "Published_at",
-  "quality_score": "Quality_score",
-  "quantum_club_elite_offers": "Quantum_club_elite_offers",
-  "quick_actions": "Quick_actions",
-  "quin_daily_briefing": "Quin_daily_briefing",
-  "readonly_view_for_stakeholders": "Readonly_view_for_stakeholders",
-  "reason_for_moving_back": "Reason_for_moving_back",
-  "reason_for_rejection": "Reason_for_rejection",
-  "reason_for_rescheduling_optional": "Reason_for_rescheduling_optional",
-  "recent_views": "Recent_views",
+  "proceed": "Doorgaan",
+  "provide_specific_reasons_for": "Geef specifieke redenen voor",
+  "publish_your_jobs_to": "Publiceer uw vacatures op",
+  "published_at": "Gepubliceerd op",
+  "quality_score": "Kwaliteitsscore",
+  "quantum_club_elite_offers": "Quantum Club elite aanbiedingen",
+  "quick_actions": "Snelle acties",
+  "quin_daily_briefing": "Quin dagelijkse briefing",
+  "readonly_view_for_stakeholders": "Alleen-lezen weergave voor stakeholders",
+  "reason_for_moving_back": "Reden voor terugplaatsing",
+  "reason_for_rejection": "Reden voor afwijzing",
+  "reason_for_rescheduling_optional": "Reden voor verplaatsing (optioneel)",
+  "recent_views": "Recente weergaven",
   "recommendation": "Aanbeveling",
-  "recordings_will_appear_here": "Recordings_will_appear_here",
+  "recordings_will_appear_here": "Opnames verschijnen hier",
   "recruiter": "Recruiter",
   "reject": "Afwijzen",
-  "reject_change_order": "Reject_change_order",
+  "reject_change_order": "Wijzigingsopdracht afwijzen",
   "rejected": "Afgewezen",
-  "rejected_by": "Rejected_by",
-  "rejected_candidates": "Rejected_candidates",
-  "rejection_reason": "Rejection_reason",
-  "rejection_stage": "Rejection_stage",
-  "remaining": "Remaining",
-  "remote_only": "Remote_only",
-  "remote_preference": "Remote_preference",
-  "report_generated_successfully": "Report_generated_successfully",
-  "required_tools": "Required_tools",
-  "required_tools_and_technologies": "Required_tools_and_technologies",
+  "rejected_by": "Afgewezen door",
+  "rejected_candidates": "Afgewezen kandidaten",
+  "rejection_reason": "Reden van afwijzing",
+  "rejection_stage": "Afwijzingsfase",
+  "remaining": "Resterend",
+  "remote_only": "Alleen op afstand",
+  "remote_preference": "Voorkeur voor werken op afstand",
+  "report_generated_successfully": "Rapport succesvol gegenereerd",
+  "required_tools": "Vereiste tools",
+  "required_tools_and_technologies": "Vereiste tools en technologieën",
   "requirements": "Vereisten",
-  "reschedule_interview": "Reschedule_interview",
-  "response_sla": "Response_sla",
-  "resume_available": "Resume_available",
-  "resumes/": "Resumes/",
-  "review_summary": "Review_summary",
-  "reviewed_by": "Reviewed_by",
-  "right_to_work_details": "Right_to_work_details",
+  "reschedule_interview": "Interview verplaatsen",
+  "response_sla": "Reactie SLA",
+  "resume_available": "CV beschikbaar",
+  "resumes/": "CV's/",
+  "review_summary": "Beoordelingsoverzicht",
+  "reviewed_by": "Beoordeeld door",
+  "right_to_work_details": "Details recht om te werken",
   "rol": "Rol",
-  "role": "Role",
+  "role": "Rol",
   "salary": "Salaris",
-  "salary_compatible": "Salary_compatible",
-  "salary_expectations_too_high": "Salary_expectations_too_high",
-  "salary_mismatch": "Salary_mismatch",
-  "salary_range_optional": "Salary_range_optional",
+  "salary_compatible": "Salaris_compatibel",
+  "salary_expectations_too_high": "Salarisverwachtingen_te_hoog",
+  "salary_mismatch": "Salaris_mismatch",
+  "salary_range_optional": "Salarisbereik_optioneel",
   "scaleup_50500": "Scaleup_50500",
   "scheduled_start, scheduled_end, user_id": "Scheduled_start, scheduled_end, user_id",
   "scheduling": "Planning",
   "scope_change": "Scope_change",
-  "search_companies": "Search_companies",
-  "search_roles": "Search_roles",
+  "search_companies": "Zoek_bedrijven",
+  "search_roles": "Zoek_rollen",
   "select": "Selecteren",
-  "select_a_candidate": "Select_a_candidate",
-  "select_a_company": "Select_a_company",
-  "select_a_job": "Select_a_job",
-  "select_a_role_to": "Select_a_role_to",
-  "select_assessment_type": "Select_assessment_type",
-  "select_candidate": "Select_candidate",
-  "select_category": "Select_category",
-  "select_company_size": "Select_company_size",
-  "select_department": "Select_department",
-  "select_existing_link_or": "Select_existing_link_or",
-  "select_from_your_company": "Select_from_your_company",
-  "select_interview_type": "Select_interview_type",
-  "select_notice_period": "Select_notice_period",
-  "select_remote_preference": "Select_remote_preference",
-  "select_sponsorship_requirement": "Select_sponsorship_requirement",
-  "select_target_stage": "Select_target_stage",
-  "select_team_members": "Select_team_members",
-  "select_urgency": "Select_urgency",
-  "selecteer_een_open_job": "Selecteer_een_open_job",
+  "select_a_candidate": "Selecteer_een_kandidaat",
+  "select_a_company": "Selecteer_een_bedrijf",
+  "select_a_job": "Selecteer_een_baan",
+  "select_a_role_to": "Selecteer_een_rol_om_te",
+  "select_assessment_type": "Selecteer_beoordelingstype",
+  "select_candidate": "Selecteer_kandidaat",
+  "select_category": "Selecteer_categorie",
+  "select_company_size": "Selecteer_bedrijfsgrootte",
+  "select_department": "Selecteer_afdeling",
+  "select_existing_link_or": "Selecteer_bestaande_link_of",
+  "select_from_your_company": "Selecteer_uit_uw_bedrijf",
+  "select_interview_type": "Selecteer_interviewtype",
+  "select_notice_period": "Selecteer_opzegtermijn",
+  "select_remote_preference": "Selecteer_voorkeur_voor_remote",
+  "select_sponsorship_requirement": "Selecteer_sponsorvereiste",
+  "select_target_stage": "Selecteer_doelfase",
+  "select_team_members": "Selecteer_teamleden",
+  "select_urgency": "Selecteer_urgentie",
+  "selecteer_een_open_job": "Selecteer_een_openstaande_vacature",
   "selecteer_rol": "Selecteer_rol",
-  "sending_to": "Sending_to",
+  "sending_to": "Verzenden_naar",
   "seniority": "Senioriteit",
-  "seniority_level": "Seniority_level",
-  "setting_expectations_upfront_reduces": "Setting_expectations_upfront_reduces",
+  "seniority_level": "Senioriteitsniveau",
+  "setting_expectations_upfront_reduces": "Het_vooraf_vaststellen_van_verwachtingen_vermindert",
   "share": "Delen",
-  "skills_commaseparated": "Skills_commaseparated",
-  "skills_gap": "Skills_gap",
-  "skills_languages": "Skills_languages",
-  "smart_filters": "Smart_filters",
-  "source": "Source",
-  "source_information": "Source_information",
-  "sourced_by": "Sourced_by",
+  "skills_commaseparated": "Vaardigheden_komma_gescheiden",
+  "skills_gap": "Vaardigheidskloof",
+  "skills_languages": "Vaardigheden_talen",
+  "smart_filters": "Slimme_filters",
+  "source": "Bron",
+  "source_information": "Broninformatie",
+  "sourced_by": "Afkomstig_van",
   "sourced_by, source_context, created_at": "Sourced_by, source_context, created_at",
-  "specific_gaps_select_all": "Specific_gaps_select_all",
-  "sponsorship_needed": "Sponsorship_needed",
-  "stage_description": "Stage_description",
-  "stage_name": "Stage_name",
-  "stage_weight_for_analytics": "Stage_weight_for_analytics",
-  "start_date": "Start_date",
-  "start_time": "Start_time",
-  "start_with_the_fundamentals": "Start_with_the_fundamentals",
+  "specific_gaps_select_all": "Specifieke_hiaten_selecteer_alles",
+  "sponsorship_needed": "Sponsoring_nodig",
+  "stage_description": "Fasebeschrijving",
+  "stage_name": "Fasenaam",
+  "stage_weight_for_analytics": "Fasegewicht voor analyse",
+  "start_date": "Startdatum",
+  "start_time": "Starttijd",
+  "start_with_the_fundamentals": "Begin met de basis",
   "startup_lt50": "Startup_lt50",
   "stealth": "Stealth",
   "strong": "Sterk",
-  "strong_hire": "Strong_hire",
-  "strong_skills_alignment_with": "Strong_skills_alignment_with",
+  "strong_hire": "Sterke aanwerving",
+  "strong_skills_alignment_with": "Sterke vaardigheden afgestemd op",
   "subject": "Onderwerp",
-  "submitted_at": "Submitted_at",
-  "submitting": "Submitting",
-  "supporting_documents": "Supporting_documents",
-  "supporting_documents_optional": "Supporting_documents_optional",
+  "submitted_at": "Ingediend op",
+  "submitting": "Indienen",
+  "supporting_documents": "Ondersteunende documenten",
+  "supporting_documents_optional": "Ondersteunende documenten (optioneel)",
   "sync": "Sync",
-  "sync_failed": "Sync_failed",
+  "sync_failed": "Sync mislukt",
   "T": "T",
-  "target_bedrijven": "Target_bedrijven",
-  "target_voor_specifieke_job": "Target_voor_specifieke_job",
+  "target_bedrijven": "Doelbedrijven",
+  "target_voor_specifieke_job": "Doel voor specifieke functie",
   "technical": "Technisch",
-  "technical_interview": "Technical_interview",
-  "technical_test": "Technical_test",
+  "technical_interview": "Technisch interview",
+  "technical_test": "Technische test",
   "telefoon": "Telefoon",
-  "this_week": "This_week",
-  "this_will_be_shown": "This_will_be_shown",
+  "this_week": "Deze week",
+  "this_will_be_shown": "Dit wordt getoond",
   "time": "Tijd",
-  "time_limit_minutes": "Time_limit_minutes",
-  "time_period": "Time_period",
-  "timetohire_forecast": "Timetohire_forecast",
+  "time_limit_minutes": "Tijdsbeperking (minuten)",
+  "time_period": "Tijdsperiode",
+  "timetohire_forecast": "Timetohire_voorspelling",
   "title, bio, availability": "Title, bio, availability",
   "title, created_at": "Title, created_at",
   "today": "Vandaag",
   "tomorrow": "Morgen",
-  "top_match_factors": "Top_match_factors",
-  "top_skills": "Top_skills",
-  "total_budget": "Total_budget",
-  "total_rejections": "Total_rejections",
-  "tqc_introduction": "Tqc_introduction",
+  "top_match_factors": "Top match factoren",
+  "top_skills": "Topvaardigheden",
+  "total_budget": "Totaalbudget",
+  "total_rejections": "Totaal afwijzingen",
+  "tqc_introduction": "The Quantum Club introductie",
   "type": "Type",
-  "typical_duration_for_this": "Typical_duration_for_this",
+  "typical_duration_for_this": "Typische duur hiervoor",
   "updated": "Bijgewerkt",
-  "upvoted_by": "Upvoted_by",
+  "upvoted_by": "Gestemd door",
   "urgency": "Urgentie",
-  "usd": "Usd",
-  "user_id": "User_id",
+  "usd": "USD",
+  "user_id": "Gebruikers-ID",
   "user_id, role": "User_id, role",
-  "video_call": "Video_call",
+  "video_call": "Videogesprek",
   "view": "Bekijken",
-  "visa_status": "Visa_status",
+  "visa_status": "Visumstatus",
   "visibility": "Zichtbaarheid",
-  "voeg_een_comment_toe": "Voeg_een_comment_toe",
+  "voeg_een_comment_toe": "Voeg een opmerking toe",
   "voltooid": "Voltooid",
-  "vote_toegevoegd": "Vote_toegevoegd",
-  "vote_verwijderd": "Vote_verwijderd",
-  "votes": "Votes",
-  "vs_last_month": "Vs_last_month",
-  "vul_minimaal_een_naam": "Vul_minimaal_een_naam",
-  "website_url": "Website_url",
-  "what_should_candidates_prepare": "What_should_candidates_prepare",
-  "what_will_this_person": "What_will_this_person",
-  "where_will_this_person": "Where_will_this_person",
-  "why_are_you_advancing": "Why_are_you_advancing",
-  "work_model": "Work_model",
-  "write_a_brief_executive": "Write_a_brief_executive",
-  "write_your_email_here": "Write_your_email_here",
-  "years_of_experience": "Years_of_experience",
-  "yes_requires_sponsorship": "Yes_requires_sponsorship",
-  "youll_receive_a_digest": "Youll_receive_a_digest",
-  "your_briefing_awaits": "Your_briefing_awaits",
-  "your_concierge_is_being": "Your_concierge_is_being",
-  "your_draft_has_been": "Your_draft_has_been",
-  "your_progress_is_saved": "Your_progress_is_saved",
-  "zoek_bedrijf": "Zoek_bedrijf",
-  "zoek_in_repository": "Zoek_in_repository",
+  "vote_toegevoegd": "Stemming toegevoegd",
+  "vote_verwijderd": "Stemming verwijderd",
+  "votes": "Stemmen",
+  "vs_last_month": "T.o.v. vorige maand",
+  "vul_minimaal_een_naam": "Vul minimaal één naam in",
+  "website_url": "Website URL",
+  "what_should_candidates_prepare": "Wat moeten kandidaten voorbereiden?",
+  "what_will_this_person": "Wat zal deze persoon...",
+  "where_will_this_person": "Waar zal deze persoon...",
+  "why_are_you_advancing": "Waarom bevordert u {{name}}?",
+  "work_model": "Werkmodel",
+  "write_a_brief_executive": "Schrijf een korte samenvatting",
+  "write_your_email_here": "Schrijf hier uw e-mail",
+  "years_of_experience": "Jaren ervaring",
+  "yes_requires_sponsorship": "Ja, vereist sponsoring",
+  "youll_receive_a_digest": "U ontvangt een overzicht",
+  "your_briefing_awaits": "Uw briefing wacht",
+  "your_concierge_is_being": "Uw concierge wordt...",
+  "your_draft_has_been": "Uw concept is...",
+  "your_progress_is_saved": "Uw voortgang is opgeslagen",
+  "zoek_bedrijf": "Zoek bedrijf",
+  "zoek_in_repository": "Zoek in repository",
   "دإ_aed": "دإ_aed",
   "partner": {
     "editjobsheet": {
@@ -2371,15 +2371,15 @@
       "usdUsDollar": "USD ($) - US Dollar",
       "gbpBritishPound": "GBP (£) - British Pound",
       "aedUaeDirham": "AED (د.إ) - UAE Dirham",
-      "unsavedChanges": "Unsaved changes",
-      "allChangesSaved": "All changes saved",
+      "unsavedChanges": "Niet-opgeslagen wijzigingen",
+      "allChangesSaved": "Alle wijzigingen opgeslagen",
       "uploading": "Uploaden...",
       "saving": "Opslaan..."
     },
     "createinterviewdialog": {
       "screening30Min": "Screening (30 min)",
-      "technicalInterview60Min": "Technical Interview (60 min)",
-      "behavioralInterview60Min": "Behavioral Interview (60 min)",
+      "technicalInterview60Min": "Technisch Interview (60 min)",
+      "behavioralInterview60Min": "Gedragsinterview (60 min)",
       "cultureFit45Min": "Culture Fit (45 min)",
       "panelInterview90Min": "Panel Interview (90 min)",
       "founderInterview90Min": "Founder Interview (90 min)",
@@ -2387,143 +2387,143 @@
       "interviewers": "Interviewers:",
       "hide": "Verbergen",
       "show": "Tonen",
-      "interviewBookings": "Interview Bookings",
-      "systemgeneratedBookingLinkForInterviewScheduling": "System-generated booking link for interview scheduling",
-      "failedToScheduleInterview": "Failed to schedule interview"
+      "interviewBookings": "Interview Boekingen",
+      "systemgeneratedBookingLinkForInterviewScheduling": "Systeem gegenereerde boekingslink voor interviewplanning",
+      "failedToScheduleInterview": "Interview inplannen mislukt"
     },
     "addcandidatedialog": {
       "linkedinImport": "LinkedIn Import",
-      "adminAdded": "Admin Added",
-      "existingCandidateAddedToPipeline": "Existing Candidate Added to Pipeline",
-      "candidateAddedToPipeline": "Candidate Added to Pipeline",
-      "existingCandidateLinked": "Existing Candidate Linked",
-      "adminaddedCandidate": "Admin-Added Candidate",
+      "adminAdded": "Toegevoegd door Admin",
+      "existingCandidateAddedToPipeline": "Bestaande kandidaat toegevoegd aan pijplijn",
+      "candidateAddedToPipeline": "Kandidaat toegevoegd aan pijplijn",
+      "existingCandidateLinked": "Bestaande kandidaat gekoppeld",
+      "adminaddedCandidate": "Door Admin toegevoegde kandidaat",
       "applied": "Gesolliciteerd",
       "screening": "Screening",
       "interview": "Sollicitatiegesprek",
-      "finalRound": "Final Round"
+      "finalRound": "Laatste ronde"
     },
     "internalreviewpanel": {
-      "selectAll": "Select All",
-      "newestFirst": "Newest First",
-      "oldestFirst": "Oldest First",
+      "selectAll": "Alles selecteren",
+      "newestFirst": "Nieuwste eerst",
+      "oldestFirst": "Oudste eerst",
       "date": "Datum",
       "name": "Naam"
     },
     "interviewfeedbackdialog": {
-      "overallRating15": "Overall Rating (1-5)",
-      "addStrength": "Add Strength",
-      "addConcern": "Add Concern",
-      "addObservation": "Add Observation",
-      "submitting": "Submitting...",
-      "submitFeedback": "Submit Feedback",
-      "failedToSubmitFeedback": "Failed to submit feedback"
+      "overallRating15": "Algemene beoordeling (1-5)",
+      "addStrength": "Sterke punten toevoegen",
+      "addConcern": "Aandachtspunten toevoegen",
+      "addObservation": "Observatie toevoegen",
+      "submitting": "Verzenden...",
+      "submitFeedback": "Feedback verzenden",
+      "failedToSubmitFeedback": "Feedback verzenden mislukt"
     },
     "partnerjobshome": {
-      "welcomeToYourHiringHq": "Welcome to Your Hiring HQ",
-      "yourExclusiveCommandCenterForWorldclass": "Your exclusive command center for world-class hiring. Here's what you can do:",
-      "trackLiveMetrics": "Track live metrics",
-      "activateClubSync": "Activate Club Sync",
-      "manageYourPipeline": "Manage your pipeline",
-      "getWhitegloveSupport": "Get white-glove support",
-      "whatsClubSync": "What's Club Sync?",
-      "clearFilters": "Clear Filters",
-      "tryAdjustingYourFiltersToSee": "Try adjusting your filters to see more results",
-      "createYourFirstJobToGet": "Create your first job to get started",
-      "acrossAllYourSearches": "across all your searches",
-      "withAdvancedAnalyticsAndInsights": "with advanced analytics and insights",
-      "fromTheQuantumClubTeam": "from the Quantum Club team"
+      "welcomeToYourHiringHq": "Welkom bij uw Hiring HQ",
+      "yourExclusiveCommandCenterForWorldclass": "Uw exclusieve commandocentrum voor hiring van wereldklasse. Dit is wat u kunt doen:",
+      "trackLiveMetrics": "Live statistieken volgen",
+      "activateClubSync": "ClubSync activeren",
+      "manageYourPipeline": "Uw pijplijn beheren",
+      "getWhitegloveSupport": "White-glove support ontvangen",
+      "whatsClubSync": "Wat is ClubSync?",
+      "clearFilters": "Filters wissen",
+      "tryAdjustingYourFiltersToSee": "Probeer uw filters aan te passen om meer resultaten te zien",
+      "createYourFirstJobToGet": "Maak uw eerste vacature aan om te beginnen",
+      "acrossAllYourSearches": "in al uw zoekopdrachten",
+      "withAdvancedAnalyticsAndInsights": "met geavanceerde analyses en inzichten",
+      "fromTheQuantumClubTeam": "van het The Quantum Club team"
     },
     "candidatedetaildialog": {
-      "email": "Email:",
-      "position": "Position:",
-      "company": "Company:",
-      "overallRating": "Overall Rating",
-      "technicalSkills": "Technical Skills",
-      "culturalFit": "Cultural Fit",
+      "email": "E-mail:",
+      "position": "Positie:",
+      "company": "Bedrijf:",
+      "overallRating": "Algemene beoordeling",
+      "technicalSkills": "Technische vaardigheden",
+      "culturalFit": "Culturele fit",
       "communication": "Communicatie",
-      "recommendation": "Recommendation",
+      "recommendation": "Aanbeveling",
       "no": "No",
-      "strengths": "Strengths",
-      "concerns": "Concerns",
+      "strengths": "Sterke punten",
+      "concerns": "Aandachtspunten",
       "notes": "Notities",
-      "submitScorecard": "Submit Scorecard"
+      "submitScorecard": "Scorekaart verzenden"
     },
     "companyachievements": {
-      "unlockCondition": "Unlock Condition:",
-      "deleteAchievement": "Delete Achievement",
-      "areYouSureYouWantTo": "Are you sure you want to delete this achievement? This action cannot be undone.",
-      "editAchievement": "Edit Achievement",
-      "createCustomAchievement": "Create Custom Achievement",
-      "updateAchievement": "Update Achievement",
-      "createAchievement": "Create Achievement",
+      "unlockCondition": "Ontgrendelingsvoorwaarde:",
+      "deleteAchievement": "Prestatie verwijderen",
+      "areYouSureYouWantTo": "Weet u zeker dat u deze prestatie wilt verwijderen? Deze actie kan niet ongedaan worden gemaakt.",
+      "editAchievement": "Prestatie bewerken",
+      "createCustomAchievement": "Aangepaste prestatie aanmaken",
+      "updateAchievement": "Prestatie bijwerken",
+      "createAchievement": "Prestatie aanmaken",
       "active": "Actief",
-      "inactive": "Inactive",
-      "postsCreated": "Posts Created",
-      "commentsMade": "Comments Made",
-      "likesGiven": "Likes Given",
-      "sharesMade": "Shares Made",
-      "profileViews": "Profile Views",
-      "connectionsMade": "Connections Made",
-      "errorLoadingAchievements": "Error loading achievements",
-      "achievementUpdatedSuccessfully": "Achievement updated successfully",
-      "achievementCreatedSuccessfully": "Achievement created successfully",
-      "errorSavingAchievement": "Error saving achievement",
-      "achievementDeletedSuccessfully": "Achievement deleted successfully",
-      "errorDeletingAchievement": "Error deleting achievement",
-      "anUnexpectedErrorOccurred": "An unexpected error occurred"
+      "inactive": "Inactief",
+      "postsCreated": "Aangemaakte berichten",
+      "commentsMade": "Geplaatste opmerkingen",
+      "likesGiven": "Gegeven vind-ik-leuks",
+      "sharesMade": "Gedeelde berichten",
+      "profileViews": "Profielweergaven",
+      "connectionsMade": "Gemaakte connecties",
+      "errorLoadingAchievements": "Fout bij het laden van prestaties",
+      "achievementUpdatedSuccessfully": "Prestatie succesvol bijgewerkt",
+      "achievementCreatedSuccessfully": "Prestatie succesvol aangemaakt",
+      "errorSavingAchievement": "Fout bij het opslaan van prestatie",
+      "achievementDeletedSuccessfully": "Prestatie succesvol verwijderd",
+      "errorDeletingAchievement": "Fout bij het verwijderen van prestatie",
+      "anUnexpectedErrorOccurred": "Er is een onverwachte fout opgetreden"
     },
     "editjobdialog": {
       "eurEuro": "EUR (€) - Euro",
       "usdUsDollar": "USD ($) - US Dollar",
       "gbpBritishPound": "GBP (£) - British Pound",
       "aedUaeDirham": "AED (د.إ) - UAE Dirham",
-      "requiredToolsTechnologies": "Required Tools & Technologies",
+      "requiredToolsTechnologies": "Vereiste tools & technologieën",
       "uploading": "Uploaden...",
-      "updating": "Updating..."
+      "updating": "Bijwerken..."
     },
     "addjobteammemberdialog": {
-      "tqcOthers": "TQC + Others",
-      "viewCandidates": "View candidates",
-      "scheduleInterviews": "Schedule interviews",
-      "advanceCandidates": "Advance candidates",
-      "declineCandidates": "Decline candidates",
-      "makeOffers": "Make offers",
-      "setAsPrimaryContact": "Set as primary contact",
-      "externalUsers": "External Users",
-      "adding": "Adding...",
-      "addMember": "Add Member",
-      "failedToAddTeamMember": "Failed to add team member"
+      "tqcOthers": "TQC + Overigen",
+      "viewCandidates": "Bekijk kandidaten",
+      "scheduleInterviews": "Plan interviews in",
+      "advanceCandidates": "Kandidaten doorsturen",
+      "declineCandidates": "Kandidaten afwijzen",
+      "makeOffers": "Doe aanbiedingen",
+      "setAsPrimaryContact": "Instellen als primair contactpersoon",
+      "externalUsers": "Externe gebruikers",
+      "adding": "Toevoegen...",
+      "addMember": "Lid toevoegen",
+      "failedToAddTeamMember": "Lid toevoegen mislukt"
     },
     "pipelinecustomizer": {
       "assign": "Toewijzen",
-      "internalReviewers": "Internal Reviewers",
-      "partnerReviewers": "Partner Reviewers",
-      "selectPartnerReviewer": "Select partner reviewer",
-      "selectInternalReviewer": "Select internal reviewer"
+      "internalReviewers": "Interne beoordelaars",
+      "partnerReviewers": "Partnerbeoordelaars",
+      "selectPartnerReviewer": "Selecteer partnerbeoordelaar",
+      "selectInternalReviewer": "Selecteer interne beoordelaar"
     }
   },
   "text": {
     "partnersetup": {
-      "fetchingYourPhotoFromLinkedinThis": "Fetching your photo from LinkedIn — this may take a moment…",
-      "redirectingYouToYourPartnerPortal": "Redirecting you to your partner portal…",
-      "skipForNow": "Skip for now",
+      "fetchingYourPhotoFromLinkedinThis": "Uw foto wordt opgehaald van LinkedIn — dit kan even duren…",
+      "redirectingYouToYourPartnerPortal": "U wordt doorgestuurd naar uw partnerportaal…",
+      "skipForNow": "Nu overslaan",
       "continue": "Doorgaan",
-      "importPhotoFromLinkedin": "Import photo from LinkedIn",
+      "importPhotoFromLinkedin": "Foto importeren van LinkedIn",
       "theQuantumClub": "The Quantum Club",
-      "passwordsDoNotMatch": "Passwords do not match.",
-      "passwordSetSuccessfully": "Password set successfully.",
-      "pleaseEnterYourLinkedinUrlFirst": "Please enter your LinkedIn URL first.",
-      "pleaseEnterAValidLinkedinProfile": "Please enter a valid LinkedIn profile URL.",
-      "profilePhotoImportedFromLinkedin": "Profile photo imported from LinkedIn.",
-      "noProfilePhotoFoundOnLinkedin": "No profile photo found on LinkedIn. You can upload one manually.",
-      "couldNotFetchLinkedinPhotoYou": "Could not fetch LinkedIn photo. You can upload one manually.",
-      "imageMustBeUnder5mb": "Image must be under 5MB.",
-      "profilePhotoUploaded": "Profile photo uploaded.",
-      "failedToUploadPhoto": "Failed to upload photo.",
-      "somethingWentWrongPleaseTryAgain": "Something went wrong. Please try again.",
-      "failedToSetPassword": "Failed to set password.",
-      "partnerCompletedInitialAccountSetupPassword": "Partner completed initial account setup (password + profile)"
+      "passwordsDoNotMatch": "Wachtwoorden komen niet overeen.",
+      "passwordSetSuccessfully": "Wachtwoord succesvol ingesteld.",
+      "pleaseEnterYourLinkedinUrlFirst": "Voer eerst uw LinkedIn-URL in.",
+      "pleaseEnterAValidLinkedinProfile": "Voer een geldige LinkedIn-profiel URL in.",
+      "profilePhotoImportedFromLinkedin": "Profielfoto geïmporteerd van LinkedIn.",
+      "noProfilePhotoFoundOnLinkedin": "Geen profielfoto gevonden op LinkedIn. U kunt er handmatig een uploaden.",
+      "couldNotFetchLinkedinPhotoYou": "Kon LinkedIn-foto niet ophalen. U kunt er handmatig een uploaden.",
+      "imageMustBeUnder5mb": "Afbeelding moet kleiner zijn dan 5 MB.",
+      "profilePhotoUploaded": "Profielfoto geüpload.",
+      "failedToUploadPhoto": "Uploaden van foto mislukt.",
+      "somethingWentWrongPleaseTryAgain": "Er ging iets mis. Probeer het opnieuw.",
+      "failedToSetPassword": "Instellen van wachtwoord mislukt.",
+      "partnerCompletedInitialAccountSetupPassword": "Partner heeft de initiële accountconfiguratie voltooid (wachtwoord + profiel)"
     }
   }
 }

@@ -39,15 +39,15 @@ export default function Feed() {
           <TabsList className="w-full grid grid-cols-3">
             <TabsTrigger value="foryou" className="gap-2">
               <Sparkles className="w-4 h-4" />
-              For You
+              {t('feed.forYou', 'For You')}
             </TabsTrigger>
             <TabsTrigger value="trending" className="gap-2">
               <TrendingUp className="w-4 h-4" />
-              Trending
+              {t('feed.trending', 'Trending')}
             </TabsTrigger>
             <TabsTrigger value="following" className="gap-2">
               <Users className="w-4 h-4" />
-              Following
+              {t('feed.following', 'Following')}
             </TabsTrigger>
           </TabsList>
 
@@ -60,7 +60,7 @@ export default function Feed() {
               </>
             ) : posts.length === 0 ? (
               <div className="text-center py-12 text-muted-foreground">
-                No posts yet. Be the first to share something!
+                {t('feed.emptyState', 'No posts yet. Be the first to share something!')}
               </div>
             ) : (
               posts.map((post) => (

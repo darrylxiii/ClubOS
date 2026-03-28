@@ -92,9 +92,10 @@ export const forceReloadLanguage = async (language: string): Promise<void> => {
 // Change language with guaranteed reload
 export const changeLanguageWithReload = async (language: string): Promise<boolean> => {
   try {
-    console.log(`[i18n] Changing language to: ${language}`);
+    // PERF: Load the language's locale files on-demand before switching
+    await loadLanguageAsync(language);
 
-    // Force reload the new language
+    // Force reload from Supabase backend for any DB overrides
     await forceReloadLanguage(language);
 
     // Change the language
@@ -111,7 +112,9 @@ export const changeLanguageWithReload = async (language: string): Promise<boolea
 };
 
 // =============================================================================
-// BUNDLED ENGLISH FALLBACKS - All 13 namespaces bundled for immediate display
+// BUNDLED ENGLISH FALLBACKS - Only English bundled for instant FCP
+// All other languages loaded on-demand via dynamic import() or Supabase backend
+// PERF: This reduces the initial bundle by ~7.8MB (8 langs × ~1MB each → 1 lang)
 // =============================================================================
 import commonEn from '@/i18n/locales/en/common.json';
 import authEn from '@/i18n/locales/en/auth.json';
@@ -127,112 +130,7 @@ import messagesEn from '@/i18n/locales/en/messages.json';
 import partnerEn from '@/i18n/locales/en/partner.json';
 import settingsEn from '@/i18n/locales/en/settings.json';
 
-// Bundled Dutch translations - all 13 namespaces for instant display
-import commonNl from '@/i18n/locales/nl/common.json';
-import authNl from '@/i18n/locales/nl/auth.json';
-import onboardingNl from '@/i18n/locales/nl/onboarding.json';
-import adminNl from '@/i18n/locales/nl/admin.json';
-import analyticsNl from '@/i18n/locales/nl/analytics.json';
-import candidatesNl from '@/i18n/locales/nl/candidates.json';
-import complianceNl from '@/i18n/locales/nl/compliance.json';
-import contractsNl from '@/i18n/locales/nl/contracts.json';
-import jobsNl from '@/i18n/locales/nl/jobs.json';
-import meetingsNl from '@/i18n/locales/nl/meetings.json';
-import messagesNl from '@/i18n/locales/nl/messages.json';
-import partnerNl from '@/i18n/locales/nl/partner.json';
-import settingsNl from '@/i18n/locales/nl/settings.json';
-
-// Bundled German translations
-import commonDe from '@/i18n/locales/de/common.json';
-import authDe from '@/i18n/locales/de/auth.json';
-import onboardingDe from '@/i18n/locales/de/onboarding.json';
-import adminDe from '@/i18n/locales/de/admin.json';
-import analyticsDe from '@/i18n/locales/de/analytics.json';
-import candidatesDe from '@/i18n/locales/de/candidates.json';
-import complianceDe from '@/i18n/locales/de/compliance.json';
-import contractsDe from '@/i18n/locales/de/contracts.json';
-import jobsDe from '@/i18n/locales/de/jobs.json';
-import meetingsDe from '@/i18n/locales/de/meetings.json';
-import messagesDe from '@/i18n/locales/de/messages.json';
-import partnerDe from '@/i18n/locales/de/partner.json';
-import settingsDe from '@/i18n/locales/de/settings.json';
-
-// Bundled French translations
-import commonFr from '@/i18n/locales/fr/common.json';
-import authFr from '@/i18n/locales/fr/auth.json';
-import onboardingFr from '@/i18n/locales/fr/onboarding.json';
-import adminFr from '@/i18n/locales/fr/admin.json';
-import analyticsFr from '@/i18n/locales/fr/analytics.json';
-import candidatesFr from '@/i18n/locales/fr/candidates.json';
-import complianceFr from '@/i18n/locales/fr/compliance.json';
-import contractsFr from '@/i18n/locales/fr/contracts.json';
-import jobsFr from '@/i18n/locales/fr/jobs.json';
-import meetingsFr from '@/i18n/locales/fr/meetings.json';
-import messagesFr from '@/i18n/locales/fr/messages.json';
-import partnerFr from '@/i18n/locales/fr/partner.json';
-import settingsFr from '@/i18n/locales/fr/settings.json';
-
-// Bundled Spanish translations
-import commonEs from '@/i18n/locales/es/common.json';
-import authEs from '@/i18n/locales/es/auth.json';
-import onboardingEs from '@/i18n/locales/es/onboarding.json';
-import adminEs from '@/i18n/locales/es/admin.json';
-import analyticsEs from '@/i18n/locales/es/analytics.json';
-import candidatesEs from '@/i18n/locales/es/candidates.json';
-import complianceEs from '@/i18n/locales/es/compliance.json';
-import contractsEs from '@/i18n/locales/es/contracts.json';
-import jobsEs from '@/i18n/locales/es/jobs.json';
-import meetingsEs from '@/i18n/locales/es/meetings.json';
-import messagesEs from '@/i18n/locales/es/messages.json';
-import partnerEs from '@/i18n/locales/es/partner.json';
-import settingsEs from '@/i18n/locales/es/settings.json';
-
-// Bundled Chinese Simplified translations
-import commonZh from '@/i18n/locales/zh/common.json';
-import authZh from '@/i18n/locales/zh/auth.json';
-import onboardingZh from '@/i18n/locales/zh/onboarding.json';
-import adminZh from '@/i18n/locales/zh/admin.json';
-import analyticsZh from '@/i18n/locales/zh/analytics.json';
-import candidatesZh from '@/i18n/locales/zh/candidates.json';
-import complianceZh from '@/i18n/locales/zh/compliance.json';
-import contractsZh from '@/i18n/locales/zh/contracts.json';
-import jobsZh from '@/i18n/locales/zh/jobs.json';
-import meetingsZh from '@/i18n/locales/zh/meetings.json';
-import messagesZh from '@/i18n/locales/zh/messages.json';
-import partnerZh from '@/i18n/locales/zh/partner.json';
-import settingsZh from '@/i18n/locales/zh/settings.json';
-
-// Bundled Arabic translations
-import commonAr from '@/i18n/locales/ar/common.json';
-import authAr from '@/i18n/locales/ar/auth.json';
-import onboardingAr from '@/i18n/locales/ar/onboarding.json';
-import adminAr from '@/i18n/locales/ar/admin.json';
-import analyticsAr from '@/i18n/locales/ar/analytics.json';
-import candidatesAr from '@/i18n/locales/ar/candidates.json';
-import complianceAr from '@/i18n/locales/ar/compliance.json';
-import contractsAr from '@/i18n/locales/ar/contracts.json';
-import jobsAr from '@/i18n/locales/ar/jobs.json';
-import meetingsAr from '@/i18n/locales/ar/meetings.json';
-import messagesAr from '@/i18n/locales/ar/messages.json';
-import partnerAr from '@/i18n/locales/ar/partner.json';
-import settingsAr from '@/i18n/locales/ar/settings.json';
-
-// Bundled Russian translations
-import commonRu from '@/i18n/locales/ru/common.json';
-import authRu from '@/i18n/locales/ru/auth.json';
-import onboardingRu from '@/i18n/locales/ru/onboarding.json';
-import adminRu from '@/i18n/locales/ru/admin.json';
-import analyticsRu from '@/i18n/locales/ru/analytics.json';
-import candidatesRu from '@/i18n/locales/ru/candidates.json';
-import complianceRu from '@/i18n/locales/ru/compliance.json';
-import contractsRu from '@/i18n/locales/ru/contracts.json';
-import jobsRu from '@/i18n/locales/ru/jobs.json';
-import meetingsRu from '@/i18n/locales/ru/meetings.json';
-import messagesRu from '@/i18n/locales/ru/messages.json';
-import partnerRu from '@/i18n/locales/ru/partner.json';
-import settingsRu from '@/i18n/locales/ru/settings.json';
-
-// All translations bundled locally - instant display for all 8 languages
+// Only English bundled - other languages loaded dynamically
 const bundledResources = {
   en: {
     common: commonEn,
@@ -249,119 +147,67 @@ const bundledResources = {
     partner: partnerEn,
     settings: settingsEn,
   },
-  nl: {
-    common: commonNl,
-    auth: authNl,
-    onboarding: onboardingNl,
-    admin: adminNl,
-    analytics: analyticsNl,
-    candidates: candidatesNl,
-    compliance: complianceNl,
-    contracts: contractsNl,
-    jobs: jobsNl,
-    meetings: meetingsNl,
-    messages: messagesNl,
-    partner: partnerNl,
-    settings: settingsNl,
-  },
-  de: {
-    common: commonDe,
-    auth: authDe,
-    onboarding: onboardingDe,
-    admin: adminDe,
-    analytics: analyticsDe,
-    candidates: candidatesDe,
-    compliance: complianceDe,
-    contracts: contractsDe,
-    jobs: jobsDe,
-    meetings: meetingsDe,
-    messages: messagesDe,
-    partner: partnerDe,
-    settings: settingsDe,
-  },
-  fr: {
-    common: commonFr,
-    auth: authFr,
-    onboarding: onboardingFr,
-    admin: adminFr,
-    analytics: analyticsFr,
-    candidates: candidatesFr,
-    compliance: complianceFr,
-    contracts: contractsFr,
-    jobs: jobsFr,
-    meetings: meetingsFr,
-    messages: messagesFr,
-    partner: partnerFr,
-    settings: settingsFr,
-  },
-  es: {
-    common: commonEs,
-    auth: authEs,
-    onboarding: onboardingEs,
-    admin: adminEs,
-    analytics: analyticsEs,
-    candidates: candidatesEs,
-    compliance: complianceEs,
-    contracts: contractsEs,
-    jobs: jobsEs,
-    meetings: meetingsEs,
-    messages: messagesEs,
-    partner: partnerEs,
-    settings: settingsEs,
-  },
-  zh: {
-    common: commonZh,
-    auth: authZh,
-    onboarding: onboardingZh,
-    admin: adminZh,
-    analytics: analyticsZh,
-    candidates: candidatesZh,
-    compliance: complianceZh,
-    contracts: contractsZh,
-    jobs: jobsZh,
-    meetings: meetingsZh,
-    messages: messagesZh,
-    partner: partnerZh,
-    settings: settingsZh,
-  },
-  ar: {
-    common: commonAr,
-    auth: authAr,
-    onboarding: onboardingAr,
-    admin: adminAr,
-    analytics: analyticsAr,
-    candidates: candidatesAr,
-    compliance: complianceAr,
-    contracts: contractsAr,
-    jobs: jobsAr,
-    meetings: meetingsAr,
-    messages: messagesAr,
-    partner: partnerAr,
-    settings: settingsAr,
-  },
-  ru: {
-    common: commonRu,
-    auth: authRu,
-    onboarding: onboardingRu,
-    admin: adminRu,
-    analytics: analyticsRu,
-    candidates: candidatesRu,
-    compliance: complianceRu,
-    contracts: contractsRu,
-    jobs: jobsRu,
-    meetings: meetingsRu,
-    messages: messagesRu,
-    partner: partnerRu,
-    settings: settingsRu,
-  },
 };
+
+/**
+ * PERF: Dynamic locale loader — loads language JSON files on-demand
+ * using Vite's dynamic import(). Files are code-split into separate
+ * chunks that are only downloaded when a user actually switches language.
+ */
+
+// Track which languages have been loaded to avoid duplicate imports
+const loadedLanguages = new Set<string>(['en']);
+
+async function loadAllNamespaces(lang: string): Promise<Record<string, any>> {
+  const namespaceImports = ALL_NAMESPACES.map(async (ns) => {
+    try {
+      const mod = await import(`@/i18n/locales/${lang}/${ns}.json`);
+      return [ns, mod.default || mod] as [string, any];
+    } catch {
+      // Namespace doesn't exist for this language — skip silently
+      return [ns, {}] as [string, any];
+    }
+  });
+  
+  const results = await Promise.all(namespaceImports);
+  const resources: Record<string, any> = {};
+  for (const [ns, data] of results) {
+    resources[ns] = data;
+  }
+  return resources;
+}
+
+/**
+ * Load a language's translations on-demand and register them with i18next.
+ * Called automatically on language change. Results are cached in i18next's
+ * internal store + localStorage via the Supabase backend.
+ */
+export async function loadLanguageAsync(lang: string): Promise<void> {
+  if (lang === 'en' || loadedLanguages.has(lang)) return;
+  
+  try {
+    const resources = await loadAllNamespaces(lang);
+    
+    // Register each namespace with i18next
+    for (const [ns, data] of Object.entries(resources)) {
+      if (data && Object.keys(data).length > 0) {
+        i18n.addResourceBundle(lang, ns, data, true, true);
+      }
+    }
+    
+    loadedLanguages.add(lang);
+  } catch (error) {
+    // If local files fail, the Supabase backend will handle it
+    console.warn(`[i18n] Failed to load local resources for ${lang}, falling back to Supabase backend`);
+  }
+}
 
 i18n
   .use(SupabaseBackend)
   .use(LanguageDetector)
   .use(initReactI18next)
   .init({
-    resources: bundledResources, // All bundled namespaces
+    resources: bundledResources, // Only English bundled
     fallbackLng: 'en',
     supportedLngs: SUPPORTED_LANGUAGES,
     defaultNS: 'common',
@@ -403,6 +249,13 @@ i18n
     },
   });
 
+// PERF: Auto-load language on detection/change — ensures non-English 
+// languages are fetched before rendering
+const detectedLang = i18n.language;
+if (detectedLang && detectedLang !== 'en') {
+  loadLanguageAsync(detectedLang);
+}
+
 // Font URLs for languages that require special fonts
 const LANGUAGE_FONTS: Record<string, string> = {
   zh: 'https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;600;700&display=swap',
@@ -425,15 +278,16 @@ const loadFontForLanguage = (lng: string) => {
   }
 };
 
-// Apply RTL for Arabic on language change and load fonts dynamically
+// Apply RTL for Arabic on language change, load fonts, and lazy-load locale files
 i18n.on('languageChanged', (lng) => {
   document.documentElement.dir = lng === 'ar' ? 'rtl' : 'ltr';
   document.documentElement.lang = lng;
 
+  // PERF: Lazy-load locale files for non-English languages
+  loadLanguageAsync(lng);
+
   // Load font dynamically if needed (Chinese, Arabic)
   loadFontForLanguage(lng);
-
-  console.log(`[i18n] Language changed to: ${lng}`);
 });
 
 export default i18n;

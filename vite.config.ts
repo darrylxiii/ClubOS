@@ -2,6 +2,7 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
 import { VitePWA } from "vite-plugin-pwa";
+import { visualizer } from "rollup-plugin-visualizer";
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode, command }) => ({
@@ -49,6 +50,13 @@ export default defineConfig(({ mode, command }) => ({
   },
   plugins: [
     react(),
+    // PERF: Bundle visualizer — generates stats.html on production builds
+    mode === 'production' && visualizer({
+      filename: 'stats.html',
+      gzipSize: true,
+      brotliSize: true,
+      template: 'treemap',
+    }) as any,
     // PWA is only needed for production builds; it is memory-heavy during build
     command === 'build' && mode === 'production' &&
       VitePWA({
@@ -109,9 +117,9 @@ export default defineConfig(({ mode, command }) => ({
         // CRITICAL: Do NOT precache HTML - use NetworkFirst at runtime
         // This prevents stale index.html from bricking the app after deploy
         globPatterns: ['**/*.{js,css,ico,png,svg,woff2}'],
-        // PERF: Exclude the monolithic index chunk from precache — it's too large
-        // and will be handled by runtime CacheFirst strategy instead
-        globIgnores: ['**/index-*.js'],
+        // PERF: Exclude locale chunks from precache — they are loaded on-demand
+        // when a user switches language, not needed for initial load
+        globIgnores: ['**/common-*.js'],
         
         // CRITICAL: Auto-activate new service worker immediately
         // Prevents users from being stuck on old cached version

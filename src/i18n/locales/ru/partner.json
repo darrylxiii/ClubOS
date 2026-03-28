@@ -1391,7 +1391,7 @@
       "good": "Хорошо",
       "fair": "Удовлетворительно",
       "limited": "Ограничено",
-      "googleCalendar": "Google Calendar",
+      "googleCalendar": "Google Календарь",
       "bestMatch": "Лучшее совпадение"
     },
     "noAvailableSlotsFound": "Свободные слоты не найдены",
@@ -2521,7 +2521,7 @@
       "imageMustBeUnder5mb": "Image must be under 5MB.",
       "profilePhotoUploaded": "Profile photo uploaded.",
       "failedToUploadPhoto": "Failed to upload photo.",
-      "somethingWentWrongPleaseTryAgain": "Something went wrong. Please try again.",
+      "somethingWentWrongPleaseTryAgain": "Что-то пошло не так. Попробуйте ещё раз.",
       "failedToSetPassword": "Failed to set password.",
       "partnerCompletedInitialAccountSetupPassword": "Partner completed initial account setup (password + profile)"
     }

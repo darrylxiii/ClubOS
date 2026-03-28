@@ -12,8 +12,8 @@ const Assessments = memo(() => {
       {/* Breadcrumb */}
       <Breadcrumb 
         items={[
-          { label: 'Home', path: '/home' },
-          { label: 'Assessments' }
+          { label: t('breadcrumb.home', 'Home'), path: '/home' },
+          { label: t('assessments.title', 'Assessments') }
         ]}
       />
       
@@ -32,7 +32,7 @@ const Assessments = memo(() => {
 
       {/* Coming Soon Note */}
       <div className="text-center text-sm text-muted-foreground mt-8">
-        More assessments coming soon
+        {t('assessments.comingSoon', 'More assessments coming soon')}
       </div>
     </div>
   );

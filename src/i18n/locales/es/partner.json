@@ -1919,7 +1919,7 @@
   "detailed_feedback": "Detailed_feedback",
   "detected_at": "Detected_at",
   "difficulty": "Difficulty",
-  "documents": "Documents",
+  "documents": "Documentos",
   "draft_restored": "Draft_restored",
   "duration_min": "Duration_min",
   "duration_minutes": "Duration_minutes",
@@ -2441,7 +2441,7 @@
       "overallRating": "Overall Rating",
       "technicalSkills": "Technical Skills",
       "culturalFit": "Cultural Fit",
-      "communication": "Communication",
+      "communication": "Comunicación",
       "recommendation": "Recommendation",
       "no": "No",
       "strengths": "Strengths",
@@ -2521,7 +2521,7 @@
       "imageMustBeUnder5mb": "Image must be under 5MB.",
       "profilePhotoUploaded": "Profile photo uploaded.",
       "failedToUploadPhoto": "Failed to upload photo.",
-      "somethingWentWrongPleaseTryAgain": "Something went wrong. Please try again.",
+      "somethingWentWrongPleaseTryAgain": "Algo salió mal. Por favor intente de nuevo.",
       "failedToSetPassword": "Failed to set password.",
       "partnerCompletedInitialAccountSetupPassword": "Partner completed initial account setup (password + profile)"
     }

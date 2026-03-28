@@ -232,9 +232,9 @@
   },
   "text": {
     "contractdetailpage": {
-      "signContract": "Sign Contract",
-      "milestoneStarted": "Milestone started!",
-      "milestoneSubmittedForReview": "Milestone submitted for review!",
+      "signContract": "Contract ondertekenen",
+      "milestoneStarted": "Mijlpaal gestart!",
+      "milestoneSubmittedForReview": "Mijlpaal ingediend ter beoordeling!",
       "milestoneApprovedButPaymentReleaseFailed": "Milestone approved, but payment release failed. Please contact support.",
       "milestoneApprovedPaymentReleasedSuccessfully": "Milestone approved! Payment released successfully.",
       "youAreTheFreelancer": "You are the freelancer",

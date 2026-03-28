@@ -27,14 +27,14 @@ export default function CoverLetterGenerator() {
             className="mb-4"
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
-            Back
+            {t('coverLetterGenerator.back', 'Back')}
           </Button>
 
           <div className="flex items-start justify-between">
             <div>
               <h1 className="text-3xl font-black uppercase flex items-center gap-3">
                 <div className="w-1.5 h-10 bg-primary" />
-                Cover Letter Builder
+                {t('coverLetterGenerator.title', 'Cover Letter Builder')}
               </h1>
               <p className="text-muted-foreground mt-2">{t('coverLetterGenerator.desc')}</p>
             </div>
@@ -55,7 +55,7 @@ export default function CoverLetterGenerator() {
             <CardHeader className="pb-3">
               <CardTitle className="text-lg flex items-center gap-2">
                 <FileText className="w-5 h-5 text-primary" />
-                How It Works
+                {t('coverLetterGenerator.howItWorks', 'How It Works')}
               </CardTitle>
             </CardHeader>
             <CardContent>

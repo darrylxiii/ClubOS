@@ -78,7 +78,7 @@ export default function Referrals() {
           <div>
             <h1 className="text-3xl font-bold flex items-center gap-3">
               <TrendingUp className="h-8 w-8 text-primary" />
-              Your Earnings & Referrals
+              {t('referrals.title', 'Your Earnings & Referrals')}
             </h1>
             <p className="text-muted-foreground mt-1">{t('referrals.desc')}</p>
           </div>
@@ -86,17 +86,17 @@ export default function Referrals() {
           <div className="flex flex-wrap gap-2">
             <Button variant="outline" size="sm" onClick={() => setShareSheetOpen(true)} className="gap-2">
               <Share2 className="h-4 w-4" />
-              Share Link
+              {t('referrals.shareLink', 'Share Link')}
             </Button>
             {(isAdmin || isPartner) && (
               <Button variant="outline" size="sm" onClick={handleClaimClick} className="gap-2">
                 <Building2 className="h-4 w-4" />
-                Claim Company
+                {t('referrals.claimCompany', 'Claim Company')}
               </Button>
             )}
             <Button size="sm" onClick={handleClaimClick} className="gap-2">
               <Plus className="h-4 w-4" />
-              Refer a Member
+              {t('referrals.referMember', 'Refer a Member')}
             </Button>
           </div>
         </motion.div>

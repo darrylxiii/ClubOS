@@ -673,10 +673,10 @@ const Auth = () => {
           <div className="space-y-3">
             <h1 className="tracking-tight text-foreground font-bold text-3xl">
               {isLogin
-                ? 'login.title'
+                ? t('login.title', 'Welcome Back')
                 : inviteInfo?.targetRole === 'partner'
-                  ? 'Set Up Your Partnership'
-                  : 'signup.title'}
+                  ? t('signup.partnerSetup', 'Set Up Your Partnership')
+                  : t('signup.title', 'Create Account')}
             </h1>
             <div className="flex items-center justify-center gap-2">
               {inviteInfo?.targetRole === 'partner' ? (
@@ -687,7 +687,7 @@ const Auth = () => {
               ) : (
                 <>
                   <Lock className="w-4 h-4 text-foreground/90" />
-                  <p className="text-sm text-foreground/90 font-semibold">{'signup.inviteOnly'}</p>
+                  <p className="text-sm text-foreground/90 font-semibold">{t('signup.inviteOnly', 'Invite Only')}</p>
                 </>
               )}
             </div>
@@ -705,7 +705,7 @@ const Auth = () => {
           {!inviteValidating && inviteValid && inviteInfo && <div className="p-4 rounded-2xl bg-success/10 border border-success/20 backdrop-blur-sm space-y-2">
               <div className="flex items-center justify-center gap-2">
                 <CheckCircle2 className="w-5 h-5 text-success" />
-                <p className="text-sm font-bold text-success">{'invite.valid'}</p>
+                <p className="text-sm font-bold text-success">{t('invite.valid', 'Valid Invite')}</p>
               </div>
               <p className="text-xs text-foreground/80">
                 {inviteInfo.targetRole === 'partner' && inviteInfo.recipientName
@@ -731,7 +731,7 @@ const Auth = () => {
         <CardContent className="pt-2 px-10 pb-10">
           {needsEmailVerification ? <div className="space-y-5">
               <div className="p-4 rounded-2xl bg-primary/10 border border-primary/20 space-y-2">
-                <p className="text-sm font-bold text-primary text-center">{'verification.title'}</p>
+                <p className="text-sm font-bold text-primary text-center">{t('verification.title', 'Email Verification')}</p>
                 <p className="text-xs text-foreground/80 text-center">
                   {t('verification.codeSentTo', {
                 email
@@ -753,20 +753,20 @@ const Auth = () => {
               </div>
 
               <RainbowButton onClick={handleVerifyEmail} disabled={emailVerificationCode.length !== 6 || verificationLoading} className="w-full h-16 rounded-2xl">
-                {verificationLoading ? 'verification.verifying' : 'verification.verify'}
+                {verificationLoading ? t('verification.verifying', 'Verifying…') : t('verification.verify', 'Verify Email')}
               </RainbowButton>
 
               <button type="button" onClick={() => {
             setNeedsEmailVerification(false);
             setEmailVerificationCode("");
            }} className="text-foreground/90 hover:text-foreground hover:underline text-sm w-full text-center">
-                {'resetPassword.backToLogin'}
+                {t('resetPassword.backToLogin', 'Back to Login')}
               </button>
             </div> : mfaRequired ? <div className="space-y-5">
               <div className="p-4 rounded-2xl bg-primary/10 border border-primary/20 space-y-2">
-                <p className="text-sm font-bold text-primary text-center">{'mfa.title'}</p>
+                <p className="text-sm font-bold text-primary text-center">{t('mfa.title', 'Two-Factor Authentication')}</p>
                 <p className="text-xs text-foreground/80 text-center">
-                  {'mfa.subtitle'}
+                  {t('mfa.subtitle', 'Enter the 6-digit code from your authenticator app')}
                 </p>
               </div>
 
@@ -784,14 +784,14 @@ const Auth = () => {
               </div>
 
               <RainbowButton onClick={handleVerifyMFA} disabled={mfaCode.length !== 6 || verificationLoading} className="w-full h-16 rounded-2xl">
-                {verificationLoading ? 'verification.verifying' : 'mfa.verify'}
+                {verificationLoading ? t('verification.verifying', 'Verifying…') : t('mfa.verify', 'Verify')}
               </RainbowButton>
 
               <button type="button" onClick={() => {
             setMfaRequired(false);
             setMfaCode("");
           }} className="text-foreground/90 hover:text-foreground hover:underline text-sm w-full text-center">
-                {'resetPassword.backToLogin'}
+                {t('resetPassword.backToLogin', 'Back to Login')}
               </button>
             </div> : isLogin ? <div className="space-y-5">
               {/* Account Lockout Warning */}
@@ -817,8 +817,8 @@ const Auth = () => {
 
               {/* Email Input */}
               <div>
-                <label htmlFor="auth-email" className="sr-only">{'login.email'}</label>
-                <Input id="auth-email" type="email" placeholder={'login.email'} value={email} onChange={e => { setEmail(e.target.value); setMagicLinkSent(false); }} className="h-14 rounded-xl glass-input" required />
+                <label htmlFor="auth-email" className="sr-only">{t('login.email', 'Email')}</label>
+                <Input id="auth-email" type="email" placeholder={t('login.email', 'Email')} value={email} onChange={e => { setEmail(e.target.value); setMagicLinkSent(false); }} className="h-14 rounded-xl glass-input" required />
               </div>
 
               {/* Primary CTA: Send Secure Magic Link */}
@@ -855,7 +855,7 @@ const Auth = () => {
                   <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
                   <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
                 </svg>
-                {'Continue with Google'}
+                {t('oauth.google', 'Continue with Google')}
               </Button>
 
               <Button
@@ -867,7 +867,7 @@ const Auth = () => {
                 <svg className="h-5 w-5" viewBox="0 0 24 24" fill="#0A66C2">
                   <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z" />
                 </svg>
-                {'Continue with LinkedIn'}
+                {t('oauth.linkedin', 'Continue with LinkedIn')}
               </Button>
 
               {/* Request Access & Set Password */}
@@ -877,14 +877,14 @@ const Auth = () => {
                   onClick={() => setShowAccessDialog(true)}
                   className="text-foreground/90 hover:text-foreground hover:underline text-sm transition-colors"
                 >
-                  {'Request Access'}
+                  {t('signup.requestAccess', 'Request Access')}
                 </button>
               </div>
 
               <Dialog open={showAccessDialog} onOpenChange={setShowAccessDialog}>
                 <DialogContent className="backdrop-blur-xl bg-card/80 border-border/50 shadow-2xl max-w-sm">
                   <DialogHeader>
-                    <DialogTitle className="text-center text-lg">{'Request Access'}</DialogTitle>
+                    <DialogTitle className="text-center text-lg">{t('signup.requestAccess', 'Request Access')}</DialogTitle>
                   </DialogHeader>
                   <div className="flex flex-col gap-3 pt-2">
                     <Button
@@ -893,7 +893,7 @@ const Auth = () => {
                       onClick={() => { setShowAccessDialog(false); navigate('/onboarding'); }}
                     >
                       <Users className="h-5 w-5" />
-                      {'For Members'}
+                      {t('signup.forMembers', 'For Members')}
                     </Button>
                     <Button
                       variant="outline"
@@ -901,7 +901,7 @@ const Auth = () => {
                       onClick={() => { setShowAccessDialog(false); navigate('/partner'); }}
                     >
                       <Building2 className="h-5 w-5" />
-                      {'For Partners'}
+                      {t('signup.forPartners', 'For Partners')}
                     </Button>
                   </div>
                 </DialogContent>
@@ -913,7 +913,7 @@ const Auth = () => {
                   onClick={() => setSetPasswordOpen(true)}
                   className="text-sm text-foreground/50 hover:text-foreground transition-colors"
                 >
-                  {'Want to set a permanent password?'} <span className="underline">{'Click here'}</span>
+                  {t('login.setPassword', 'Want to set a permanent password?')} <span className="underline">{t('login.clickHere', 'Click here')}</span>
                 </button>
               </div>
             </div>
@@ -921,19 +921,19 @@ const Auth = () => {
             : <form onSubmit={handleEmailAuth} className="space-y-5">
               {/* Sign Up Form (with invite) */}
               <div>
-                <label htmlFor="auth-fullname" className="sr-only">{'signup.fullName'}</label>
-                <Input id="auth-fullname" type="text" placeholder={'signup.fullName'} value={fullName} onChange={e => setFullName(e.target.value)} className="h-14 rounded-xl glass-input" required />
+                <label htmlFor="auth-fullname" className="sr-only">{t('signup.fullName', 'Full Name')}</label>
+                <Input id="auth-fullname" type="text" placeholder={t('signup.fullName', 'Full Name')} value={fullName} onChange={e => setFullName(e.target.value)} className="h-14 rounded-xl glass-input" required />
               </div>
 
               <div>
-                <label htmlFor="auth-email" className="sr-only">{'login.email'}</label>
-                <Input id="auth-email" type="email" placeholder={'login.email'} value={email} onChange={e => setEmail(e.target.value)} className="h-14 rounded-xl glass-input" required />
+                <label htmlFor="auth-email" className="sr-only">{t('login.email', 'Email')}</label>
+                <Input id="auth-email" type="email" placeholder={t('login.email', 'Email')} value={email} onChange={e => setEmail(e.target.value)} className="h-14 rounded-xl glass-input" required />
               </div>
 
               <AssistedPasswordConfirmation password={password} confirmPassword={confirmPassword} onPasswordChange={setPassword} onConfirmPasswordChange={setConfirmPassword} />
 
               <RainbowButton type="submit" disabled={isLoading || inviteValid !== true} className="w-full h-14 rounded-xl font-semibold text-base">
-                {isLoading ? tCommon('actions.loading') : 'signup.createAccount'}
+                {isLoading ? tCommon('actions.loading') : t('signup.createAccount', 'Create Account')}
               </RainbowButton>
             </form>}
         </CardContent>

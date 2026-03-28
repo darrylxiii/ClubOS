@@ -43,4 +43,5 @@ lint_report.txt
 translation_audit_data.json
 translation_audit_full.md
 translation_audit.md
+stats.html
 *.local

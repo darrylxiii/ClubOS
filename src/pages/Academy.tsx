@@ -9,33 +9,29 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { useAuth } from "@/contexts/AuthContext";
-import { notify } from "@/lib/notify";
+
 import {
   GraduationCap,
   BookOpen,
   Clock,
-  CheckCircle2,
-  Award,
-  Target,
   Plus,
   Search,
   Filter,
-  ArrowUpDown,
-  PlayCircle
+  ArrowUpDown
 } from "lucide-react";
 import { CreateCourseDialog } from "@/components/academy/CreateCourseDialog";
-import { AcademyDashboard } from "@/components/academy/AcademyDashboard";
-import { ContinueLearningCard } from "@/components/academy/ContinueLearningCard";
-import { MaterialCard } from "@/components/academy/MaterialCard";
+
+
+
 import { PopularCourseCard } from "@/components/academy/PopularCourseCard";
-import { LearnerDashboard } from "@/components/academy/LearnerDashboard";
-import { RecommendationsPanel } from "@/components/academy/RecommendationsPanel";
-import { BadgesDisplay } from "@/components/academy/BadgesDisplay";
+
+
+
 import { EnhancedSearchBar } from "@/components/academy/EnhancedSearchBar";
-import { CourseFilters } from "@/components/academy/CourseFilters";
-import { CategoryGrid } from "@/components/academy/CategoryGrid";
-import { AverageRatingDisplay } from "@/components/academy/AverageRatingDisplay";
-import { SkillTagsDisplay } from "@/components/academy/SkillTagsDisplay";
+
+
+
+
 import { HeroBanner } from "@/components/academy/HeroBanner";
 import { AcademySidebar } from "@/components/academy/AcademySidebar";
 import { CourseCarousel } from "@/components/academy/CourseCarousel";
@@ -133,11 +129,11 @@ export default function Academy() {
                     className="squircle"
                   >
                     <GraduationCap className="mr-2 h-4 w-4" />
-                    Creator Hub
+                    {t('academy.creatorHub', 'Creator Hub')}
                   </Button>
                   <Button onClick={() => setShowCreateCourse(true)} className="squircle">
                     <Plus className="mr-2 h-4 w-4" />
-                    Create Course
+                    {t('academy.createCourse', 'Create Course')}
                   </Button>
                 </div>
               )}
@@ -214,11 +210,11 @@ export default function Academy() {
                     </div>
                     <Button variant="outline" className="squircle-sm">
                       <Filter className="mr-2 h-4 w-4" />
-                      Add Filter
+                      {t('academy.addFilter', 'Add Filter')}
                     </Button>
                     <Button variant="outline" className="squircle-sm">
                       <ArrowUpDown className="mr-2 h-4 w-4" />
-                      Sort by
+                      {t('academy.sortBy', 'Sort by')}
                     </Button>
                   </div>
                 </div>
@@ -231,13 +227,13 @@ export default function Academy() {
                       <h3 className="text-xl font-semibold mb-2">{t('academy.text17')}</h3>
                       <p className="text-muted-foreground mb-6">
                         {isExpert
-                          ? "Be the first to create a course for this academy!"
-                          : "Check back soon for new courses"}
+                          ? t('academy.emptyExpert', 'Be the first to create a course for this academy!')
+                          : t('academy.emptyLearner', 'Check back soon for new courses')}
                       </p>
                       {isExpert && (
                         <Button onClick={() => setShowCreateCourse(true)}>
                           <Plus className="mr-2 h-4 w-4" />
-                          Create First Course
+                          {t('academy.createFirstCourse', 'Create First Course')}
                         </Button>
                       )}
                     </Card>
@@ -254,23 +250,23 @@ export default function Academy() {
                                 className="w-full h-full object-cover"
                               />
                               <Badge className="absolute top-4 right-4 squircle-sm bg-background/90 backdrop-blur-sm text-foreground font-bold">
-                                {course.estimated_hours || 12} Hours
+                                {course.estimated_hours || 12} {t('academy.hours', 'Hours')}
                               </Badge>
                               {!course.is_published && (
                                 <Badge className="absolute top-4 left-4 squircle-sm bg-yellow-500/90 backdrop-blur-sm text-background">
-                                  Draft
+                                  {t('academy.draft', 'Draft')}
                                 </Badge>
                               )}
                             </div>
                           ) : (
                             <div className="h-48 bg-gradient-to-br from-purple-300 via-pink-300 to-purple-400 p-6 flex items-center justify-center relative overflow-hidden">
                               <Badge className="absolute top-4 right-4 squircle-sm bg-background/90 backdrop-blur-sm text-foreground font-bold">
-                                {course.estimated_hours || 12} Hours
+                                {course.estimated_hours || 12} {t('academy.hours', 'Hours')}
                               </Badge>
                               <BookOpen className="h-24 w-24 text-white/60" />
                               {!course.is_published && (
                                 <Badge className="absolute top-4 left-4 squircle-sm bg-yellow-500/90 backdrop-blur-sm text-background">
-                                  Draft
+                                  {t('academy.draft', 'Draft')}
                                 </Badge>
                               )}
                             </div>
@@ -303,7 +299,7 @@ export default function Academy() {
                               <div className="flex items-center gap-3">
                                 <div className="flex items-center gap-1">
                                   <BookOpen className="h-4 w-4" />
-                                  <span>{Math.floor((course.estimated_hours || 12) * 2)} Lessons</span>
+                                  <span>{Math.floor((course.estimated_hours || 12) * 2)} {t('academy.lessons', 'Lessons')}</span>
                                 </div>
                                 <div className="flex items-center gap-1">
                                   <Clock className="h-4 w-4" />
@@ -361,13 +357,13 @@ export default function Academy() {
                   <h3 className="text-xl font-semibold mb-2">{t('academy.text19')}</h3>
                   <p className="text-muted-foreground mb-6">
                     {isExpert
-                      ? "Be the first to create a course for this academy!"
-                      : "Check back soon for new courses"}
+                      ? t('academy.emptyExpert', 'Be the first to create a course for this academy!')
+                      : t('academy.emptyLearner', 'Check back soon for new courses')}
                   </p>
                   {isExpert && (
                     <Button onClick={() => setShowCreateCourse(true)}>
                       <Plus className="mr-2 h-4 w-4" />
-                      Create First Course
+                      {t('academy.createFirstCourse', 'Create First Course')}
                     </Button>
                   )}
                 </Card>

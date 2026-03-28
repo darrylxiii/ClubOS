@@ -1051,7 +1051,7 @@
     "theQuantumClubTeam": "The Quantum Club Team",
     "theQuantumClub": "The Quantum Club",
     "emailPreferences": "E-Mail Preferences",
-    "support": "Support",
+    "support": "Unterstützung",
     "privacy": "Privacy",
     "lightThemePreview": "Light theme preview",
     "emailPreview": "E-Mail Preview"
@@ -1293,7 +1293,7 @@
     "allTypes": "Alle Types",
     "remote": "Remote",
     "hybrid": "Hybrid",
-    "onsite": "On-site",
+    "onsite": "Vor Ort",
     "documentStatus": "Dokument Status",
     "all": "Alle",
     "resumeUploaded": "Fortsetzen Uploaded",
@@ -3544,7 +3544,7 @@
     "text1": "Unternehmen",
     "text2": "Nutzung",
     "text3": "Uebernahme",
-    "text4": "Support"
+    "text4": "Unterstützung"
   },
   "dueDiligenceDashboard": {
     "desc": "Investorentaugliche Metriken, Dokumentation und Datenraum",
@@ -4170,7 +4170,7 @@
       "allTypes": "All Types",
       "custom": "Custom",
       "platformGenerated": "Platform Generated",
-      "allCompanies": "All Companies",
+      "allCompanies": "Alle Unternehmen",
       "inactive": "Inactive",
       "grantPlatformAchievement": "Grant Platform Achievement",
       "manuallyGrantAPlatformAchievementTo": "Manually grant a platform achievement to a user",
@@ -4196,7 +4196,7 @@
       "rarity": "Rarity",
       "xpReward": "XP Reward",
       "editCompanyAchievement": "Edit Company Achievement",
-      "saveChanges": "Save Changes",
+      "saveChanges": "Änderungen speichern",
       "editPlatformAchievement": "Edit Platform Achievement",
       "xpPoints": "XP Points",
       "achievementEarners": "Achievement Earners",
@@ -4350,7 +4350,7 @@
       "saveConfiguration": "Save Configuration"
     },
     "targetcompaniesoverview": {
-      "allCompanies": "All Companies",
+      "allCompanies": "Alle Unternehmen",
       "allStatuses": "All Statuses",
       "new": "New",
       "targeting": "Targeting",
@@ -4396,7 +4396,7 @@
       "templateDeleted": "Template deleted",
       "editJobPostingTemplate": "Edit Job Posting Template",
       "createJobPostingTemplate": "Create Job Posting Template",
-      "saveChanges": "Save Changes",
+      "saveChanges": "Änderungen speichern",
       "createTemplate": "Create Template",
       "noJobPostingTemplatesCreateOne": "No job posting templates. Create one to standardize your job descriptions.",
       "noTemplatesMatchTheSearch": "No templates match the search.",

@@ -79,7 +79,7 @@ export default function MySkillsPage() {
           </div>
           <Button variant="outline">
             <Download className="w-4 h-4 mr-2" />
-            Export as PDF
+            {t('mySkillsPage.exportAsPdf', 'Export as PDF')}
           </Button>
         </div>
 
@@ -93,9 +93,9 @@ export default function MySkillsPage() {
                   <TrendingUp className="w-6 h-6 text-white" />
                 </div>
                 <div className="flex-1">
-                  <h3 className="text-xl font-semibold capitalize">{level} Skills</h3>
+                  <h3 className="text-xl font-semibold capitalize">{level} {t('mySkillsPage.skills', 'Skills')}</h3>
                   <p className="text-sm text-muted-foreground">
-                    {skillsList.length} {skillsList.length === 1 ? 'skill' : 'skills'}
+                    {skillsList.length} {skillsList.length === 1 ? t('mySkillsPage.skill', 'skill') : t('mySkillsPage.skillsPlural', 'skills')}
                   </p>
                 </div>
                 <Progress 

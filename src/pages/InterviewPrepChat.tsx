@@ -103,7 +103,7 @@ export default function InterviewPrepChat() {
   };
 
   const streamChat = async (currentMessages: Message[]) => {
-    const CHAT_URL = `https://dpjucecmoyfzrduhlctt.supabase.co/functions/v1/interview-prep-chat`;
+    const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/interview-prep-chat`;
 
     try {
       const { data: { session } } = await supabase.auth.getSession();

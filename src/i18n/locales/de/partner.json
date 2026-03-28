@@ -161,7 +161,7 @@
     "referCompany": "Unternehmen empfehlen"
   },
   "support": {
-    "title": "Support",
+    "title": "Unterstützung",
     "helpCenter": "Hilfecenter",
     "contact": "Support kontaktieren",
     "documentation": "Dokumentation",
@@ -2441,7 +2441,7 @@
       "overallRating": "Overall Rating",
       "technicalSkills": "Technical Skills",
       "culturalFit": "Cultural Fit",
-      "communication": "Communication",
+      "communication": "Kommunikation",
       "recommendation": "Recommendation",
       "no": "No",
       "strengths": "Strengths",
@@ -2521,7 +2521,7 @@
       "imageMustBeUnder5mb": "Image must be under 5MB.",
       "profilePhotoUploaded": "Profile photo uploaded.",
       "failedToUploadPhoto": "Failed to upload photo.",
-      "somethingWentWrongPleaseTryAgain": "Something went wrong. Please try again.",
+      "somethingWentWrongPleaseTryAgain": "Etwas ist schiefgelaufen. Bitte versuchen Sie es erneut.",
       "failedToSetPassword": "Failed to set password.",
       "partnerCompletedInitialAccountSetupPassword": "Partner completed initial account setup (password + profile)"
     }

@@ -102,7 +102,7 @@ const Jobs = () => {
         setUserCurrency(data.preferred_currency as Currency);
       }
       if (data?.club_sync_enabled !== undefined) {
-        setClubSyncEnabled(data.club_sync_enabled);
+        setClubSyncEnabled(data.club_sync_enabled ?? false);
       }
     };
     fetchUserSettings();
@@ -343,7 +343,7 @@ const Jobs = () => {
         id: job.id,
         title: job.title,
         company: job.company,
-        matchScore: job.matchScore,
+        matchScore: job.matchScore ?? 0,
         location: job.location,
       }));
   }, [jobs]);
@@ -586,14 +586,14 @@ const Jobs = () => {
                 <TabsList className="h-auto flex-wrap">
                   <TabsTrigger value="opportunities" className="gap-1.5">
                     <Briefcase className="w-3.5 h-3.5" />
-                    Browse ({filteredJobs.length})
+                    {t('text.jobs.browse', 'Browse')} ({filteredJobs.length})
                   </TabsTrigger>
                   <TabsTrigger value="applications" className="gap-1.5">
                     <FileText className="w-3.5 h-3.5" />
-                    Applied
+                    {t('text.jobs.applied', 'Applied')}
                   </TabsTrigger>
                   <TabsTrigger value="saved" className="gap-1.5">
-                    Saved ({savedJobs.length})
+                    {t('text.jobs.saved', 'Saved')} ({savedJobs.length})
                   </TabsTrigger>
                   <TabsTrigger value="map" className="gap-1.5">
                     <Map className="w-3.5 h-3.5" />

@@ -839,7 +839,7 @@
   "performance": {
     "high": "Élevé",
     "medium": "Moyen",
-    "performanceScore": "Performance Score",
+    "performanceScore": "Score de performance",
     "poor": "Poor",
     "fair": "Moyen",
     "good": "Bon",

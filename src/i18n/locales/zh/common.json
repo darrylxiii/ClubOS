@@ -14,7 +14,7 @@
     "analytics": "数据分析",
     "hiring_intelligence": "招聘智能",
     "viewAll": "查看全部",
-    "feed": "Feed",
+    "feed": "动态",
     "achievements": "成就",
     "liveHub": "Live Hub",
     "inbox": "收件箱",
@@ -506,7 +506,7 @@
       "updateRates": "Update Rates",
       "viewProjects": "View Projects",
       "saving": "Saving...",
-      "saveChanges": "Save Changes",
+      "saveChanges": "保存更改",
       "onetimeProject": "One-time Project",
       "recurringWork": "Recurring Work",
       "retainer": "Retainer",
@@ -1246,7 +1246,7 @@
     "applicationsThisWeek": "{{count}} applications this week",
     "createjobdialog": {
       "company": "Company",
-      "jobTitle": "Job Title",
+      "jobTitle": "职位名称",
       "primaryLocation": "Primary Location",
       "rolePublishedSuccessfully": "Role published successfully.",
       "roleSubmittedForReview": "Role submitted for review.",
@@ -1261,8 +1261,8 @@
       "compensation": "Compensation",
       "details": "Details",
       "review": "Review",
-      "fulltime": "Full-time",
-      "parttime": "Part-time",
+      "fulltime": "全职",
+      "parttime": "兼职",
       "contract": "Contract",
       "freelance": "Freelance",
       "internship": "Internship",
@@ -1274,7 +1274,7 @@
       "vpCsuite": "VP / C-Suite",
       "onsite": "On-site",
       "hybrid": "Hybrid",
-      "remote": "Remote",
+      "remote": "远程",
       "flexible": "Flexible",
       "immediate": "Immediate",
       "within2Weeks": "Within 2 weeks",
@@ -6645,7 +6645,7 @@
   "original_date": "Original 日期",
   "where_did_this_happen": "Where did this happen?",
   "eg_30": "e.g., 30",
-  "participants": "Participants",
+  "participants": "参与者",
   "john_doe_jane_smith": "John Doe, Jane Smith (comma separated)",
   "urgency_level": "Urgency 等级",
   "additional_context_about_this": "Additional context 关于 this 导入...",
@@ -7131,7 +7131,7 @@
   "voice_video_settings": "Voice & 视频 设置",
   "audio": "音频",
   "video_background": "视频 & Background",
-  "microphone": "Microphone",
+  "microphone": "麦克风",
   "speakers": "Speakers",
   "input_volume": "输入 Volume",
   "output_volume": "输出 Volume",
@@ -7556,7 +7556,7 @@
   "decisions_made": "Decisions Made",
   "device_settings": "Device 设置",
   "select_microphone": "选择 Microphone",
-  "camera": "Camera",
+  "camera": "摄像头",
   "select_camera": "选择 Camera",
   "speaker": "Speaker",
   "select_speaker": "选择 Speaker",
@@ -13652,7 +13652,7 @@
     "text23": "导入 Complete!",
     "text24": "Your WhatsApp 聊天 has been 导入成功",
     "text25": "消息",
-    "text26": "Participants"
+    "text26": "参与者"
   },
   "workspaceList": {
     "desc": "Your personal 工作区 for 备注, docs, and 更多",
@@ -14158,7 +14158,7 @@
       "bringEliteTalentToTheClub": "Bring elite talent to the club",
       "vipFastTrack": "VIP Fast Track",
       "acceleratedClubAccess": "Accelerated club access",
-      "somethingWentWrongPleaseTryAgain": "Something went wrong. Please try again."
+      "somethingWentWrongPleaseTryAgain": "出了些问题，请重试。"
     }
   },
   "objectives": {
@@ -14739,7 +14739,7 @@
       "sessionExpiredPleaseSignInAgain": "Session expired. Please sign in again.",
       "mfaIsAlreadyEnabledOnYour": "MFA is already enabled on your account.",
       "failedToSetUpMfaPlease": "Failed to set up MFA. Please try again.",
-      "somethingWentWrongPleaseTryAgain": "Something went wrong. Please try again.",
+      "somethingWentWrongPleaseTryAgain": "出了些问题，请重试。",
       "challengeFailedPleaseTryAgain": "Challenge failed. Please try again.",
       "invalidCodePleaseCheckYourAuthenticator1": "Invalid code. Please check your authenticator app and try again.",
       "mfaEnabledSuccessfully": "MFA enabled successfully",
@@ -14765,11 +14765,11 @@
       "comms": "Comms",
       "alerts": "Alerts",
       "privacy": "Privacy",
-      "security": "Security",
+      "security": "安全",
       "api": "API",
       "preferences": "Preferences",
       "company": "Company",
-      "documents": "Documents",
+      "documents": "文档",
       "uploadAndManageYourResumesCover": "Upload and manage your resumes, cover letters, and certificates",
       "companySettings": "Company Settings",
       "manageYourCompanyProfileBrandingAnd": "Manage your company profile, branding, and team members",
@@ -14899,7 +14899,7 @@
       "failedToDeleteDocument": "Failed to delete document",
       "home": "首页",
       "profile": "个人资料",
-      "documents": "Documents"
+      "documents": "文档"
     },
     "interviewprep": {
       "poweredByQuinTailoredToEach": "Powered by QUIN — tailored to each role and company",
@@ -15226,7 +15226,7 @@
       "requestSubmitted": "Request submitted.",
       "yourStrategistWillBeInTouch": "Your strategist will be in touch.",
       "weCouldNotVerifyThisRequest": "We could not verify this request. Please try again.",
-      "somethingWentWrongPleaseTryAgain": "Something went wrong. Please try again.",
+      "somethingWentWrongPleaseTryAgain": "出了些问题，请重试。",
       "yourStrategistWillBeInTouch1": "Your strategist will be in touch within 24 hours."
     }
   },
@@ -15272,7 +15272,7 @@
       "selectExactlyWhichRolesThisUser": "Select exactly which roles this user should have. Each role must be explicitly chosen - no automatic assignments.",
       "resetFilters": "Reset Filters",
       "saving": "Saving...",
-      "saveChanges": "Save Changes",
+      "saveChanges": "保存更改",
       "pleaseSelectAtLeastOneRole": "Please select at least one role before saving",
       "pleaseCheckTheConsoleForDetails": "Please check the console for details",
       "admin": "管理",
@@ -15333,7 +15333,7 @@
   },
   "animatedsidebar": {
     "viewProfile": "View profile",
-    "myProfile": "My Profile",
+    "myProfile": "我的资料",
     "settings": "设置",
     "appearance": "Appearance",
     "signOut": "Sign out",

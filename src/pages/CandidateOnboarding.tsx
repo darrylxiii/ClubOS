@@ -26,6 +26,7 @@ import { PageLoader } from "@/components/PageLoader";
  * - Responsive design
  */
 export default function CandidateOnboarding() {
+  const { t } = useTranslation('common');
   const navigate = useNavigate();
   const [isActive, setIsActive] = useState(true);
   const [checkingAuth, setCheckingAuth] = useState(true);
@@ -123,11 +124,11 @@ export default function CandidateOnboarding() {
               <div className="flex flex-col sm:flex-row gap-3 justify-center">
                 <Button variant="primary" onClick={() => navigate('/home')}>
                   <Home className="w-4 h-4" />
-                  {'Go to Dashboard'}
+                  {t('candidate.alreadyMember.dashboard', 'Go to Dashboard')}
                 </Button>
                 <Button variant="outline" onClick={() => navigate('/referrals')}>
                   <UserPlus className="w-4 h-4" />
-                  {'Invite a Friend'}
+                  {t('candidate.alreadyMember.invite', 'Invite a Friend')}
                 </Button>
               </div>
             </Card>

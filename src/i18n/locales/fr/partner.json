@@ -2521,7 +2521,7 @@
       "imageMustBeUnder5mb": "Image must be under 5MB.",
       "profilePhotoUploaded": "Profile photo uploaded.",
       "failedToUploadPhoto": "Failed to upload photo.",
-      "somethingWentWrongPleaseTryAgain": "Something went wrong. Please try again.",
+      "somethingWentWrongPleaseTryAgain": "Une erreur s'est produite. Veuillez réessayer.",
       "failedToSetPassword": "Failed to set password.",
       "partnerCompletedInitialAccountSetupPassword": "Partner completed initial account setup (password + profile)"
     }

@@ -50,7 +50,7 @@
     "temporary": "Tijdelijk"
   },
   "workMode": {
-    "remote": "Remote",
+    "remote": "Op afstand",
     "hybrid": "Hybride",
     "onsite": "Op locatie",
     "flexible": "Flexibel"
@@ -223,7 +223,7 @@
   "text": {
     "companyjobsdashboard": {
       "youNeedToBeAssociatedWith": "You need to be associated with a company to access this dashboard.",
-      "newJob": "New Job",
+      "newJob": "Nieuwe vacature",
       "jobs": "Vacatures",
       "pipeline": "Pijplijn",
       "settings": "Instellingen",
