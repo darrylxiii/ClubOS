@@ -228,7 +228,7 @@ Respond with JSON:
 }`;
 
   try {
-    const response = await fetch('https://chgrkvftjfibufoopmav.functions.supabase.co/google-gemini', {
+    const response = await fetch(`${Deno.env.get('SUPABASE_URL')}/functions/v1/google-gemini`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({

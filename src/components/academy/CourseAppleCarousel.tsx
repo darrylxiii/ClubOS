@@ -10,16 +10,16 @@ interface Course {
   id: string;
   slug: string;
   title: string;
-  description?: string;
+  description?: string | null;
   category?: string;
   course_image_url?: string;
   estimated_hours?: number;
   enrolled_count?: number;
   difficulty_level?: string;
   profiles?: {
-    full_name: string;
-    avatar_url?: string;
-  };
+    full_name: string | null;
+    avatar_url?: string | null;
+  } | null;
 }
 
 interface CourseAppleCarouselProps {

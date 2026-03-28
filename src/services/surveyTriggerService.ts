@@ -4,7 +4,7 @@
  * Optimized for PostHog free tier (250 responses/month)
  */
 
-import { posthog } from '@/lib/posthog';
+import { trackEvent } from '@/lib/posthog';
 
 // Survey configuration
 const SURVEY_CONFIG = {
@@ -161,7 +161,7 @@ export function recordSurveyShown(surveyType: string): void {
   localStorage.setItem(STORAGE_KEYS.monthlyCount, JSON.stringify(monthlyData));
   
   // Track in PostHog
-  posthog.capture('survey_shown', { survey_type: surveyType });
+  trackEvent('survey_shown', { survey_type: surveyType });
 }
 
 /**
@@ -182,7 +182,7 @@ export function recordSurveyResponse(
   }
   
   // Track in PostHog
-  posthog.capture('survey_responded', {
+  trackEvent('survey_responded', {
     survey_type: surveyType,
     ...response,
   });
@@ -205,7 +205,7 @@ export function recordSurveyDismissal(surveyType: string): void {
   localStorage.setItem(STORAGE_KEYS.surveyDismissals, JSON.stringify(dismissals));
   
   // Track in PostHog
-  posthog.capture('survey_dismissed', { survey_type: surveyType });
+  trackEvent('survey_dismissed', { survey_type: surveyType });
 }
 
 // Survey eligibility checkers for specific use cases

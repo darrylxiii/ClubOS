@@ -9,7 +9,7 @@ async function fixProfile() {
   
   const profileData = {
      full_name: 'Darryl Mehilal',
-     avatar_url: 'https://dpjucecmoyfzrduhlctt.supabase.co/storage/v1/object/public/avatars/8b762c96-5dcf-41c8-9e1e-bbf18c18c3c5/1759805972352.jpg',
+     avatar_url: 'https://chgrkvftjfibufoopmav.supabase.co/storage/v1/object/public/avatars/8b762c96-5dcf-41c8-9e1e-bbf18c18c3c5/1759805972352.jpg',
      system_role: 'admin',
      account_status: 'approved',
      roles_array: ['admin', 'partner', 'candidate'],

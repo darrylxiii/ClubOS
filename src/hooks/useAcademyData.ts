@@ -6,7 +6,8 @@ type AcademyRow = Database['public']['Tables']['academies']['Row'];
 type CourseRow = Database['public']['Tables']['courses']['Row'];
 type LearningPathRow = Database['public']['Tables']['learning_paths']['Row'];
 
-export interface AcademyCourse extends CourseRow {
+export interface AcademyCourse extends Omit<CourseRow, 'description'> {
+  description?: string | null;
   profiles?: { full_name: string | null; avatar_url: string | null } | null;
   progress?: number;
 }

@@ -192,7 +192,7 @@ export function PostCard({ post, onUpdate }: PostCardProps) {
 
   const handleSave = async () => {
     if (!user) {
-      notify.error("Please sign in to save posts");
+      notify.error(t('feed.postcard.pleaseSignInToSave', 'Please sign in to save posts'));
       return;
     }
 
@@ -205,17 +205,17 @@ export function PostCard({ post, onUpdate }: PostCardProps) {
           .eq('post_id', post.id);
         setIsSaved(false);
         trackSaveEngagement(false);
-        notify.info("Removed from saved");
+        notify.info(t('feed.postcard.removedFromSaved', 'Removed from saved'));
       } else {
         await supabase
           .from('saved_posts')
           .insert({ user_id: user.id, post_id: post.id });
         setIsSaved(true);
         trackSaveEngagement(true);
-        notify.success("Post saved");
+        notify.success(t('feed.postcard.postSaved', 'Post saved'));
       }
     } catch (error) {
-      notify.error("Error saving post");
+      notify.error(t('feed.postcard.errorSavingPost', 'Error saving post'));
     }
   };
 
@@ -329,7 +329,7 @@ export function PostCard({ post, onUpdate }: PostCardProps) {
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={(e) => { e.preventDefault(); handleShare(); }}>
                   <Copy className="w-4 h-4 mr-2" />
-                  Copy link
+                  {t('feed.postcard.copyLink', 'Copy link')}
                 </DropdownMenuItem>
                 {isOwnPost && (
                   <DropdownMenuItem asChild>
@@ -345,11 +345,11 @@ export function PostCard({ post, onUpdate }: PostCardProps) {
                     <DropdownMenuSeparator />
                     <DropdownMenuItem onClick={() => setEditDialogOpen(true)}>
                       <Edit className="w-4 h-4 mr-2" />
-                      Edit post
+                      {t('feed.postcard.editPost', 'Edit post')}
                     </DropdownMenuItem>
                     <DropdownMenuItem onClick={handleDelete} className="text-destructive">
                       <Trash2 className="w-4 h-4 mr-2" />
-                      Delete post
+                      {t('feed.postcard.deletePost', 'Delete post')}
                     </DropdownMenuItem>
                   </>
                 )}
@@ -358,7 +358,7 @@ export function PostCard({ post, onUpdate }: PostCardProps) {
                     <DropdownMenuSeparator />
                     <DropdownMenuItem onClick={handleReport} className="text-destructive">
                       <Flag className="w-4 h-4 mr-2" />
-                      Report post
+                      {t('feed.postcard.reportPost', 'Report post')}
                     </DropdownMenuItem>
                   </>
                   )}
@@ -371,7 +371,7 @@ export function PostCard({ post, onUpdate }: PostCardProps) {
             {userStreak && userStreak >= 3 && (
               <Badge variant="secondary" className="gap-1">
                 <Flame className="w-3 h-3" />
-                {userStreak} day streak
+                {userStreak} {t('feed.postcard.dayStreak', 'day streak')}
               </Badge>
             )}
           </div>
@@ -514,7 +514,7 @@ export function PostCard({ post, onUpdate }: PostCardProps) {
               
               {mediaUrls.length > 1 && (
                 <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-1">
-                  {mediaUrls.map((_, index) => (
+                  {mediaUrls.map((_: any, index: number) => (
                     <div
                       key={index}
                       className={`w-2 h-2 rounded-full transition-all ${

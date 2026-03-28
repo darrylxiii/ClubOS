@@ -252,7 +252,7 @@ export function EmailInbox() {
     snoozeUntil.setHours(snoozeUntil.getHours() + 3);
 
     snoozeEmail(selectedEmail.id, snoozeUntil);
-    notify.success("Email snoozed", { description: "This email will reappear in 3 hours" });
+    notify.success(t('inbox.emailSnoozed', 'Email snoozed'), { description: t('inbox.emailWillReappear', 'This email will reappear in 3 hours') });
     setSelectedEmail(null);
   };
 
@@ -303,14 +303,14 @@ export function EmailInbox() {
     const promises = Array.from(selectedEmailIds).map(id => archiveEmail(id));
     await Promise.all(promises);
     setSelectedEmailIds(new Set());
-    notify.success(`Archived ${selectedEmailIds.size} emails`);
+    notify.success(t('inbox.archivedCount', `Archived ${selectedEmailIds.size} emails`));
   };
 
   const handleBulkDelete = async () => {
     const promises = Array.from(selectedEmailIds).map(id => deleteEmail(id));
     await Promise.all(promises);
     setSelectedEmailIds(new Set());
-    notify.success(`Deleted ${selectedEmailIds.size} emails`);
+    notify.success(t('inbox.deletedCount', `Deleted ${selectedEmailIds.size} emails`));
   };
 
   const handleBulkSnooze = async () => {
@@ -319,21 +319,21 @@ export function EmailInbox() {
     const promises = Array.from(selectedEmailIds).map(id => snoozeEmail(id, snoozeUntil));
     await Promise.all(promises);
     setSelectedEmailIds(new Set());
-    notify.success(`Snoozed ${selectedEmailIds.size} emails`);
+    notify.success(t('inbox.snoozedCount', `Snoozed ${selectedEmailIds.size} emails`));
   };
 
   const handleBulkMarkAsRead = async () => {
     const promises = Array.from(selectedEmailIds).map(id => markAsRead(id));
     await Promise.all(promises);
     setSelectedEmailIds(new Set());
-    notify.success(`Marked ${selectedEmailIds.size} emails as read`);
+    notify.success(t('inbox.markedReadCount', `Marked ${selectedEmailIds.size} emails as read`));
   };
 
   const handleBulkMarkAsUnread = async () => {
     const promises = Array.from(selectedEmailIds).map(id => markAsUnread(id));
     await Promise.all(promises);
     setSelectedEmailIds(new Set());
-    notify.success(`Marked ${selectedEmailIds.size} emails as unread`);
+    notify.success(t('inbox.markedUnreadCount', `Marked ${selectedEmailIds.size} emails as unread`));
   };
 
   // Show empty state if no connections
@@ -347,17 +347,17 @@ export function EmailInbox() {
             </div>
             <CardTitle className="text-center">{t("connect_your_email", "Connect Your Email")}</CardTitle>
             <CardDescription className="text-center">
-              Connect Gmail or Outlook to manage your emails from The Quantum Club
+              {t('inbox.connectDescription', 'Connect Gmail or Outlook to manage your emails from The Quantum Club')}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <p className="text-sm text-muted-foreground text-center">
-              Your email inbox is empty. Connect an email account to get started.
+              {t('inbox.emptyInbox', 'Your email inbox is empty. Connect an email account to get started.')}
             </p>
             <Link to="/settings">
               <Button className="w-full">
                 <SettingsIcon className="mr-2 h-4 w-4" />
-                Go to Settings
+                {t('inbox.goToSettings', 'Go to Settings')}
               </Button>
             </Link>
           </CardContent>
@@ -375,12 +375,12 @@ export function EmailInbox() {
             <RefreshCw className="h-12 w-12 mx-auto animate-spin text-primary" />
             <div>
               <h3 className="font-semibold text-lg">
-                {isInitialSync ? "Initial sync in progress..." : "Syncing your emails..."}
+                {isInitialSync ? t('inbox.initialSyncInProgress', 'Initial sync in progress...') : t('inbox.syncingEmails', 'Syncing your emails...')}
               </h3>
               <p className="text-sm text-muted-foreground mt-2">
                 {isInitialSync
-                  ? "Fetching your last 90 days of emails. This may take 30-60 seconds."
-                  : "This may take a moment. We're fetching your latest emails."}
+                  ? t('inbox.fetchingLast90', 'Fetching your last 90 days of emails. This may take 30-60 seconds.')
+                  : t('inbox.fetchingLatest', "This may take a moment. We're fetching your latest emails.")}
               </p>
             </div>
           </CardContent>
@@ -417,7 +417,7 @@ export function EmailInbox() {
           className="min-h-[44px]"
         >
           <RefreshCw className={`h-4 w-4 ${syncing ? "animate-spin" : ""} sm:mr-2`} />
-          <span className="hidden sm:inline">{syncing ? "Syncing..." : "Sync"}</span>
+          <span className="hidden sm:inline">{syncing ? t('inbox.syncing', 'Syncing...') : t('inbox.sync', 'Sync')}</span>
         </Button>
         <Button
           variant="ghost"
@@ -529,7 +529,7 @@ export function EmailInbox() {
               onClick={() => setSelectedEmail(null)}
             >
               <ArrowLeft className="h-4 w-4 mr-2" />
-              Back to Inbox
+              {t('inbox.backToInbox', 'Back to Inbox')}
             </Button>
             <EmailDetail
               key={selectedEmail.id}

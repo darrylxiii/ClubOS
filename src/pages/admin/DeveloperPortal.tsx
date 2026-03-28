@@ -35,12 +35,14 @@ const WEBHOOK_EVENTS = [
   { event: "offer.accepted", description: "Candidate accepted offer", category: "Offers" },
 ];
 
+const SUPABASE_BASE_URL = import.meta.env.VITE_SUPABASE_URL || 'https://your-project.supabase.co';
+
 const CODE_EXAMPLE = `// Install: npm install @supabase/supabase-js
 
 import { createClient } from '@supabase/supabase-js';
 
 const supabase = createClient(
-  'https://chgrkvftjfibufoopmav.supabase.co',
+  '${SUPABASE_BASE_URL}',
   'your-api-key'
 );
 
@@ -63,7 +65,7 @@ const { data: application } = await supabase
 
 // AI Match Score
 const response = await fetch(
-  'https://chgrkvftjfibufoopmav.supabase.co/functions/v1/calculate-match-score',
+  '${SUPABASE_BASE_URL}/functions/v1/calculate-match-score',
   {
     method: 'POST',
     headers: {
@@ -108,7 +110,7 @@ export default function DeveloperPortal() {
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2"><Terminal className="h-5 w-5" />{"REST API Endpoints"}</CardTitle>
-                <CardDescription>{"Base URL: https://chgrkvftjfibufoopmav.supabase.co"}</CardDescription>
+                <CardDescription>{`Base URL: ${SUPABASE_BASE_URL}`}</CardDescription>
               </CardHeader>
               <CardContent>
                 <Table>

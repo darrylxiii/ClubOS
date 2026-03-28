@@ -66,7 +66,7 @@ Provide your analysis in the following JSON structure:
 Be specific, actionable, and encouraging. Tailor recommendations to the luxury executive recruitment context of The Quantum Club.`
 
     // Call Google Gemini (Gemini 2.5 Flash for speed)
-    const aiResponse = await fetch('https://chgrkvftjfibufoopmav.supabase.co/functions/v1/proxy-ai-request', {
+    const aiResponse = await fetch(`${Deno.env.get('SUPABASE_URL')}/functions/v1/proxy-ai-request`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

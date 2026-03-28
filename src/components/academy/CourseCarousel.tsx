@@ -12,15 +12,15 @@ interface Course {
   id: string;
   slug: string;
   title: string;
-  description: string;
+  description: string | null;
   course_image_url?: string;
   estimated_hours?: number;
   enrolled_count?: number;
   trending_score?: number;
   profiles?: {
-    full_name?: string;
-    avatar_url?: string;
-  };
+    full_name?: string | null;
+    avatar_url?: string | null;
+  } | null;
   progress?: number;
 }
 
@@ -152,7 +152,7 @@ export const CourseCarousel = ({ title, courses, viewAllLink, showTrending, show
                   {course.profiles && (
                     <div className="flex items-center gap-2 pt-2 border-t">
                       <Avatar className="h-6 w-6">
-                        <AvatarImage src={course.profiles.avatar_url} />
+                        <AvatarImage src={course.profiles.avatar_url ?? undefined} />
                         <AvatarFallback className="text-[10px]">
                           {course.profiles.full_name?.charAt(0) || 'E'}
                         </AvatarFallback>

@@ -4,7 +4,7 @@
  * Optimized for PostHog free tier (5K recordings/month)
  */
 
-import { posthog, startRecording, stopRecording } from '@/lib/posthog';
+import { startRecording, stopRecording, trackEvent } from '@/lib/posthog';
 
 // Recording trigger configuration
 const RECORDING_CONFIG = {
@@ -90,7 +90,7 @@ export function triggerRecordingOnError(error: Error | string): void {
   startRecording();
   
   // Track the error event
-  posthog.capture('error_occurred', {
+  trackEvent('error_occurred', {
     error_message: typeof error === 'string' ? error : error.message,
     error_stack: typeof error === 'string' ? undefined : error.stack,
     recording_triggered: true,
@@ -110,7 +110,7 @@ export function triggerRecordingOnFrustration(
   startRecording();
   
   // Track frustration event
-  posthog.capture('frustration_detected', {
+  trackEvent('frustration_detected', {
     signal_type: signalType,
     recording_triggered: true,
     ...context,
@@ -123,7 +123,7 @@ export function triggerRecordingOnFrustration(
 export function triggerRecordingForSupport(ticketId?: string): void {
   startRecording();
   
-  posthog.capture('support_recording_started', {
+  trackEvent('support_recording_started', {
     ticket_id: ticketId,
     timestamp: new Date().toISOString(),
   });
