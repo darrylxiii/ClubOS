@@ -37,6 +37,7 @@ const emptyForm = {
 };
 
 export default function ScorecardQuestionLibrary() {
+  const { t } = useTranslation('pages');
   const [questions, setQuestions] = useState<ScorecardQuestion[]>([]);
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -51,7 +52,6 @@ export default function ScorecardQuestionLibrary() {
   useEffect(() => { fetchQuestions(); }, []);
 
   const fetchQuestions = async () => {
-  const { t } = useTranslation('pages');
     setLoading(true);
     const { data } = await supabase.from("scorecard_question_library").select("*").order("usage_count", { ascending: false });
     if (data) setQuestions(data);

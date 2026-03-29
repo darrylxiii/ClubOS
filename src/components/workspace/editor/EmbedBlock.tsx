@@ -254,11 +254,11 @@ export const EmbedBlock = createReactBlockSpec(
   {
     render: (props) => {
       const [inputUrl, setInputUrl] = useState('');
+  const { t } = useTranslation('common');
       const url = props.block.props.url as string;
       const embedData = parseEmbedUrl(url);
 
       const handleSubmit = (e: React.FormEvent) => {
-  const { t } = useTranslation('common');
         e.preventDefault();
         if (inputUrl.trim()) {
           props.editor.updateBlock(props.block, {

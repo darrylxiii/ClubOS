@@ -31,6 +31,7 @@ const ROLES = ["admin", "partner", "strategist", "user"];
 const emptyForm = { name: "", cidr_range: "", description: "", applies_to_roles: ["admin"] as string[] };
 
 export default function IPAllowlistManager() {
+  const { t } = useTranslation('pages');
   const [rules, setRules] = useState<IPRule[]>([]);
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -41,7 +42,6 @@ export default function IPAllowlistManager() {
   useEffect(() => { fetchRules(); }, []);
 
   const fetchRules = async () => {
-  const { t } = useTranslation('pages');
     setLoading(true);
     const { data } = await supabase.from("ip_allowlist_rules").select("*").order("created_at", { ascending: false });
     if (data) setRules(data);

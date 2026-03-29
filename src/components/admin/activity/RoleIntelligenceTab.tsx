@@ -65,6 +65,7 @@ function formatRevenue(amount: number): string {
 }
 
 export function RoleIntelligenceTab({ role }: RoleIntelligenceTabProps) {
+  const { t } = useTranslation('admin');
   const config = ROLE_CONFIG[role];
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
@@ -212,7 +213,6 @@ export function RoleIntelligenceTab({ role }: RoleIntelligenceTabProps) {
   });
 
   const handleSort = (field: SortField) => {
-  const { t } = useTranslation('admin');
     if (sortField === field) {
       setSortAsc(!sortAsc);
     } else {

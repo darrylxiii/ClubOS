@@ -20,6 +20,7 @@ interface KPIAchievementCelebrationProps {
 }
 
 export function KPIAchievementCelebration({ 
+  const { t } = useTranslation('admin');
   achievement = null, 
   onDismiss = () => {}
 }: KPIAchievementCelebrationProps) {
@@ -66,7 +67,6 @@ export function KPIAchievementCelebration({
   }, [achievement]);
 
   const handleDismiss = () => {
-  const { t } = useTranslation('admin');
     setIsVisible(false);
     setTimeout(onDismiss, 300);
   };

@@ -35,6 +35,7 @@ export default function SourcingCommandPanel() {
   const [strategy, setStrategy] = useState<SourcingStrategy | null>(null);
   const [importResults, setImportResults] = useState<Record<string, unknown> | null>(null);
 
+  const { t } = useTranslation('admin');
   const { missions, isLoading: missionsLoading, generateStrategy, sourceCandidates, createMission } = useSourcingMissions(selectedJobId || undefined);
 
   // Fetch open jobs for selector
@@ -103,7 +104,6 @@ export default function SourcingCommandPanel() {
   };
 
   const statusColor = (status: string) => {
-  const { t } = useTranslation('admin');
     switch (status) {
       case 'completed': return 'default';
       case 'in_progress': return 'secondary';

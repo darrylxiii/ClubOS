@@ -20,6 +20,7 @@ interface PredictiveSignal {
 
 export default function PredictiveSignalsView() {
   const [signals, setSignals] = useState<PredictiveSignal[]>([]);
+  const { t } = useTranslation('admin');
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -51,7 +52,6 @@ export default function PredictiveSignalsView() {
   }, []);
 
   const getSignalIcon = (type: string) => {
-  const { t } = useTranslation('admin');
     if (type?.includes('heat')) return <Flame className="h-4 w-4" style={{ color: 'rgb(234, 88, 12)' }} />;
     if (type?.includes('cool')) return <Snowflake className="h-4 w-4" style={{ color: 'rgb(59, 130, 246)' }} />;
     return <AlertCircle className="h-4 w-4" style={{ color: 'rgb(234, 179, 8)' }} />;

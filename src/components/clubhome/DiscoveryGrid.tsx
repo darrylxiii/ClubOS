@@ -89,6 +89,7 @@ function ForYouColumn() {
 
 // ── Saved column ──
 function SavedColumn() {
+  const { t } = useTranslation('common');
   const { user } = useAuth();
   const navigate = useNavigate();
 
@@ -141,6 +142,7 @@ function SavedColumn() {
 
 // ── Messages column ──
 function MessagesColumn() {
+  const { t } = useTranslation('common');
   const { user } = useAuth();
   const navigate = useNavigate();
   const queryClient = useQueryClient();

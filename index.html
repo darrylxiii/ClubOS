@@ -93,6 +93,15 @@
     <!-- Preload critical LCP logo - SVG is much smaller and faster than PNG -->
     <link rel="preload" as="image" href="/quantum-logo.svg?v=8" type="image/svg+xml" fetchpriority="high">
     
+    <!-- LCP OPTIMIZATION: Preload the auth page logo PNGs.
+         These are the ACTUAL LCP elements measured by Cloudflare RUM.
+         Without this preload, the browser can't start downloading until:
+         HTML → JS bundle → React mount → AuthFormView → <img> discovered.
+         With this preload, download starts at HTML parse time (saves ~800ms).
+         Media queries ensure only the matching color-scheme logo loads. -->
+    <link rel="preload" as="image" href="/quantum-logo-dark.png" type="image/png" media="(prefers-color-scheme: dark)" fetchpriority="high">
+    <link rel="preload" as="image" href="/quantum-club-logo.png" type="image/png" media="(prefers-color-scheme: light)" fetchpriority="high">
+    
     <!-- Preload critical font to prevent layout shift -->
     <link rel="preload" as="font" type="font/woff2" href="https://fonts.gstatic.com/s/inter/v20/UcC73FwrK3iLTeHuS_nVMrMxCp50SjIa1ZL7W0Q5nw.woff2" crossorigin>
     
@@ -224,6 +233,69 @@
       </style>
     </div>
     
+    <!-- 
+      PROACTIVE CACHE PURGE — Kills stale Lovable-era service workers + caches.
+      Must run BEFORE boot logic or Vite entry script.
+      One-shot: sets a localStorage sentinel so it only runs once per browser.
+      Bump PURGE_VERSION when you need to force-invalidate all user caches again.
+    -->
+    <script>
+      (function() {
+        var PURGE_VERSION = '2';  // Bump this to force another purge cycle
+        var SENTINEL_KEY = '__cache_purge_v__';
+        try {
+          var current = localStorage.getItem(SENTINEL_KEY);
+          if (current === PURGE_VERSION) return; // Already purged, skip
+
+          // Purge needed — unregister all SWs and delete all caches
+          var purged = false;
+          var promises = [];
+
+          if ('serviceWorker' in navigator) {
+            promises.push(
+              navigator.serviceWorker.getRegistrations().then(function(regs) {
+                regs.forEach(function(r) {
+                  console.log('[CachePurge] Unregistering SW:', r.scope);
+                  r.unregister();
+                  purged = true;
+                });
+              })
+            );
+          }
+
+          if ('caches' in window) {
+            promises.push(
+              caches.keys().then(function(keys) {
+                keys.forEach(function(k) {
+                  console.log('[CachePurge] Deleting cache:', k);
+                  caches.delete(k);
+                  purged = true;
+                });
+              })
+            );
+          }
+
+          Promise.all(promises).then(function() {
+            // Set sentinel BEFORE reload so we don't loop
+            localStorage.setItem(SENTINEL_KEY, PURGE_VERSION);
+            if (purged) {
+              console.log('[CachePurge] Stale caches cleared — reloading for fresh assets');
+              location.replace(location.origin + location.pathname);
+            } else {
+              console.log('[CachePurge] No stale caches found — sentinel set');
+            }
+          }).catch(function(e) {
+            console.warn('[CachePurge] Error during purge (non-fatal):', e);
+            // Set sentinel anyway to avoid infinite loop
+            localStorage.setItem(SENTINEL_KEY, PURGE_VERSION);
+          });
+        } catch(e) {
+          // localStorage blocked (private mode, etc.) — skip purge
+          console.warn('[CachePurge] Skipped:', e.message);
+        }
+      })();
+    </script>
+
     <!-- Emergency cache reset (inline for reliability) -->
     <script>
       (function() {
@@ -231,7 +303,7 @@
         window.__APP_BOOTED__ = false;
         window.__APP_BOOTING__ = false;
         window.__BOOT_START__ = Date.now();
-        window.__BUILD_ID__ = '2026-03-01T00:00Z'; // Updated on each deploy
+        window.__BUILD_ID__ = '2026-03-29T01:20Z'; // Updated on each deploy
         window.__MAIN_LOADED__ = false;
         window.__SCRIPT_ERROR__ = false;
         window.__FAILED_SCRIPT_URL__ = null;

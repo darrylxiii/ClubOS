@@ -7,6 +7,7 @@ import { DynamicChart } from "@/components/charts/DynamicChart";
 import { useTranslation } from 'react-i18next';
 
 export default function FrustrationSignalsTab() {
+  const { t } = useTranslation('admin');
   const { data: frustrationData } = useQuery({
     queryKey: ['frustration-signals'],
     queryFn: async () => {
@@ -53,7 +54,6 @@ export default function FrustrationSignalsTab() {
   });
 
   const getSignalIcon = (type: string) => {
-  const { t } = useTranslation('admin');
     switch (type) {
       case 'rage_click': return <MousePointer className="h-4 w-4 text-red-500" />;
       case 'dead_click': return <XCircle className="h-4 w-4 text-orange-500" />;

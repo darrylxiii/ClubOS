@@ -47,6 +47,7 @@ export function NotificationTypeCard({
   onEdit, 
   onAssign 
 }: NotificationTypeCardProps) {
+  const { t } = useTranslation('admin');
   const updateMutation = useUpdateNotificationType();
   
   const categoryConfig = NOTIFICATION_CATEGORIES.find(c => c.key === notificationType.category);
@@ -61,7 +62,6 @@ export function NotificationTypeCard({
   };
 
   const getRecipientsSummary = () => {
-  const { t } = useTranslation('admin');
     if (notificationType.role_assignments.length === 0 && notificationType.assignment_count === 0) {
       return 'No recipients configured';
     }

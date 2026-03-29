@@ -17,9 +17,9 @@ export const ToggleBlock = createReactBlockSpec(
   {
     render: (props) => {
       const [isOpen, setIsOpen] = useState(props.block.props.isOpen);
+  const { t } = useTranslation('common');
 
       const handleToggle = useCallback((e: React.MouseEvent) => {
-  const { t } = useTranslation('common');
         e.stopPropagation();
         const newState = !isOpen;
         setIsOpen(newState);

@@ -1,0 +1,4 @@
+# Cloudflare Pages — SPA catch-all
+# Static assets are served first (Cloudflare handles this automatically),
+# everything else falls through to index.html for client-side routing.
+/*  /index.html  200

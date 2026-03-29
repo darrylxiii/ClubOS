@@ -8,9 +8,9 @@ import { useTranslation } from "react-i18next";
  * Triggers Supabase OAuth flow with Google provider.
  */
 export function GoogleSignInButton({ className }: { className?: string }) {
+  const { t } = useTranslation("common");
 
   const handleGoogleSignIn = async () => {
-  const { t } = useTranslation("common");
     try {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",

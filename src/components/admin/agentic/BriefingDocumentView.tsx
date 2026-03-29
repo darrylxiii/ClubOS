@@ -22,6 +22,7 @@ interface Briefing {
 
 export default function BriefingDocumentView() {
   const [briefings, setBriefings] = useState<Briefing[]>([]);
+  const { t } = useTranslation('admin');
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
   const [selectedDate, setSelectedDate] = useState(new Date());
@@ -69,7 +70,6 @@ export default function BriefingDocumentView() {
   };
 
   const navigateDate = (dir: number) => {
-  const { t } = useTranslation('admin');
     const newDate = dir > 0 ? subDays(selectedDate, -1) : subDays(selectedDate, 1);
     setSelectedDate(newDate);
     const dateStr = format(newDate, 'yyyy-MM-dd');

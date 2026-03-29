@@ -28,13 +28,13 @@ export const CourseCompletionModal = memo<CourseCompletionModalProps>(({
   recommendedCourses = [],
   onDownloadCertificate,
 }) => {
+  const { t } = useTranslation('common');
   useEffect(() => {
     if (open) {
       const duration = 3000;
       const end = Date.now() + duration;
 
       const frame = () => {
-  const { t } = useTranslation('common');
         fireConfetti({
           particleCount: 2,
           angle: 60,

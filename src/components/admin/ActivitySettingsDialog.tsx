@@ -77,6 +77,7 @@ interface ActivitySettingsDialogProps {
 }
 
 export function ActivitySettingsDialog({ onThresholdsChange }: ActivitySettingsDialogProps) {
+  const { t } = useTranslation('admin');
   const [open, setOpen] = useState(false);
   const [greenDays, setGreenDays] = useState(DEFAULT_THRESHOLDS.greenDays);
   const [yellowDays, setYellowDays] = useState(DEFAULT_THRESHOLDS.yellowDays);
@@ -88,7 +89,6 @@ export function ActivitySettingsDialog({ onThresholdsChange }: ActivitySettingsD
   }, [open]);
 
   const handleSave = () => {
-  const { t } = useTranslation('admin');
     if (greenDays >= yellowDays) {
       toast.error(t('activitySettingsDialog.activeThresholdMustBeLessThan'));
       return;
@@ -118,21 +118,21 @@ export function ActivitySettingsDialog({ onThresholdsChange }: ActivitySettingsD
       <DialogTrigger asChild>
         <Button variant="outline" size="sm">
           <Settings className="w-4 h-4 mr-2" />
-          Activity Settings
+          {t('activitySettingsDialog.title', 'Activity Settings')}
         </Button>
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>{t('activitySettingsDialog.activityStatusThresholds')}</DialogTitle>
           <DialogDescription>
-            Configure when candidates are marked as Active (Green), Warning (Yellow), or Inactive (Red)
+            {t('activitySettingsDialog.description', 'Configure when candidates are marked as Active (Green), Warning (Yellow), or Inactive (Red)')}
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-6 py-4">
           <div className="space-y-2">
             <Label htmlFor="green-days">
-              Active Threshold (Green)
+              {t('activitySettingsDialog.activeThresholdGreen', 'Active Threshold (Green)')}
             </Label>
             <div className="flex items-center gap-2">
               <Input
@@ -143,16 +143,16 @@ export function ActivitySettingsDialog({ onThresholdsChange }: ActivitySettingsD
                 value={greenDays}
                 onChange={(e) => setGreenDays(parseInt(e.target.value) || 1)}
               />
-              <span className="text-sm text-muted-foreground">days</span>
+              <span className="text-sm text-muted-foreground">{t('activitySettingsDialog.days', 'days')}</span>
             </div>
             <p className="text-xs text-muted-foreground">
-              Candidates with activity within this period will be marked as Active (Green)
+              {t('activitySettingsDialog.activeDescription', 'Candidates with activity within this period will be marked as Active (Green)')}
             </p>
           </div>
 
           <div className="space-y-2">
             <Label htmlFor="yellow-days">
-              Warning Threshold (Yellow)
+              {t('activitySettingsDialog.warningThresholdYellow', 'Warning Threshold (Yellow)')}
             </Label>
             <div className="flex items-center gap-2">
               <Input
@@ -163,17 +163,17 @@ export function ActivitySettingsDialog({ onThresholdsChange }: ActivitySettingsD
                 value={yellowDays}
                 onChange={(e) => setYellowDays(parseInt(e.target.value) || 1)}
               />
-              <span className="text-sm text-muted-foreground">days</span>
+              <span className="text-sm text-muted-foreground">{t('activitySettingsDialog.days', 'days')}</span>
             </div>
             <p className="text-xs text-muted-foreground">
-              Candidates with activity between {greenDays} and this period will be marked as Warning (Yellow)
+              {t('activitySettingsDialog.warningDescription', 'Candidates with activity between {{greenDays}} and this period will be marked as Warning (Yellow)', { greenDays })}
             </p>
           </div>
 
           <div className="space-y-2">
             <Label>{t('activitySettingsDialog.inactiveRed')}</Label>
             <p className="text-xs text-muted-foreground">
-              Candidates with activity beyond {yellowDays} days will be marked as Inactive (Red)
+              {t('activitySettingsDialog.inactiveDescription', 'Candidates with activity beyond {{yellowDays}} days will be marked as Inactive (Red)', { yellowDays })}
             </p>
           </div>
 
@@ -195,10 +195,10 @@ export function ActivitySettingsDialog({ onThresholdsChange }: ActivitySettingsD
 
         <div className="flex justify-between">
           <Button variant="outline" onClick={handleReset}>
-            Reset to Default
+            {t('activitySettingsDialog.resetToDefault', 'Reset to Default')}
           </Button>
           <Button onClick={handleSave}>
-            Save Changes
+            {t('activitySettingsDialog.saveChanges', 'Save Changes')}
           </Button>
         </div>
       </DialogContent>

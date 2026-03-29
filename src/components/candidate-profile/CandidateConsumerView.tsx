@@ -40,9 +40,9 @@ const itemVariants: Variants = {
 };
 
 export function CandidateConsumerView({ candidate }: CandidateConsumerViewProps) {
+  const { t } = useTranslation('candidates');
 
   const calculateDuration = (startDate?: string, endDate?: string): string | null => {
-  const { t } = useTranslation('candidates');
     if (!startDate) return null;
     try {
       const start = new Date(startDate);

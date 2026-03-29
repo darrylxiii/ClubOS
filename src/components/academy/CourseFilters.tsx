@@ -21,6 +21,7 @@ interface CourseFiltersProps {
 }
 
 export const CourseFilters = memo<CourseFiltersProps>(({
+  const { t } = useTranslation('common');
   categories,
   selectedCategories,
   onCategoryChange,
@@ -33,7 +34,6 @@ export const CourseFilters = memo<CourseFiltersProps>(({
   onReset,
 }) => {
   const handleCategoryToggle = (category: string) => {
-  const { t } = useTranslation('common');
     if (selectedCategories.includes(category)) {
       onCategoryChange(selectedCategories.filter(c => c !== category));
     } else {

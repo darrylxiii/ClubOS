@@ -31,6 +31,7 @@ interface ChatMessage {
 }
 
 export default function AgentChatView({ initialAgent }: { initialAgent?: string }) {
+  const { t } = useTranslation('admin');
   const { user } = useAuth();
   const [agents, setAgents] = useState<Agent[]>([]);
   const [selectedAgent, setSelectedAgent] = useState<string>(initialAgent || '');
@@ -122,7 +123,6 @@ export default function AgentChatView({ initialAgent }: { initialAgent?: string 
   };
 
   const startNewConversation = () => {
-  const { t } = useTranslation('admin');
     setMessages([]);
     setConversationId(null);
   };

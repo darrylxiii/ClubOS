@@ -6,6 +6,7 @@ import { Monitor, Smartphone, Tablet, Globe, Clock, Users } from "lucide-react";
 import { useTranslation } from 'react-i18next';
 
 export default function RealTimeActivityTab() {
+  const { t } = useTranslation('admin');
   const { data: liveData } = useQuery({
     queryKey: ['realtime-activity'],
     queryFn: async () => {
@@ -71,7 +72,6 @@ export default function RealTimeActivityTab() {
   });
 
   const getDeviceIcon = (device: string) => {
-  const { t } = useTranslation('admin');
     switch (device) {
       case 'mobile': return <Smartphone className="h-4 w-4" />;
       case 'tablet': return <Tablet className="h-4 w-4" />;

@@ -1,21 +1,71 @@
-/*
-  X-Frame-Options: DENY
-  X-Content-Type-Options: nosniff
-  Referrer-Policy: strict-origin-when-cross-origin
-  Strict-Transport-Security: max-age=31536000; includeSubDomains; preload
+# ═══════════════════════════════════════════════════════════════════
+# Cloudflare Pages — Cache Control & Early Hints
+# 
+# SECURITY HEADERS ARE NOT HERE. They are set dynamically by
+# functions/_middleware.js which generates per-request CSP nonces.
+# Only cache-control and performance hints belong in this file.
+# ═══════════════════════════════════════════════════════════════════
 
-# Service worker must never be cached by CDN — stale sw.js = stale precache manifest = old app
+# ─── SPA entry: always revalidate ───
+# Browsers must check for updated index.html on every visit.
+# Cloudflare Pages auto-purges its CDN cache on deploy, but
+# browsers honor max-age from the response, so we set it to 0.
+/index.html
+  Cache-Control: public, max-age=0, must-revalidate
+
+# The root path serves index.html via SPA fallback — same policy.
+/
+  Cache-Control: public, max-age=0, must-revalidate
+
+# ─── Service worker: never cache ───
+# A stale sw.js = stale precache manifest = old app forever.
 /sw.js
   Cache-Control: no-cache, no-store, must-revalidate
   Expires: 0
 
+# ─── PWA manifest: never cache ───
 /manifest.webmanifest
   Cache-Control: no-cache, no-store, must-revalidate
 
-# SPA fallback — ensure index.html is always fresh
-/index.html
-  Cache-Control: no-cache
-
-# Hashed assets are immutable — cache forever
+# ─── Hashed Vite assets: immutable forever ───
+# Filenames contain content hash (e.g. index-Dsf6jfcR.js).
+# If the file changes, the hash changes, so these are safe to cache indefinitely.
 /assets/*
   Cache-Control: public, max-age=31536000, immutable
+
+# ─── Non-hashed static assets: cache with revalidation ───
+# Favicons, logos, icons — these change rarely but aren't content-hashed.
+/favicon.png
+  Cache-Control: public, max-age=86400, must-revalidate
+/favicon.ico
+  Cache-Control: public, max-age=86400, must-revalidate
+/favicon-*.png
+  Cache-Control: public, max-age=86400, must-revalidate
+/quantum-logo.svg
+  Cache-Control: public, max-age=86400, must-revalidate
+/quantum-logo-dark.png
+  Cache-Control: public, max-age=86400, must-revalidate
+/quantum-club-logo.png
+  Cache-Control: public, max-age=86400, must-revalidate
+/icon-*.png
+  Cache-Control: public, max-age=604800, must-revalidate
+/apple-touch-icon*.png
+  Cache-Control: public, max-age=604800, must-revalidate
+
+# ─── Early Hints (103) ───
+# Cloudflare reads Link headers from 200 responses and caches them.
+# On subsequent requests, it sends a 103 Early Hints response with
+# these links BEFORE the HTML is ready, giving the browser a ~200ms
+# head start on preloading critical resources.
+#
+# REQUIREMENT: Enable Early Hints in Cloudflare Dashboard:
+# Speed → Optimization → Content Optimization → Early Hints → On
+/*
+  Link: <https://fonts.googleapis.com>; rel=preconnect
+  Link: <https://fonts.gstatic.com>; rel=preconnect; crossorigin
+  Link: <https://chgrkvftjfibufoopmav.supabase.co>; rel=preconnect; crossorigin
+  Link: </quantum-logo.svg?v=8>; rel=preload; as=image; type=image/svg+xml
+  Link: </quantum-logo-dark.png>; rel=preload; as=image; type=image/png
+  Link: </quantum-club-logo.png>; rel=preload; as=image; type=image/png
+  Link: <https://fonts.gstatic.com/s/inter/v20/UcC73FwrK3iLTeHuS_nVMrMxCp50SjIa1ZL7W0Q5nw.woff2>; rel=preload; as=font; type=font/woff2; crossorigin
+

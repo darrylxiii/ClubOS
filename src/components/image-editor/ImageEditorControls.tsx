@@ -30,8 +30,8 @@ export const ImageEditorControls = memo(function ImageEditorControls({
   enableFlip = true,
   onReset,
 }: ImageEditorControlsProps) {
-  const handleFlipHorizontal = () => {
   const { t } = useTranslation('common');
+  const handleFlipHorizontal = () => {
     onFlipChange({ ...flip, horizontal: !flip.horizontal });
   };
 

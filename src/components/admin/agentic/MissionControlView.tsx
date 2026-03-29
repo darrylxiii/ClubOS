@@ -21,6 +21,7 @@ interface HeartbeatLog {
 
 export default function MissionControlView() {
   const [logs, setLogs] = useState<HeartbeatLog[]>([]);
+  const { t } = useTranslation('admin');
   const [loading, setLoading] = useState(true);
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
@@ -72,7 +73,6 @@ export default function MissionControlView() {
   }
 
   const hasErrors = (log: HeartbeatLog) => {
-  const { t } = useTranslation('admin');
     if (!log.errors) return false;
     if (Array.isArray(log.errors)) return log.errors.length > 0;
     return Object.keys(log.errors).length > 0;

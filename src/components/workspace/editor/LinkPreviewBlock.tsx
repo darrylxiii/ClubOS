@@ -29,6 +29,7 @@ export const LinkPreviewBlock = createReactBlockSpec(
   {
     render: (props) => {
       const [inputUrl, setInputUrl] = useState('');
+  const { t } = useTranslation('common');
       const [isLoading, setIsLoading] = useState(false);
       const [error, setError] = useState<string | null>(null);
       
@@ -39,7 +40,6 @@ export const LinkPreviewBlock = createReactBlockSpec(
       const siteName = props.block.props.siteName as string;
 
       const fetchMetadata = async (fetchUrl: string) => {
-  const { t } = useTranslation('common');
         setIsLoading(true);
         setError(null);
         

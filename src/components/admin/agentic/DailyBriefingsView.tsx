@@ -15,6 +15,7 @@ interface DailyBriefing {
 
 export default function DailyBriefingsView() {
   const [briefings, setBriefings] = useState<DailyBriefing[]>([]);
+  const { t } = useTranslation('admin');
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -37,7 +38,6 @@ export default function DailyBriefingsView() {
   }, []);
 
   const getHighlights = (content: any) => {
-  const { t } = useTranslation('admin');
     if (!content) return [];
     return [
       content.signals_detected_count && `${content.signals_detected_count} signals`,

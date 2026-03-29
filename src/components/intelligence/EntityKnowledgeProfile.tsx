@@ -39,6 +39,7 @@ export const EntityKnowledgeProfile = ({
     description = "Configure the AI knowledge and voice for this context."
 }: EntityKnowledgeProfileProps) => {
     const [profile, setProfile] = useState<KnowledgeProfile | null>(null);
+  const { t } = useTranslation('common');
     const [loading, setLoading] = useState(true);
     const [isSaving, setIsSaving] = useState(false);
 
@@ -115,7 +116,6 @@ export const EntityKnowledgeProfile = ({
     };
 
     const addKeyword = () => {
-  const { t } = useTranslation('common');
         if (newKeyword.trim() && !keywords.includes(newKeyword.trim())) {
             setKeywords([...keywords, newKeyword.trim()]);
             setNewKeyword("");

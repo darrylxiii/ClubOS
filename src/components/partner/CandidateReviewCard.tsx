@@ -85,6 +85,7 @@ function requirementMatchCount(skills: string[], requirements: unknown[]): { mat
 export function CandidateReviewCard({
   application: app, compact = false, selected = false, onSelect }: CandidateReviewCardProps) {
   const [expanded, setExpanded] = useState(false);
+  const { t } = useTranslation('partner');
 
   const salaryDisplay = formatComp(app.candidateDesiredSalaryMin, app.candidateDesiredSalaryMax, app.currency);
   const jobSalaryDisplay = formatComp(app.salaryMin, app.salaryMax, app.currency);
@@ -95,7 +96,6 @@ export function CandidateReviewCard({
     : null;
 
   if (compact) {
-  const { t } = useTranslation('partner');
     return (
       <button
         onClick={onSelect}

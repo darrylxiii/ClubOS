@@ -34,7 +34,6 @@ const FIELD_TO_STEP: Record<string, number> = {
 };
 
 function extractFirstError(errors: FieldErrors): string {
-  const { t } = useTranslation('admin');
   for (const key of Object.keys(errors)) {
     const err = errors[key];
     if (!err) continue;
@@ -57,6 +56,7 @@ export function PartnerProvisioningModal({
   onSuccess,
   prefillData,
 }: PartnerProvisioningModalProps) {
+  const { t } = useTranslation('admin');
   const { provisionPartner, isProvisioning, lastResult } = usePartnerProvisioning();
   const {
     form,

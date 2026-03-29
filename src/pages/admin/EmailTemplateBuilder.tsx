@@ -45,6 +45,7 @@ const MERGE_TAGS = [
 const CATEGORIES = ["outreach", "follow_up", "scheduling", "offer", "rejection", "onboarding", "general"];
 
 export default function EmailTemplateBuilder() {
+  const { t } = useTranslation('pages');
   const [templates, setTemplates] = useState<EmailTemplate[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedTemplate, setSelectedTemplate] = useState<EmailTemplate | null>(null);
@@ -59,7 +60,6 @@ export default function EmailTemplateBuilder() {
   useEffect(() => { fetchTemplates(); }, []);
 
   const fetchTemplates = async () => {
-  const { t } = useTranslation('pages');
     setLoading(true);
     const { data } = await supabase.from("email_templates").select("*").order("updated_at", { ascending: false });
     if (data) setTemplates(data);

@@ -223,35 +223,36 @@ export default defineConfig(({ mode, command }) => ({
               }
             }
           },
+          // SECURITY: Supabase REST API — NetworkOnly
+          // Authenticated responses must NEVER be cached in the SW.
+          // RLS protects at the DB level, but a SW cache operates before
+          // the request reaches the server. If a user switches accounts,
+          // the cache could serve stale data from the previous session.
           {
             urlPattern: /^https:\/\/.*\.supabase\.co\/rest\/v1\/.*/i,
-            handler: 'NetworkFirst',
+            handler: 'NetworkOnly',
             options: {
-              cacheName: 'api-cache',
-              expiration: {
-                maxEntries: 100,
-                maxAgeSeconds: 60 * 5 // 5 minutes
-              },
-              networkTimeoutSeconds: 10,
-              cacheableResponse: {
-                statuses: [0, 200]
-              }
+              cacheName: 'api-no-cache',
             }
           },
-          // CRITICAL: JS/CSS bundles use NetworkFirst to prevent stale asset serving.
-          // Even though filenames are content-hashed, a stale sw.js (cached by CDN)
-          // can request old hashes. NetworkFirst ensures we always try the network
-          // first and only fall back to cache when offline.
+          // PERF: JS/CSS bundles use CacheFirst — they are content-hashed
+          // (e.g. index-Dsf6jfcR.js), so the URL itself IS the cache key.
+          // If the content changes, the hash changes, and the browser
+          // requests a completely different URL. CacheFirst gives instant
+          // loads from cache without waiting for the network.
+          //
+          // The old concern about "stale sw.js requesting old hashes" is
+          // addressed by: (1) Cloudflare auto-purges CDN on deploy,
+          // (2) sw.js has Cache-Control: no-cache, (3) skipWaiting: true.
           {
             urlPattern: /\.(?:js|css)$/i,
-            handler: 'NetworkFirst',
+            handler: 'CacheFirst',
             options: {
               cacheName: 'static-resources',
               expiration: {
                 maxEntries: 200,
                 maxAgeSeconds: 60 * 60 * 24 * 30 // 30 days
               },
-              networkTimeoutSeconds: 5,
               cacheableResponse: {
                 statuses: [0, 200]
               }

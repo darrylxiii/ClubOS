@@ -41,6 +41,7 @@ function getErrorMessage(error: unknown, fallback: string): string {
 
 export function MergePreviewDialog({ candidateId, userId, open, onClose, onSuccess }: MergePreviewDialogProps) {
   const [preview, setPreview] = useState<MergePreview | null>(null);
+  const { t } = useTranslation('admin');
   const [loading, setLoading] = useState(true);
   const [executing, setExecuting] = useState(false);
 
@@ -91,7 +92,6 @@ export function MergePreviewDialog({ candidateId, userId, open, onClose, onSucce
   };
 
   const renderFieldComparison = (field: MergeField) => {
-  const { t } = useTranslation('admin');
     const { name, candidateValue, userValue, willMerge, conflict } = field;
     
     let badgeVariant: "default" | "secondary" | "destructive" = "secondary";

@@ -1,0 +1,25 @@
+{
+  "version": 1,
+  "description": "Route functions only on HTML requests and the geo-detect API. Static assets bypass functions entirely for performance.",
+  "include": ["/*"],
+  "exclude": [
+    "/assets/*",
+    "/favicon.*",
+    "/favicon-*",
+    "/icon-*",
+    "/apple-touch-icon*",
+    "/quantum-logo.svg",
+    "/quantum-clover-icon.png",
+    "/qc-icon-*",
+    "/placeholder.svg",
+    "/og-image*",
+    "/email-header*",
+    "/manifest.webmanifest",
+    "/sw.js",
+    "/robots.txt",
+    "/sitemap.xml",
+    "/rss.xml",
+    "/.well-known/*",
+    "/videos/*"
+  ]
+}

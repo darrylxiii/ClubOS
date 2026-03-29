@@ -102,11 +102,11 @@ function getTrendExplanation(kpi: UnifiedKPI, forecasts: ForecastPoint[]): strin
 }
 
 export function KPIForecastPanel({ kpi, className }: KPIForecastPanelProps) {
+  const { t } = useTranslation('admin');
   const forecasts = generateForecast(kpi);
   const explanation = getTrendExplanation(kpi, forecasts);
   
   const formatValue = (value: number) => {
-  const { t } = useTranslation('admin');
     const safeValue = typeof value === 'number' && isFinite(value) ? value : 0;
     switch (kpi.format) {
       case 'percent':

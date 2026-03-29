@@ -51,6 +51,7 @@ const ACTIONS = ["delete", "anonymize", "archive"];
 const emptyForm = { name: "", table_name: "", retention_days: 365, action_type: "delete", description: "" };
 
 export default function DataRetentionAdmin() {
+  const { t } = useTranslation('pages');
   const [policies, setPolicies] = useState<RetentionPolicy[]>([]);
   const [deletions, setDeletions] = useState<ScheduledDeletion[]>([]);
   const [loading, setLoading] = useState(true);
@@ -62,7 +63,6 @@ export default function DataRetentionAdmin() {
   useEffect(() => { fetchData(); }, []);
 
   const fetchData = async () => {
-  const { t } = useTranslation('pages');
     setLoading(true);
     const [pRes, dRes] = await Promise.all([
       supabase.from("data_retention_policies").select("*").order("created_at", { ascending: false }),

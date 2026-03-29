@@ -598,7 +598,17 @@
     "activeThresholdMustBeLessThanWarningThre": "Active threshold must be less than Warning threshold",
     "activityThresholdsUpdated": "Activity thresholds updated",
     "resetToDefaultThresholds": "Reset to default thresholds",
-    "activeThresholdMustBeLessThan": "Active threshold must be less than Warning threshold"
+    "activeThresholdMustBeLessThan": "Active threshold must be less than Warning threshold",
+    "title": "Activity Settings",
+    "description": "Configure when candidates are marked as Active (Green), Warning (Yellow), or Inactive (Red)",
+    "activeThresholdGreen": "Active Threshold (Green)",
+    "warningThresholdYellow": "Warning Threshold (Yellow)",
+    "days": "days",
+    "activeDescription": "Candidates with activity within this period will be marked as Active (Green)",
+    "warningDescription": "Candidates with activity between {{greenDays}} and this period will be marked as Warning (Yellow)",
+    "inactiveDescription": "Candidates with activity beyond {{yellowDays}} days will be marked as Inactive (Red)",
+    "resetToDefault": "Reset to Default",
+    "saveChanges": "Save Changes"
   },
   "adminApplicationHub": {
     "failedToLoadApplications": "Failed to load applications",

@@ -66,6 +66,7 @@ function formatCurrencyFull(amount: number): string {
 }
 
 export function UserDetailModal({ userId, open, onOpenChange }: UserDetailModalProps) {
+  const { t } = useTranslation('admin');
   const { data: userData, isLoading } = useQuery({
     queryKey: ['user-detail-v3', userId],
     queryFn: async () => {
@@ -143,7 +144,6 @@ export function UserDetailModal({ userId, open, onOpenChange }: UserDetailModalP
   });
 
   const getStatusColor = (lastActivity: string | null) => {
-  const { t } = useTranslation('admin');
     if (!lastActivity) return 'bg-muted-foreground/40';
     const minutesAgo = (Date.now() - new Date(lastActivity).getTime()) / (1000 * 60);
     if (minutesAgo < 2) return 'bg-green-500';

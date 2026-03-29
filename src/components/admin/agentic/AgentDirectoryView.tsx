@@ -48,6 +48,7 @@ const AGENT_ICONS: Record<string, typeof Bot> = {
 
 export default function AgentDirectoryView({ onOpenChat }: { onOpenChat?: (agentName: string) => void }) {
   const [agents, setAgents] = useState<Agent[]>([]);
+  const { t } = useTranslation('admin');
   const [decisions, setDecisions] = useState<AgentDecision[]>([]);
   const [loading, setLoading] = useState(true);
   const [showDecisions, setShowDecisions] = useState(true);
@@ -83,7 +84,6 @@ export default function AgentDirectoryView({ onOpenChat }: { onOpenChat?: (agent
   }, []);
 
   const getAgentIcon = (name: string) => {
-  const { t } = useTranslation('admin');
     const key = Object.keys(AGENT_ICONS).find((k) => name.toLowerCase().includes(k));
     return AGENT_ICONS[key || ''] || Bot;
   };

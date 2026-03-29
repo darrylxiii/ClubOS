@@ -55,6 +55,7 @@ const EMPTY_PLAN_FORM = { name: "", department: "", quarter: "Q1", year: new Dat
 const EMPTY_REQ_FORM = { title: "", department: "", headcount_plan_id: "", priority: "medium", budget_allocated: 0, target_start_date: "" };
 
 export default function HeadcountPlanning() {
+  const { t } = useTranslation('pages');
   const [plans, setPlans] = useState<HeadcountPlan[]>([]);
   const [requisitions, setRequisitions] = useState<Requisition[]>([]);
   const [loading, setLoading] = useState(true);
@@ -74,7 +75,6 @@ export default function HeadcountPlanning() {
   useEffect(() => { fetchData(); }, []);
 
   const fetchData = async () => {
-  const { t } = useTranslation('pages');
     setLoading(true);
     const [planRes, reqRes] = await Promise.all([
       supabase.from("headcount_plans").select("*").order("year", { ascending: false }),

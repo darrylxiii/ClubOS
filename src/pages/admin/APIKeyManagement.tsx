@@ -33,6 +33,7 @@ interface APIKey {
 const PERMISSIONS = ["read:candidates", "write:candidates", "read:jobs", "write:jobs", "read:applications", "write:applications", "read:analytics", "admin:all"];
 
 export default function APIKeyManagement() {
+  const { t } = useTranslation("admin");
   const [keys, setKeys] = useState<APIKey[]>([]);
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -46,7 +47,6 @@ export default function APIKeyManagement() {
   useEffect(() => { fetchKeys(); }, []);
 
   const fetchKeys = async () => {
-  const { t } = useTranslation("admin");
     setLoading(true);
     const { data } = await supabase.from("api_keys").select("*").order("created_at", { ascending: false });
     if (data) setKeys(data);
