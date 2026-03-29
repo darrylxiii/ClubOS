@@ -77,6 +77,7 @@ function buildCSP(nonce) {
 // ─── Security Headers ───
 // Applied to ALL responses (HTML and static assets).
 const SECURITY_HEADERS = {
+  'Access-Control-Allow-Origin': 'https://os.thequantumclub.com',
   'X-Frame-Options': 'DENY',
   'X-Content-Type-Options': 'nosniff',
   'Referrer-Policy': 'strict-origin-when-cross-origin',
@@ -84,6 +85,7 @@ const SECURITY_HEADERS = {
   // same-origin-allow-popups: needed for Google OAuth popup flow
   'Cross-Origin-Opener-Policy': 'same-origin-allow-popups',
   'Cross-Origin-Resource-Policy': 'same-origin',
+  'Cross-Origin-Embedder-Policy': 'credentialless',
   // Explicitly disable browser features we don't use
   'Permissions-Policy': 'geolocation=(), midi=(), sync-xhr=(), accelerometer=(), gyroscope=(), magnetometer=(), payment=(), usb=(), camera=(self), microphone=(self), fullscreen=(self)',
   // Remove deprecated X-XSS-Protection (can cause issues on modern browsers)
