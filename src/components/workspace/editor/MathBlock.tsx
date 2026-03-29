@@ -18,6 +18,7 @@ export const MathBlock = createReactBlockSpec(
   },
   {
     render: (props) => {
+      const { t } = useTranslation('common');
       const [isEditing, setIsEditing] = useState(false);
       const [latex, setLatex] = useState(props.block.props.latex as string || '');
       const [rendered, setRendered] = useState<string>('');
@@ -26,7 +27,6 @@ export const MathBlock = createReactBlockSpec(
       const inputRef = useRef<HTMLTextAreaElement>(null);
 
       useEffect(() => {
-  const { t } = useTranslation('common');
         const renderMath = async () => {
           if (!latex) {
             setRendered('');

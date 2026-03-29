@@ -202,7 +202,7 @@ export function CompanyManagement() {
             </CardHeader>
             <CardContent>
               <div className="text-xs text-muted-foreground">
-                {overallStats.active_companies} active
+                {overallStats.active_companies} {t("active", "active")}
               </div>
             </CardContent>
           </Card>
@@ -219,7 +219,7 @@ export function CompanyManagement() {
 
           <Card>
             <CardHeader className="pb-3">
-              <CardDescription>{t("applications", "Applications")}</CardDescription>
+              <CardDescription>{t("total_applications", "Total Applications")}</CardDescription>
               <CardTitle className="text-3xl flex items-center gap-2">
                 <TrendingUp className="w-6 h-6 text-primary" />
                 {overallStats.total_applications}
@@ -263,7 +263,7 @@ export function CompanyManagement() {
             </div>
             <Button onClick={() => navigate('/companies')}>
               <ExternalLink className="w-4 h-4 mr-2" />
-              Go to Companies Dashboard
+              {t("go_to_companies_dashboard", "Go to Companies Dashboard")}
             </Button>
           </div>
         </CardHeader>
@@ -274,7 +274,7 @@ export function CompanyManagement() {
               <p className="text-muted-foreground mb-4">{t("no_companies_yet_use", "No companies yet. Use the Companies dashboard to add your first partner company!")}</p>
               <Button onClick={() => navigate('/companies')}>
                 <ExternalLink className="w-4 h-4 mr-2" />
-                Go to Companies Dashboard
+                {t("go_to_companies_dashboard", "Go to Companies Dashboard")}
               </Button>
             </div>
           ) : (
@@ -329,7 +329,7 @@ export function CompanyManagement() {
                               </div>
                               <div className="text-center">
                                 <div className="font-bold text-lg">{stats.total_applications}</div>
-                                <div className="text-xs text-muted-foreground">{t("apps", "Apps")}</div>
+                                <div className="text-xs text-muted-foreground">{t("applications_short", "Apps")}</div>
                               </div>
                               <div className="text-center">
                                 <div className="font-bold text-lg">{stats.total_followers}</div>
@@ -391,7 +391,7 @@ export function CompanyManagement() {
                             {company.company_size && (
                               <div>
                                 <div className="text-xs text-muted-foreground mb-1">{t("company_size", "Company Size")}</div>
-                                <div>{company.company_size} employees</div>
+                                <div>{company.company_size} {t("employees", "employees")}</div>
                               </div>
                             )}
                             {company.website_url && (
@@ -404,7 +404,7 @@ export function CompanyManagement() {
                                   className="text-primary hover:underline flex items-center gap-1"
                                   onClick={(e) => e.stopPropagation()}
                                 >
-                                  Visit <ExternalLink className="w-3 h-3" />
+                                  {t("visit", "Visit")} <ExternalLink className="w-3 h-3" />
                                 </a>
                               </div>
                             )}
@@ -421,7 +421,7 @@ export function CompanyManagement() {
                               }}
                             >
                               <ExternalLink className="w-4 h-4 mr-2" />
-                              View Full Page
+                              {t("view_full_page", "View Full Page")}
                             </Button>
                             <Button
                               size="sm"
@@ -432,7 +432,7 @@ export function CompanyManagement() {
                               }}
                             >
                               <ExternalLink className="w-4 h-4 mr-2" />
-                              Manage in Dashboard
+                              {t("manage_in_dashboard", "Manage in Dashboard")}
                             </Button>
                           </div>
                         </div>

@@ -15,12 +15,12 @@ interface ImageEditorPreviewProps {
 }
 
 export const ImageEditorPreview = memo(function ImageEditorPreview({
-  const { t } = useTranslation('common');
   previewUrl,
   previewSizes,
   previewShape,
   aspectRatio = 1,
 }: ImageEditorPreviewProps) {
+  const { t } = useTranslation('common');
   const getPreviewClasses = (size: number) => {
     const baseClasses = 'bg-background overflow-hidden border-2 border-border transition-all';
     

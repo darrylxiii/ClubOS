@@ -33,7 +33,7 @@ export const CompanyFollowersCard = () => {
           </div>
         </div>
         <p className="text-xs text-muted-foreground mt-3">
-          Total engagement
+          {t('companies.companyFollowersCard.totalEngagement', 'Total engagement')}
         </p>
         {topByFollowers && topByFollowers.length > 0 && (
           <div className="mt-3 pt-3 border-t border-border/50 space-y-1.5">

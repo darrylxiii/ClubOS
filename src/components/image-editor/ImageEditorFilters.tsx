@@ -10,10 +10,10 @@ interface ImageEditorFiltersProps {
 }
 
 export const ImageEditorFilters = memo(function ImageEditorFilters({
-  const { t } = useTranslation('common');
   filters,
   onFiltersChange,
 }: ImageEditorFiltersProps) {
+  const { t } = useTranslation('common');
   const applyPreset = (presetName: string) => {
     const preset = FILTER_PRESETS[presetName];
     if (preset) {

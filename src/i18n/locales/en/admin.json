@@ -170,10 +170,12 @@
       "failedToArchiveCompany": "Failed to archive company"
     },
     "companiesDashboard": {
-      "companiesOverview": "Companies Overview"
+      "companiesOverview": "Companies Overview",
+      "description": "Manage company accounts and engagement"
     },
     "companyFollowersCard": {
-      "companyFollowers": "Company Followers"
+      "companyFollowers": "Company Followers",
+      "totalEngagement": "Total engagement"
     },
     "companyMembersManager": {
       "removeMember": "Remove Member?",
@@ -206,13 +208,18 @@
       "failedToRemoveAssignment": "Failed to remove assignment"
     },
     "totalApplicationsCard": {
-      "totalApplications": "Total Applications"
+      "totalApplications": "Total Applications",
+      "acrossAllCompanies": "Across all companies"
     },
     "totalCompaniesCard": {
-      "totalCompanies": "Total Companies"
+      "totalCompanies": "Total Companies",
+      "active": "active",
+      "inactive": "inactive",
+      "activeRate": "active rate"
     },
     "totalJobsCard": {
-      "totalJobs": "Total Jobs"
+      "totalJobs": "Total Jobs",
+      "activePositions": "active positions"
     },
     "companyStatusBadge": {}
   },

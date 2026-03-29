@@ -17225,5 +17225,10 @@
     "whatsapp": "WhatsApp",
     "systemHealth": "System Health",
     "features": "Features"
-  }
+  },
+  "applications_short": "Apps",
+  "visit": "Visit",
+  "view_full_page": "View Full Page",
+  "manage_in_dashboard": "Manage in Dashboard",
+  "go_to_companies_dashboard": "Go to Companies Dashboard"
 }

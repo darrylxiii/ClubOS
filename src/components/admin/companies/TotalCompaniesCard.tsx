@@ -37,7 +37,7 @@ export const TotalCompaniesCard = () => {
           </div>
         </div>
         <p className="text-xs text-muted-foreground mt-3">
-          {metrics.active_companies} active • {metrics.inactive_companies} inactive
+          {metrics.active_companies} {t('companies.totalCompaniesCard.active', 'active')} • {metrics.inactive_companies} {t('companies.totalCompaniesCard.inactive', 'inactive')}
         </p>
         <div className="mt-2 h-1.5 w-full bg-muted rounded-full overflow-hidden">
           <div
@@ -46,7 +46,7 @@ export const TotalCompaniesCard = () => {
           />
         </div>
         <p className="text-xs text-muted-foreground mt-1">
-          {activeRate.toFixed(1)}% active rate
+          {activeRate.toFixed(1)}% {t('companies.totalCompaniesCard.activeRate', 'active rate')}
         </p>
       </CardBody>
     </AnimatedCard>

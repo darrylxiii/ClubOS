@@ -20,12 +20,12 @@ export const SyncedBlock = createReactBlockSpec(
   },
   {
     render: (props) => {
+      const { t } = useTranslation('common');
       const [isLinked, setIsLinked] = useState(false);
       
       const syncId = props.block.props.syncId as string;
 
       useEffect(() => {
-  const { t } = useTranslation('common');
         if (syncId) {
           setIsLinked(true);
         }

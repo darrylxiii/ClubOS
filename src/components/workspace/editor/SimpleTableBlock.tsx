@@ -25,8 +25,8 @@ export const SimpleTableBlock = createReactBlockSpec(
   },
   {
     render: (props) => {
+      const { t } = useTranslation('common');
       const [data, setData] = useState<TableData>(() => {
-  const { t } = useTranslation('common');
         try {
           return JSON.parse(props.block.props.tableData as string);
         } catch {

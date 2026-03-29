@@ -15,6 +15,7 @@ export const MermaidBlock = createReactBlockSpec(
   },
   {
     render: (props) => {
+      const { t } = useTranslation('common');
       const [isEditing, setIsEditing] = useState(false);
       const [code, setCode] = useState(props.block.props.code as string || '');
       const [svgContent, setSvgContent] = useState<string>('');
@@ -24,7 +25,6 @@ export const MermaidBlock = createReactBlockSpec(
       const uniqueId = useId().replace(/:/g, '');
 
       useEffect(() => {
-  const { t } = useTranslation('common');
         const renderDiagram = async () => {
           if (!code) {
             setSvgContent('');

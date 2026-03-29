@@ -17,10 +17,10 @@ export const TableOfContentsBlock = createReactBlockSpec(
   },
   {
     render: (props) => {
+      const { t } = useTranslation('common');
       const [headings, setHeadings] = useState<HeadingItem[]>([]);
 
       useEffect(() => {
-  const { t } = useTranslation('common');
         const extractHeadings = () => {
           const blocks = props.editor.document;
           const extracted: HeadingItem[] = [];

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -11,6 +12,7 @@ import { toast } from 'sonner';
 import { motion } from '@/lib/motion';
 
 export default function TranslationCoverage() {
+  const { t } = useTranslation('common');
   const { data: coverage, isLoading, refetch } = useTranslationCoverage();
   const { data: needsReviewList } = useTranslationsNeedingReview();
   const markAsReviewed = useMarkAsReviewed();

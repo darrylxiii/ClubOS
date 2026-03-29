@@ -15853,5 +15853,10 @@
     "whatsapp": "WhatsApp",
     "systemHealth": "Systeemstatus",
     "features": "Functies"
-  }
+  },
+  "applications_short": "Sollicitaties",
+  "visit": "Bezoek",
+  "view_full_page": "Volledig Profiel Bekijken",
+  "manage_in_dashboard": "Beheer in Dashboard",
+  "go_to_companies_dashboard": "Ga naar Companies Dashboard"
 }

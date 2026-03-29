@@ -33,7 +33,7 @@ export const TotalApplicationsCard = () => {
           </div>
         </div>
         <p className="text-xs text-muted-foreground mt-3">
-          Across all companies
+          {t('companies.totalApplicationsCard.acrossAllCompanies', 'Across all companies')}
         </p>
       </CardBody>
     </AnimatedCard>

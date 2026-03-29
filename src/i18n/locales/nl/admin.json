@@ -165,10 +165,12 @@
       "failedToArchiveCompany": "Mislukt to Archiveren Bedrijf"
     },
     "companiesDashboard": {
-      "companiesOverview": "Companies Overzicht"
+      "companiesOverview": "Companies Overzicht",
+      "description": "Bedrijfsaccounts en engagement beheren"
     },
     "companyFollowersCard": {
-      "companyFollowers": "Bedrijf Followers"
+      "companyFollowers": "Bedrijf Followers",
+      "totalEngagement": "Totaal engagement"
     },
     "companyMembersManager": {
       "removeMember": "Verwijderen Lid?",
@@ -201,13 +203,18 @@
       "failedToRemoveAssignment": "Mislukt to Verwijderen assignment"
     },
     "totalApplicationsCard": {
-      "totalApplications": "Totaal Sollicitaties"
+      "totalApplications": "Totaal Sollicitaties",
+      "acrossAllCompanies": "Over alle bedrijven"
     },
     "totalCompaniesCard": {
-      "totalCompanies": "Totaal Companies"
+      "totalCompanies": "Totaal Companies",
+      "active": "actief",
+      "inactive": "inactief",
+      "activeRate": "actief percentage"
     },
     "totalJobsCard": {
-      "totalJobs": "Totaal Vacatures"
+      "totalJobs": "Totaal Vacatures",
+      "activePositions": "actieve posities"
     },
     "companyStatusBadge": {}
   },

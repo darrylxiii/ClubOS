@@ -20,7 +20,7 @@ export const CompaniesDashboard = () => {
     <div className="space-y-6">
       <DashboardHeader
         title={t('companies.companiesDashboard.companiesOverview')}
-        description="Manage company accounts and engagement"
+        description={t('companies.companiesDashboard.description', 'Manage company accounts and engagement')}
         onRefresh={handleRefresh}
         isRefreshing={isLoading}
       />

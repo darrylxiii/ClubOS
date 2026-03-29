@@ -20,10 +20,10 @@ interface KPIAchievementCelebrationProps {
 }
 
 export function KPIAchievementCelebration({ 
-  const { t } = useTranslation('admin');
   achievement = null, 
   onDismiss = () => {}
 }: KPIAchievementCelebrationProps) {
+  const { t } = useTranslation('admin');
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {

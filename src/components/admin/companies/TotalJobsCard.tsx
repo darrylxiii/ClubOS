@@ -33,7 +33,7 @@ export const TotalJobsCard = () => {
           </div>
         </div>
         <p className="text-xs text-muted-foreground mt-3">
-          {metrics.active_jobs} active positions
+          {metrics.active_jobs} {t('companies.totalJobsCard.activePositions', 'active positions')}
         </p>
         {topByJobs && topByJobs.length > 0 && (
           <div className="mt-3 pt-3 border-t border-border/50 space-y-1.5">
