@@ -299,7 +299,7 @@ export function MeetingHistoryTab() {
                 ) : (
                   <RefreshCw className="w-4 h-4 mr-2" />
                 )}
-                {isSyncingFathom ? t('meetings.meetinghistorytab.syncing', 'Syncing...') : t('meetings.meetinghistorytab.syncFathom', 'Sync Fathom')}
+                {isSyncingFathom ? t('meetingsSection.meetinghistorytab.syncing', 'Syncing...') : t('meetingsSection.meetinghistorytab.syncFathom', 'Sync Fathom')}
               </Button>
 
               <Button
@@ -313,7 +313,7 @@ export function MeetingHistoryTab() {
                 ) : (
                   <RefreshCw className="w-4 h-4 mr-2" />
                 )}
-                {isSyncingFireflies ? t('meetings.meetinghistorytab.syncing', 'Syncing...') : t('meetings.meetinghistorytab.syncFireflies', 'Sync Fireflies')}
+                {isSyncingFireflies ? t('meetingsSection.meetinghistorytab.syncing', 'Syncing...') : t('meetingsSection.meetinghistorytab.syncFireflies', 'Sync Fireflies')}
               </Button>
 
               <Dialog open={isUploadOpen} onOpenChange={setIsUploadOpen}>
@@ -326,7 +326,7 @@ export function MeetingHistoryTab() {
                 <DialogContent className="max-w-lg">
                   <DialogHeader>
                     <DialogTitle>{t("upload_meeting_recording", "Upload Meeting Recording")}</DialogTitle>
-                    <DialogDescription>{t('meetings.meetinghistorytab.addAnExternalRecordingToYour', 'Add an external recording to your library')}</DialogDescription>
+                    <DialogDescription>{t('meetingsSection.meetinghistorytab.addAnExternalRecordingToYour', 'Add an external recording to your library')}</DialogDescription>
                   </DialogHeader>
                   <div className="space-y-4">
                     <div>
@@ -338,7 +338,7 @@ export function MeetingHistoryTab() {
                         onChange={(e) => setUploadFile(e.target.files?.[0] || null)}
                         className="cursor-pointer"
                       />
-                      <p className="text-xs text-muted-foreground mt-1">{t('meetings.meetinghistorytab.supportedMp4WebmMp3WavMax', 'Supported: MP4, WebM, MP3, WAV (Max 500MB)')}</p>
+                      <p className="text-xs text-muted-foreground mt-1">{t('meetingsSection.meetinghistorytab.supportedMp4WebmMp3WavMax', 'Supported: MP4, WebM, MP3, WAV (Max 500MB)')}</p>
                     </div>
 
                     <div>
@@ -412,7 +412,7 @@ export function MeetingHistoryTab() {
                 />
               </div>
               <div className="flex items-center gap-2">
-                <Label htmlFor="date-to" className="text-sm text-muted-foreground whitespace-nowrap">{t('meetings.meetinghistorytab.to', 'To')}</Label>
+                <Label htmlFor="date-to" className="text-sm text-muted-foreground whitespace-nowrap">{t('meetingsSection.meetinghistorytab.to', 'To')}</Label>
                 <Input
                   id="date-to"
                   type="date"

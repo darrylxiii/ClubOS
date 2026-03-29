@@ -34,7 +34,7 @@ export const EventPost = ({
           <img src={imageUrl} alt={title} className="w-full h-full object-cover" />
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
           <Badge className="absolute top-4 right-4 bg-primary">
-            {isPastEvent ? t('social.events.pastEvent') : t('social.events.upcoming')}
+            {isPastEvent ? t('socialSection.events.pastEvent') : t('socialSection.events.upcoming')}
           </Badge>
         </div>
       )}
@@ -63,20 +63,20 @@ export const EventPost = ({
           {attendeeCount > 0 && (
             <div className="flex items-center gap-3 text-sm">
               <Users className="h-4 w-4 text-primary" />
-              <span>{t('social.events.attending', { count: attendeeCount.toLocaleString() })}</span>
+              <span>{t('socialSection.events.attending', { count: attendeeCount.toLocaleString() })}</span>
             </div>
           )}
         </div>
 
         <div className="flex gap-3">
           <Button className="flex-1" disabled={isPastEvent}>
-            {isPastEvent ? t('social.events.ended') : t('social.events.interested')}
+            {isPastEvent ? t('socialSection.events.ended') : t('socialSection.events.interested')}
           </Button>
           {eventLink && (
             <Button variant="outline" asChild>
               <a href={eventLink} target="_blank" rel="noopener noreferrer">
                 <ExternalLink className="h-4 w-4 mr-2" />
-                {t('social.events.details')}
+                {t('socialSection.events.details')}
               </a>
             </Button>
           )}

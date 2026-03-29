@@ -38,8 +38,8 @@ export const ResultsDashboard = memo(({ profile, outcome, jobMatches }: ResultsD
           className="text-center space-y-4"
         >
           <Trophy className="w-20 h-20 mx-auto text-primary" />
-          <h1 className="text-4xl md:text-5xl font-bold">{t('miljoenenjacht.yourResults')}</h1>
-          <p className="text-xl text-muted-foreground">{t('miljoenenjacht.completePsychologicalProfileAndCareerMat')}</p>
+          <h1 className="text-4xl md:text-5xl font-bold">{t('miljoenenjachtSection.yourResults')}</h1>
+          <p className="text-xl text-muted-foreground">{t('miljoenenjachtSection.completePsychologicalProfileAndCareerMat')}</p>
         </motion.div>
 
         {/* Outcome Summary */}
@@ -144,7 +144,7 @@ export const ResultsDashboard = memo(({ profile, outcome, jobMatches }: ResultsD
         >
           <Card>
             <CardHeader>
-              <CardTitle>{t('miljoenenjacht.cognitiveBiasesDetected')}</CardTitle>
+              <CardTitle>{t('miljoenenjachtSection.cognitiveBiasesDetected')}</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

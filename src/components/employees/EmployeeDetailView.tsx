@@ -114,7 +114,7 @@ export const EmployeeDetailView = ({ employeeId, employee: passedEmployee, onBac
       {/* Header */}
       <div className="flex items-start gap-4">
         {handleBack && (
-          <Button variant="ghost" size="icon" onClick={handleBack} aria-label={t('actions.goBack')}>
+          <Button variant="ghost" size="icon" onClick={handleBack} aria-label={t('actionsSection.goBack')}>
             <ArrowLeft className="h-5 w-5" aria-hidden="true" />
           </Button>
         )}
@@ -128,7 +128,7 @@ export const EmployeeDetailView = ({ employeeId, employee: passedEmployee, onBac
           </Avatar>
           
           <div className="flex-1">
-            <h1 className="text-2xl font-bold">{profile?.full_name || t('employees.employee')}</h1>
+            <h1 className="text-2xl font-bold">{profile?.full_name || t('employeesSection.employee')}</h1>
             <p className="text-muted-foreground">{employee.job_title}</p>
             <div className="flex items-center gap-4 mt-2 text-sm text-muted-foreground">
               {profile?.email && (
@@ -154,7 +154,7 @@ export const EmployeeDetailView = ({ employeeId, employee: passedEmployee, onBac
 
           <div className="flex items-center gap-2">
             <Badge variant={employee.is_active ? "default" : "secondary"}>
-              {employee.is_active ? t('employees.active') : t('employees.inactive')}
+              {employee.is_active ? t('employeesSection.active') : t('employeesSection.inactive')}
             </Badge>
             <Badge variant="outline">{employee.employment_type}</Badge>
           </div>
@@ -166,27 +166,27 @@ export const EmployeeDetailView = ({ employeeId, employee: passedEmployee, onBac
         <TabsList className="grid w-full grid-cols-6">
           <TabsTrigger value="overview" className="flex items-center gap-2">
             <User className="h-4 w-4" />
-            {t('employees.overview')}
+            {t('employeesSection.overview')}
           </TabsTrigger>
           <TabsTrigger value="kpis" className="flex items-center gap-2">
             <BarChart3 className="h-4 w-4" />
-            {t('employees.kpis')}
+            {t('employeesSection.kpis')}
           </TabsTrigger>
           <TabsTrigger value="targets" className="flex items-center gap-2">
             <Target className="h-4 w-4" />
-            {t('employees.targets')}
+            {t('employeesSection.targets')}
           </TabsTrigger>
           <TabsTrigger value="time" className="flex items-center gap-2">
             <Clock className="h-4 w-4" />
-            {t('employees.time')}
+            {t('employeesSection.time')}
           </TabsTrigger>
           <TabsTrigger value="commissions" className="flex items-center gap-2">
             <DollarSign className="h-4 w-4" />
-            {t('employees.commissions')}
+            {t('employeesSection.commissions')}
           </TabsTrigger>
           <TabsTrigger value="earnings" className="flex items-center gap-2">
             <Wallet className="h-4 w-4" />
-            {t('employees.earnings')}
+            {t('employeesSection.earnings')}
           </TabsTrigger>
         </TabsList>
 
@@ -194,23 +194,23 @@ export const EmployeeDetailView = ({ employeeId, employee: passedEmployee, onBac
           <div className="grid gap-6 md:grid-cols-2">
             <Card>
               <CardHeader>
-                <CardTitle>{t('employees.employmentDetails')}</CardTitle>
+                <CardTitle>{t('employeesSection.employmentDetails')}</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">{t('employees.jobTitle')}</span>
+                  <span className="text-muted-foreground">{t('employeesSection.jobTitle')}</span>
                   <span className="font-medium">{employee.job_title}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">{t('employees.department')}</span>
+                  <span className="text-muted-foreground">{t('employeesSection.department')}</span>
                   <span className="font-medium">{employee.department || '-'}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">{t('employees.employmentType')}</span>
+                  <span className="text-muted-foreground">{t('employeesSection.employmentType')}</span>
                   <span className="font-medium">{employee.employment_type}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">{t('employees.startDate')}</span>
+                  <span className="text-muted-foreground">{t('employeesSection.startDate')}</span>
                   <span className="font-medium">
                     {employee.start_date ? new Date(employee.start_date).toLocaleDateString() : '-'}
                   </span>
@@ -220,23 +220,23 @@ export const EmployeeDetailView = ({ employeeId, employee: passedEmployee, onBac
 
             <Card>
               <CardHeader>
-                <CardTitle>{t('employees.compensation')}</CardTitle>
+                <CardTitle>{t('employeesSection.compensation')}</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">{t('employees.baseSalary')}</span>
+                  <span className="text-muted-foreground">{t('employeesSection.baseSalary')}</span>
                   <span className="font-medium">
                     €{employee.base_salary?.toLocaleString() || '0'}
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">{t('employees.commissionRate')}</span>
+                  <span className="text-muted-foreground">{t('employeesSection.commissionRate')}</span>
                   <span className="font-medium">
                     {employee.commission_percentage ? `${employee.commission_percentage}%` : '-'}
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">{t('employees.commissionStructure')}</span>
+                  <span className="text-muted-foreground">{t('employeesSection.commissionStructure')}</span>
                   <span className="font-medium">{employee.commission_structure || '-'}</span>
                 </div>
               </CardContent>
@@ -245,7 +245,7 @@ export const EmployeeDetailView = ({ employeeId, employee: passedEmployee, onBac
             {/* Performance Summary */}
             {memberStats && (
               <Card className="md:col-span-2 bg-gradient-to-br from-card/90 to-card/60 backdrop-blur-xl border-border/50">
-                <CardHeader><CardTitle className="text-base">{t('employees.performanceSummary', 'Performance Summary')}</CardTitle></CardHeader>
+                <CardHeader><CardTitle className="text-base">{t('employeesSection.performanceSummary', 'Performance Summary')}</CardTitle></CardHeader>
                 <CardContent>
                   <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
                     <div className="text-center p-3 bg-muted/30 rounded-lg">
@@ -281,39 +281,39 @@ export const EmployeeDetailView = ({ employeeId, employee: passedEmployee, onBac
             {activityStats && (
               <Card className="md:col-span-2">
                 <CardHeader>
-                  <CardTitle>{t('employees.activityOverview')}</CardTitle>
+                  <CardTitle>{t('employeesSection.activityOverview')}</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                     <div className="flex items-center gap-3">
                       <LogIn className="h-5 w-5 text-muted-foreground" />
                       <div>
-                        <div className="text-xs text-muted-foreground">{t('employees.totalLogins')}</div>
+                        <div className="text-xs text-muted-foreground">{t('employeesSection.totalLogins')}</div>
                         <div className="text-lg font-bold">{activityStats.sessionCount}</div>
                       </div>
                     </div>
                     <div className="flex items-center gap-3">
                       <Timer className="h-5 w-5 text-muted-foreground" />
                       <div>
-                        <div className="text-xs text-muted-foreground">{t('employees.timeOnline')}</div>
+                        <div className="text-xs text-muted-foreground">{t('employeesSection.timeOnline')}</div>
                         <div className="text-lg font-bold">{formatDuration(activityStats.totalMinutes)}</div>
                       </div>
                     </div>
                     <div className="flex items-center gap-3">
                       <Clock className="h-5 w-5 text-muted-foreground" />
                       <div>
-                        <div className="text-xs text-muted-foreground">{t('employees.lastLogin')}</div>
+                        <div className="text-xs text-muted-foreground">{t('employeesSection.lastLogin')}</div>
                         <div className="text-sm font-medium">
                           {activityStats.lastLogin
                             ? formatDistanceToNow(new Date(activityStats.lastLogin), { addSuffix: true })
-                            : t('employees.never', 'Never')}
+                            : t('employeesSection.never', 'Never')}
                         </div>
                       </div>
                     </div>
                     <div className="flex items-center gap-3">
                       <User className="h-5 w-5 text-muted-foreground" />
                       <div>
-                        <div className="text-xs text-muted-foreground">{t('employees.meetings')}</div>
+                        <div className="text-xs text-muted-foreground">{t('employeesSection.meetings')}</div>
                         <div className="text-lg font-bold">{activityStats.meetingsAttended}</div>
                       </div>
                     </div>
@@ -334,7 +334,7 @@ export const EmployeeDetailView = ({ employeeId, employee: passedEmployee, onBac
           <div className="flex justify-end mb-4">
             <Select value={String(kpiDays)} onValueChange={(v) => setKpiDays(Number(v))}>
               <SelectTrigger className="w-[140px]">
-                <SelectValue placeholder={t('employees.selectPeriod', 'Select period')} />
+                <SelectValue placeholder={t('employeesSection.selectPeriod', 'Select period')} />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="7">Last 7 days</SelectItem>

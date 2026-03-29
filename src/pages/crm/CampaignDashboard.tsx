@@ -210,6 +210,7 @@ interface CampaignCardProps {
 }
 
 function CampaignCard({ campaign, onStatusChange }: CampaignCardProps) {
+  const { t } = useTranslation('common');
   const replyRate = campaign.total_sent > 0 
     ? ((campaign.total_replied / campaign.total_sent) * 100).toFixed(1) 
     : '0';

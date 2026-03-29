@@ -29,6 +29,7 @@
     "@mantine/core": "^8.3.15",
     "@mantine/hooks": "^8.3.15",
     "@mantine/utils": "^6.0.22",
+    "@paper-design/shaders-react": "^0.0.72",
     "@playwright/test": "^1.56.1",
     "@radix-ui/react-accordion": "^1.2.11",
     "@radix-ui/react-alert-dialog": "^1.1.14",

@@ -103,6 +103,7 @@ const TaskItem = ({
   task: TaskRow;
   onComplete: (id: string, title: string) => void;
 }) => {
+  const { t } = useTranslation('common');
   const dueLabel = useDueDateLabel(task.due_date, task.is_overdue);
   const assigneeEmails = task.assignees
     .map((a) => a.email)

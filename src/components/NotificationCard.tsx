@@ -115,7 +115,7 @@ export function NotificationCard({
                   e.stopPropagation();
                   onMarkAsRead(notification.id);
                 }}
-                title={t('notifications.markAsRead', 'Mark as read')}
+                title={t('notificationsSection.markAsRead', 'Mark as read')}
               >
                 <CheckCircle className="w-3.5 h-3.5" />
                 <span className="sr-only">Mark read</span>
@@ -131,7 +131,7 @@ export function NotificationCard({
                   e.stopPropagation();
                   onClick();
                 }}
-                title={t('notifications.openLink', 'Open link')}
+                title={t('notificationsSection.openLink', 'Open link')}
               >
                 <ExternalLink className="w-3.5 h-3.5" />
                 <span className="sr-only">Open</span>
@@ -146,7 +146,7 @@ export function NotificationCard({
                 e.stopPropagation();
                 onArchive(notification.id);
               }}
-              title={t('notifications.archive', 'Archive')}
+              title={t('notificationsSection.archive', 'Archive')}
             >
               <Archive className="w-3.5 h-3.5" />
               <span className="sr-only">Archive</span>
@@ -160,7 +160,7 @@ export function NotificationCard({
                 e.stopPropagation();
                 onDelete(notification.id);
               }}
-              title={t('notifications.delete', 'Delete')}
+              title={t('notificationsSection.delete', 'Delete')}
             >
               <Trash2 className="w-3.5 h-3.5" />
               <span className="sr-only">Delete</span>

@@ -129,6 +129,7 @@ function WatermarkOverlay({ text }: { text: string }) {
 }
 
 export default function DossierView() {
+  const { t } = useTranslation('common');
   const { shareToken } = useParams<{ shareToken: string }>();
   const [dossier, setDossier] = useState<Dossier | null>(null);
   const [loading, setLoading] = useState(true);

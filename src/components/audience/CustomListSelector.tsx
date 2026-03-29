@@ -69,7 +69,7 @@ export const CustomListSelector = ({ selectedIds, onSelectionChange }: CustomLis
       setLists(listsWithCount as CustomList[]);
     } catch (error) {
       console.error('Error loading lists:', error);
-      toast.error(t('audience.failedToLoadCustomLists'));
+      toast.error(t('audienceSection.failedToLoadCustomLists'));
     } finally {
       setLoading(false);
     }
@@ -92,12 +92,12 @@ export const CustomListSelector = ({ selectedIds, onSelectionChange }: CustomLis
 
       if (error) throw error;
 
-      toast.success(t('audience.listDeleted'));
+      toast.success(t('audienceSection.listDeleted'));
       loadLists();
       onSelectionChange(selectedIds.filter(id => id !== listId));
     } catch (error) {
       console.error('Error deleting list:', error);
-      toast.error(t('audience.failedToDeleteList'));
+      toast.error(t('audienceSection.failedToDeleteList'));
     }
   };
 
@@ -114,7 +114,7 @@ export const CustomListSelector = ({ selectedIds, onSelectionChange }: CustomLis
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h4 className="font-semibold text-sm">{t('audience.selectCustomLists')}</h4>
+        <h4 className="font-semibold text-sm">{t('audienceSection.selectCustomLists')}</h4>
         <Button
           type="button"
           variant="outline"
@@ -132,8 +132,8 @@ export const CustomListSelector = ({ selectedIds, onSelectionChange }: CustomLis
 
       {lists.length === 0 ? (
         <div className="text-center py-8 text-muted-foreground">
-          <p>{t('audience.noCustomListsYet')}</p>
-          <p className="text-sm">{t('audience.createOneToOrganizeYourAudience')}</p>
+          <p>{t('audienceSection.noCustomListsYet')}</p>
+          <p className="text-sm">{t('audienceSection.createOneToOrganizeYourAudience')}</p>
         </div>
       ) : (
         <ScrollArea className="h-[240px] pr-4">

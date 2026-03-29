@@ -40,6 +40,7 @@ const getRoleLabel = (role: string): string => {
 };
 
 export const ApprovalConfirmationStep = ({
+  const { t } = useTranslation('common');
   summary,
   sendEmail,
   setSendEmail,

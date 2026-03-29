@@ -70,7 +70,7 @@ const Admin = () => {
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Shield className="w-8 h-8" />
-                <h1 className="text-4xl font-black uppercase tracking-tight">{t('admin.title')}</h1>
+                <h1 className="text-4xl font-black uppercase tracking-tight">{t('adminSection.title')}</h1>
               </div>
               <StrategistManagementModal 
                 trigger={
@@ -81,24 +81,24 @@ const Admin = () => {
                 }
               />
             </div>
-            <p className="text-lg text-muted-foreground">{t('admin.desc')}</p>
+            <p className="text-lg text-muted-foreground">{t('adminSection.desc')}</p>
           </div>
 
           <Tabs defaultValue="companies" className="space-y-6">
             <TabsList className="flex w-full max-w-[1600px] overflow-x-auto sticky top-4 z-20 gap-2 justify-start">
-              <TabsTrigger value="companies">{t('admin.tabCompanies')}</TabsTrigger>
+              <TabsTrigger value="companies">{t('adminSection.tabCompanies')}</TabsTrigger>
               <TabsTrigger value="users" onClick={() => navigate('/admin/users')}>Users & Roles →</TabsTrigger>
-              <TabsTrigger value="revenue">{t('admin.tabRevenue')}</TabsTrigger>
-              <TabsTrigger value="activity">{t('admin.tabActivity')}</TabsTrigger>
-              <TabsTrigger value="merge">{t('admin.tabMerge')}</TabsTrigger>
-              <TabsTrigger value="member-requests">{t('admin.tabMemberrequests')}</TabsTrigger>
-              <TabsTrigger value="applications">{t('admin.tabApplications')}</TabsTrigger>
-              <TabsTrigger value="achievements">{t('admin.tabAchievements')}</TabsTrigger>
-              <TabsTrigger value="assessments">{t('admin.tabAssessments')}</TabsTrigger>
-              <TabsTrigger value="security">{t('admin.tabSecurity')}</TabsTrigger>
-              <TabsTrigger value="system">{t('admin.tabSystemhealth')}</TabsTrigger>
-              <TabsTrigger value="compliance">{t('admin.tabCompliance')}</TabsTrigger>
-              <TabsTrigger value="support">{t('admin.tabSupport')}</TabsTrigger>
+              <TabsTrigger value="revenue">{t('adminSection.tabRevenue')}</TabsTrigger>
+              <TabsTrigger value="activity">{t('adminSection.tabActivity')}</TabsTrigger>
+              <TabsTrigger value="merge">{t('adminSection.tabMerge')}</TabsTrigger>
+              <TabsTrigger value="member-requests">{t('adminSection.tabMemberrequests')}</TabsTrigger>
+              <TabsTrigger value="applications">{t('adminSection.tabApplications')}</TabsTrigger>
+              <TabsTrigger value="achievements">{t('adminSection.tabAchievements')}</TabsTrigger>
+              <TabsTrigger value="assessments">{t('adminSection.tabAssessments')}</TabsTrigger>
+              <TabsTrigger value="security">{t('adminSection.tabSecurity')}</TabsTrigger>
+              <TabsTrigger value="system">{t('adminSection.tabSystemhealth')}</TabsTrigger>
+              <TabsTrigger value="compliance">{t('adminSection.tabCompliance')}</TabsTrigger>
+              <TabsTrigger value="support">{t('adminSection.tabSupport')}</TabsTrigger>
               <TabsTrigger value="dr">{t('text.admin.dr', 'DR')}</TabsTrigger>
             </TabsList>
 
@@ -109,7 +109,7 @@ const Admin = () => {
 
             <TabsContent value="users" className="space-y-6">
               <div className="text-center py-12">
-                <p className="text-muted-foreground mb-4">{t('admin.desc2')}</p>
+                <p className="text-muted-foreground mb-4">{t('adminSection.desc2')}</p>
                 <Button onClick={() => navigate('/admin/users')}>{t('text.admin.openUserManagement', 'Open User Management')}</Button>
               </div>
             </TabsContent>
@@ -163,7 +163,7 @@ const Admin = () => {
               <Card>
                 <CardContent className="pt-6">
                   <div className="text-center space-y-4">
-                    <p className="text-muted-foreground">{t('admin.desc3')}</p>
+                    <p className="text-muted-foreground">{t('adminSection.desc3')}</p>
                     <Button onClick={() => navigate('/admin/merge')}>
                       {t('text.admin.openMergeDashboard', 'Open Merge Dashboard')}
                     </Button>
@@ -176,7 +176,7 @@ const Admin = () => {
               <Card>
                 <CardContent className="pt-6">
                   <div className="text-center space-y-4">
-                    <p className="text-muted-foreground">{t('admin.desc4')}</p>
+                    <p className="text-muted-foreground">{t('adminSection.desc4')}</p>
                     <Button onClick={() => navigate('/admin/member-requests')}>
                       {t('text.admin.openMemberRequestsDashboard', 'Open Member Requests Dashboard')}
                     </Button>

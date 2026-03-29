@@ -38,13 +38,13 @@ export function TopPipelineDeals({ deals, isLoading }: TopPipelineDealsProps) {
       <CardHeader className="pb-3">
         <CardTitle className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
           <Briefcase className="h-4 w-4" />
-          {t('employees.topPipelineDeals')}
+          {t('employeesSection.topPipelineDeals')}
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">
         {deals.length === 0 ? (
           <p className="text-center text-muted-foreground py-8">
-            {t('employees.noDealsInPipeline')}
+            {t('employeesSection.noDealsInPipeline')}
           </p>
         ) : (
           deals.map((deal, idx) => (
@@ -70,7 +70,7 @@ export function TopPipelineDeals({ deals, isLoading }: TopPipelineDealsProps) {
                 <div className="text-right">
                   <p className="font-semibold">{formatCurrency(deal.weighted_value)}</p>
                   <p className="text-xs text-muted-foreground">
-                    {Math.round(deal.probability * 100)}% {t('employees.prob')}
+                    {Math.round(deal.probability * 100)}% {t('employeesSection.prob')}
                   </p>
                 </div>
               </div>

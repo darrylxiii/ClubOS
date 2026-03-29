@@ -164,7 +164,7 @@ export const EducationSection = ({ userId, isReadOnly = false }: EducationSectio
         <div className="flex justify-between items-center">
           <div className="flex items-center gap-2">
             <GraduationCap className="w-5 h-5" />
-            <CardTitle>{t('profile.education')}</CardTitle>
+            <CardTitle>{t('profileSection.education')}</CardTitle>
           </div>
           <Dialog open={isDialogOpen} onOpenChange={(open) => {
             setIsDialogOpen(open);
@@ -174,17 +174,17 @@ export const EducationSection = ({ userId, isReadOnly = false }: EducationSectio
               <DialogTrigger asChild>
                 <Button size="sm">
                   <Plus className="w-4 h-4 mr-2" />
-                  {t('profile.addEducation')}
+                  {t('profileSection.addEducation')}
                 </Button>
               </DialogTrigger>
             )}
             <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
               <DialogHeader>
-                <DialogTitle>{editingId ? t('common:actions.edit') : t('common:actions.add')} {t('profile.education')}</DialogTitle>
+                <DialogTitle>{editingId ? t('common:actions.edit') : t('common:actions.add')} {t('profileSection.education')}</DialogTitle>
               </DialogHeader>
               <div className="space-y-4">
                 <div className="space-y-2">
-                  <Label>{t('profile.institutionName')} *</Label>
+                  <Label>{t('profileSection.institutionName')} *</Label>
                   <Input 
                     value={formData.institution_name}
                     onChange={(e) => setFormData({...formData, institution_name: e.target.value})}
@@ -194,22 +194,22 @@ export const EducationSection = ({ userId, isReadOnly = false }: EducationSectio
 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label>{t('profile.degreeType')}</Label>
+                    <Label>{t('profileSection.degreeType')}</Label>
                     <Select value={formData.degree_type} onValueChange={(value) => setFormData({...formData, degree_type: value})}>
                       <SelectTrigger>
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="bachelor">{t('profile.bachelors')}</SelectItem>
-                        <SelectItem value="master">{t('profile.masters')}</SelectItem>
-                        <SelectItem value="phd">{t('profile.phd')}</SelectItem>
-                        <SelectItem value="certificate">{t('profile.certificate')}</SelectItem>
-                        <SelectItem value="bootcamp">{t('profile.bootcamp')}</SelectItem>
+                        <SelectItem value="bachelor">{t('profileSection.bachelors')}</SelectItem>
+                        <SelectItem value="master">{t('profileSection.masters')}</SelectItem>
+                        <SelectItem value="phd">{t('profileSection.phd')}</SelectItem>
+                        <SelectItem value="certificate">{t('profileSection.certificate')}</SelectItem>
+                        <SelectItem value="bootcamp">{t('profileSection.bootcamp')}</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
                   <div className="space-y-2">
-                    <Label>{t('profile.fieldOfStudy')}</Label>
+                    <Label>{t('profileSection.fieldOfStudy')}</Label>
                     <Input 
                       value={formData.field_of_study}
                       onChange={(e) => setFormData({...formData, field_of_study: e.target.value})}
@@ -219,7 +219,7 @@ export const EducationSection = ({ userId, isReadOnly = false }: EducationSectio
                 </div>
 
                 <div className="space-y-2">
-                  <Label>{t('profile.gradeGpa')}</Label>
+                  <Label>{t('profileSection.gradeGpa')}</Label>
                   <Input 
                     value={formData.grade}
                     onChange={(e) => setFormData({...formData, grade: e.target.value})}
@@ -229,7 +229,7 @@ export const EducationSection = ({ userId, isReadOnly = false }: EducationSectio
 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label>{t('profile.startDate')}</Label>
+                    <Label>{t('profileSection.startDate')}</Label>
                     <Input 
                       type="date"
                       value={formData.start_date}
@@ -238,7 +238,7 @@ export const EducationSection = ({ userId, isReadOnly = false }: EducationSectio
                   </div>
                   {!formData.is_current && (
                     <div className="space-y-2">
-                      <Label>{t('profile.endDate')}</Label>
+                      <Label>{t('profileSection.endDate')}</Label>
                       <Input 
                         type="date"
                         value={formData.end_date}
@@ -253,21 +253,21 @@ export const EducationSection = ({ userId, isReadOnly = false }: EducationSectio
                     checked={formData.is_current}
                     onCheckedChange={(checked) => setFormData({...formData, is_current: checked})}
                   />
-                  <Label>{t('profile.currentlyStudying')}</Label>
+                  <Label>{t('profileSection.currentlyStudying')}</Label>
                 </div>
 
                 <div className="space-y-2">
-                  <Label>{t('profile.description')}</Label>
+                  <Label>{t('profileSection.description')}</Label>
                   <Textarea
                     value={formData.description}
                     onChange={(e) => setFormData({...formData, description: e.target.value})}
-                    placeholder={t('profile.educationDescPlaceholder')}
+                    placeholder={t('profileSection.educationDescPlaceholder')}
                     rows={4}
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label>{t('profile.certificateUrl')}</Label>
+                  <Label>{t('profileSection.certificateUrl')}</Label>
                   <Input 
                     value={formData.certificate_url}
                     onChange={(e) => setFormData({...formData, certificate_url: e.target.value})}
@@ -276,20 +276,20 @@ export const EducationSection = ({ userId, isReadOnly = false }: EducationSectio
                 </div>
 
                 <div className="space-y-2">
-                  <Label>{t('profile.visibility')}</Label>
+                  <Label>{t('profileSection.visibility')}</Label>
                   <Select value={formData.visibility} onValueChange={(value) => setFormData({...formData, visibility: value})}>
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="public">{t('profile.public')}</SelectItem>
-                      <SelectItem value="private">{t('profile.private')}</SelectItem>
+                      <SelectItem value="public">{t('profileSection.public')}</SelectItem>
+                      <SelectItem value="private">{t('profileSection.private')}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
 
                 <Button onClick={handleSave} className="w-full">
-                  {editingId ? t('common:actions.update') : t('common:actions.add')} {t('profile.education')}
+                  {editingId ? t('common:actions.update') : t('common:actions.add')} {t('profileSection.education')}
                 </Button>
               </div>
             </DialogContent>
@@ -300,7 +300,7 @@ export const EducationSection = ({ userId, isReadOnly = false }: EducationSectio
         <div className="space-y-6">
           {educations.length === 0 ? (
             <p className="text-muted-foreground text-center py-8">
-              {t('profile.noEducationYet')}
+              {t('profileSection.noEducationYet')}
             </p>
           ) : (
             educations.map((edu) => (
@@ -334,7 +334,7 @@ export const EducationSection = ({ userId, isReadOnly = false }: EducationSectio
                   {edu.certificate_verified && (
                     <Badge variant="default" className="flex items-center gap-1">
                       <CheckCircle2 className="w-3 h-3" />
-                      {t('profile.verified')}
+                      {t('profileSection.verified')}
                     </Badge>
                   )}
                 </div>

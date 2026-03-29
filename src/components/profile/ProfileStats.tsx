@@ -20,25 +20,25 @@ export function ProfileStats({ stats, className }: ProfileStatsProps) {
   const statItems = [
     {
       icon: Eye,
-      label: t('profile.profileViews'),
+      label: t('profileSection.profileViews'),
       value: stats.profileViews,
       color: "text-blue-500"
     },
     {
       icon: Users,
-      label: t('profile.connections'),
+      label: t('profileSection.connections'),
       value: stats.connections,
       color: "text-green-500"
     },
     {
       icon: Briefcase,
-      label: t('profile.activeApplications'),
+      label: t('profileSection.activeApplications'),
       value: stats.applicationsActive,
       color: "text-purple-500"
     },
     {
       icon: Award,
-      label: t('profile.achievements'),
+      label: t('profileSection.achievements'),
       value: stats.achievementsUnlocked,
       color: "text-yellow-500"
     },
@@ -47,7 +47,7 @@ export function ProfileStats({ stats, className }: ProfileStatsProps) {
   if (stats.engagementRate !== undefined) {
     statItems.push({
       icon: TrendingUp,
-      label: t('profile.engagementRate'),
+      label: t('profileSection.engagementRate'),
       value: stats.engagementRate,
       color: "text-primary"
     });

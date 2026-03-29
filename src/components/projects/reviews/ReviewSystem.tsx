@@ -355,6 +355,7 @@ export function ReviewSystem({ contractId, projectId, freelancerId, clientId }: 
 }
 
 function ReviewCard({ review, currentUserId }: { review: Review; currentUserId?: string }) {
+  const { t } = useTranslation('common');
   const isOwnReview = review.reviewer.id === currentUserId;
 
   return (

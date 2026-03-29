@@ -181,7 +181,7 @@ export function ScreenAnnotation({ isAnnotating, onClose }: ScreenAnnotationProp
           onClick={clearCanvas}
           className="rounded-full h-10 px-4"
         >
-          {t('meetings.clear', 'Clear')}
+          {t('meetingsSection.clear', 'Clear')}
         </Button>
         
         <Button

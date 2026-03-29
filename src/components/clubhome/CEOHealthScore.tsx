@@ -47,7 +47,7 @@ export function CEOHealthScore() {
   }
 
   return (
-    <div className="relative flex items-center justify-center" title={`${t('dashboard.businessHealth', 'Business Health')}: ${score}/100`}>
+    <div className="relative flex items-center justify-center" title={`${t('dashboardSection.businessHealth', 'Business Health')}: ${score}/100`}>
       <svg width={size} height={size} className="-rotate-90">
         <circle
           cx={size / 2}

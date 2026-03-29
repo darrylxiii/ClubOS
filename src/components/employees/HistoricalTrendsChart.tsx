@@ -19,7 +19,7 @@ export function HistoricalTrendsChart({ userId, months = 6 }: HistoricalTrendsCh
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <TrendingUp className="h-5 w-5" />
-            {t('employees.performanceTrends')}
+            {t('employeesSection.performanceTrends')}
           </CardTitle>
         </CardHeader>
         <CardContent className="h-[300px] flex items-center justify-center">
@@ -40,7 +40,7 @@ export function HistoricalTrendsChart({ userId, months = 6 }: HistoricalTrendsCh
       <CardContent>
         {!trends?.length ? (
           <div className="h-[300px] flex items-center justify-center text-muted-foreground">
-            {t('employees.noHistoricalData')}
+            {t('employeesSection.noHistoricalData')}
           </div>
         ) : (
           <DynamicChart
@@ -50,14 +50,14 @@ export function HistoricalTrendsChart({ userId, months = 6 }: HistoricalTrendsCh
             config={{
               xAxisKey: 'month',
               lines: [
-                { dataKey: 'candidates_sourced', stroke: 'hsl(var(--primary))', name: t('employees.candidatesSourced') },
-                { dataKey: 'placements', stroke: '#22c55e', name: t('employees.placements') },
-                { dataKey: 'revenue', stroke: '#f59e0b', name: t('employees.revenue'), yAxisId: 'right' },
+                { dataKey: 'candidates_sourced', stroke: 'hsl(var(--primary))', name: t('employeesSection.candidatesSourced') },
+                { dataKey: 'placements', stroke: '#22c55e', name: t('employeesSection.placements') },
+                { dataKey: 'revenue', stroke: '#f59e0b', name: t('employeesSection.revenue'), yAxisId: 'right' },
               ],
               legend: true,
               tooltip: {
                 formatter: (value: number, name: string) => {
-                  if (name === t('employees.revenue')) return [`€${value.toLocaleString()}`, t('employees.revenue')];
+                  if (name === t('employeesSection.revenue')) return [`€${value.toLocaleString()}`, t('employeesSection.revenue')];
                   return [value, name];
                 },
               },

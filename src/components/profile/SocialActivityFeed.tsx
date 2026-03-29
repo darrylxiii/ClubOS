@@ -174,8 +174,8 @@ export const SocialActivityFeed = ({ userId, isReadOnly = false }: SocialActivit
       <CardHeader>
         <div className="flex items-center justify-between">
           <div>
-            <CardTitle>{t('profile.socialActivity')}</CardTitle>
-            <CardDescription>{isReadOnly ? t('profile.latestActivity') : t('profile.yourLatestActivity')}</CardDescription>
+            <CardTitle>{t('profileSection.socialActivity')}</CardTitle>
+            <CardDescription>{isReadOnly ? t('profileSection.latestActivity') : t('profileSection.yourLatestActivity')}</CardDescription>
           </div>
           {!isReadOnly && (
             <Button
@@ -185,7 +185,7 @@ export const SocialActivityFeed = ({ userId, isReadOnly = false }: SocialActivit
               className="gap-2"
             >
               <Settings className="w-4 h-4" />
-              {t('profile.connectPlatforms')}
+              {t('profileSection.connectPlatforms')}
             </Button>
           )}
         </div>
@@ -194,7 +194,7 @@ export const SocialActivityFeed = ({ userId, isReadOnly = false }: SocialActivit
         {/* Connected Platforms Overview */}
         {socialAccounts.length > 0 && (
           <div className="mb-6">
-            <p className="text-sm text-muted-foreground mb-3">{t('profile.connectedPlatforms')}</p>
+            <p className="text-sm text-muted-foreground mb-3">{t('profileSection.connectedPlatforms')}</p>
             <div className="flex flex-wrap gap-2">
               {socialAccounts.map((account) => (
                 <Badge key={account.id} variant="secondary" className="gap-2">
@@ -210,16 +210,16 @@ export const SocialActivityFeed = ({ userId, isReadOnly = false }: SocialActivit
 
         <Tabs defaultValue="posts" className="w-full">
           <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="posts">{t('profile.posts')} ({posts.length})</TabsTrigger>
-            <TabsTrigger value="stories">{t('profile.stories')} ({stories.length})</TabsTrigger>
-            <TabsTrigger value="likes">{t('profile.likes')} ({likes.length})</TabsTrigger>
+            <TabsTrigger value="posts">{t('profileSection.posts')} ({posts.length})</TabsTrigger>
+            <TabsTrigger value="stories">{t('profileSection.stories')} ({stories.length})</TabsTrigger>
+            <TabsTrigger value="likes">{t('profileSection.likes')} ({likes.length})</TabsTrigger>
           </TabsList>
 
           <TabsContent value="posts" className="space-y-4">
             {posts.length === 0 ? (
               <div className="text-center py-12 text-muted-foreground">
                 <MessageCircle className="w-12 h-12 mx-auto mb-4 opacity-20" />
-                <p>{t('profile.noPostsYet')}</p>
+                <p>{t('profileSection.noPostsYet')}</p>
               </div>
             ) : (
               posts.map((post) => {
@@ -234,14 +234,14 @@ export const SocialActivityFeed = ({ userId, isReadOnly = false }: SocialActivit
                     {hasYouTube && youtubeId && (
                       <div className="flex items-center gap-2 p-2 bg-muted/50 rounded-lg">
                         <Youtube className="w-4 h-4 text-red-500 flex-shrink-0" />
-                        <span className="text-xs text-muted-foreground truncate">{t('profile.youtubeVideo', 'YouTube Video')}</span>
+                        <span className="text-xs text-muted-foreground truncate">{t('profileSection.youtubeVideo', 'YouTube Video')}</span>
                       </div>
                     )}
                     
                     {post.media_url && !hasYouTube && (
                       <img
                         src={post.media_url}
-                        alt={t('profile.postMedia', 'Post media')}
+                        alt={t('profileSection.postMedia', 'Post media')}
                         className="rounded-lg w-16 h-16 object-cover"
                       />
                     )}
@@ -264,7 +264,7 @@ export const SocialActivityFeed = ({ userId, isReadOnly = false }: SocialActivit
                         onClick={() => navigate(`/feed?highlight=${post.id}`)}
                         className="text-xs gap-1 h-auto py-1 px-2"
                       >
-                        {t('profile.seeFullPost')}
+                        {t('profileSection.seeFullPost')}
                         <ArrowRight className="w-3 h-3" />
                       </Button>
                     </div>
@@ -278,7 +278,7 @@ export const SocialActivityFeed = ({ userId, isReadOnly = false }: SocialActivit
             {stories.length === 0 ? (
               <div className="text-center py-12 text-muted-foreground">
                 <Video className="w-12 h-12 mx-auto mb-4 opacity-20" />
-                <p>{t('profile.noStories')}</p>
+                <p>{t('profileSection.noStories')}</p>
               </div>
             ) : (
               <div className="grid grid-cols-3 gap-4">
@@ -306,7 +306,7 @@ export const SocialActivityFeed = ({ userId, isReadOnly = false }: SocialActivit
             {likes.length === 0 ? (
               <div className="text-center py-12 text-muted-foreground">
                 <Heart className="w-12 h-12 mx-auto mb-4 opacity-20" />
-                <p>{t('profile.noLikedPosts')}</p>
+                <p>{t('profileSection.noLikedPosts')}</p>
               </div>
             ) : (
               likes.map((like) => {
@@ -335,7 +335,7 @@ export const SocialActivityFeed = ({ userId, isReadOnly = false }: SocialActivit
                     {hasYouTube && youtubeId && (
                       <div className="flex items-center gap-2 p-2 bg-muted/50 rounded-lg">
                         <Youtube className="w-4 h-4 text-red-500 flex-shrink-0" />
-                        <span className="text-xs text-muted-foreground truncate">{t('profile.youtubeVideo', 'YouTube Video')}</span>
+                        <span className="text-xs text-muted-foreground truncate">{t('profileSection.youtubeVideo', 'YouTube Video')}</span>
                       </div>
                     )}
                     
@@ -346,7 +346,7 @@ export const SocialActivityFeed = ({ userId, isReadOnly = false }: SocialActivit
                         onClick={() => navigate(`/feed?highlight=${like.post_id}`)}
                         className="text-xs gap-1 h-auto py-1 px-2"
                       >
-                        {t('profile.seeFullPost')}
+                        {t('profileSection.seeFullPost')}
                         <ArrowRight className="w-3 h-3" />
                       </Button>
                     </div>
@@ -360,11 +360,11 @@ export const SocialActivityFeed = ({ userId, isReadOnly = false }: SocialActivit
         {socialAccounts.length === 0 && !isReadOnly && (
           <div className="mt-6 p-6 border rounded-lg bg-muted/50 text-center">
             <p className="text-sm text-muted-foreground mb-3">
-              {t('profile.connectSocialDesc')}
+              {t('profileSection.connectSocialDesc')}
             </p>
             <Button onClick={() => navigate('/settings#social')} variant="default" size="sm">
               <Settings className="w-4 h-4 mr-2" />
-              {t('profile.connectSocialPlatforms')}
+              {t('profileSection.connectSocialPlatforms')}
             </Button>
           </div>
         )}

@@ -567,14 +567,14 @@ export function JobClosureDialog({ open, onOpenChange, job, applications, onComp
         closureType === "hired" 
           ? "Job closed successfully - Congratulations on the placement!" 
           : closureType === "on_hold"
-            ? t('jobs.jobclosuredialog.jobPlacedOnHold', 'Job placed on hold') : t('jobs.jobclosuredialog.jobClosedSuccessfully', 'Job closed successfully')
+            ? t('jobsSection.jobclosuredialog.jobPlacedOnHold', 'Job placed on hold') : t('jobsSection.jobclosuredialog.jobClosedSuccessfully', 'Job closed successfully')
       );
       
       onOpenChange(false);
       onComplete();
     } catch (error: unknown) {
       console.error("Error closing job:", error);
-      toast.error(error instanceof Error ? error.message : t('jobs.jobclosuredialog.failedToCloseJob', 'Failed to close job'));
+      toast.error(error instanceof Error ? error.message : t('jobsSection.jobclosuredialog.failedToCloseJob', 'Failed to close job'));
     } finally {
       setLoading(false);
     }
@@ -596,7 +596,7 @@ export function JobClosureDialog({ open, onOpenChange, job, applications, onComp
             Close Job: {job?.title}
           </DialogTitle>
           <DialogDescription>
-            Step {step} of 4 - {step === 1 ? "Closure Type" : step === 2 ? "Details" : step === 3 ? t('jobs.jobclosuredialog.takeaways', 'Takeaways') : t('jobs.jobclosuredialog.review', 'Review')}
+            Step {step} of 4 - {step === 1 ? "Closure Type" : step === 2 ? "Details" : step === 3 ? t('jobsSection.jobclosuredialog.takeaways', 'Takeaways') : t('jobsSection.jobclosuredialog.review', 'Review')}
           </DialogDescription>
         </DialogHeader>
 
@@ -653,7 +653,7 @@ export function JobClosureDialog({ open, onOpenChange, job, applications, onComp
                 onChange={(e) => setActualClosingDate(e.target.value)}
                 max={format(new Date(), "yyyy-MM-dd")}
               />
-              <p className="text-xs text-muted-foreground">{t('jobs.jobclosuredialog.whenDidThisRoleActuallyClose', 'When did this role actually close? (May differ from today)')}</p>
+              <p className="text-xs text-muted-foreground">{t('jobsSection.jobclosuredialog.whenDidThisRoleActuallyClose', 'When did this role actually close? (May differ from today)')}</p>
             </div>
 
             {/* Pipeline summary */}
@@ -706,7 +706,7 @@ export function JobClosureDialog({ open, onOpenChange, job, applications, onComp
                           </SelectItem>
                         ))
                       ) : (
-                        <SelectItem value="_none" disabled>{t('jobs.jobclosuredialog.noEligibleCandidatesMustBeIn', 'No eligible candidates (must be in interview stage+)')}</SelectItem>
+                        <SelectItem value="_none" disabled>{t('jobsSection.jobclosuredialog.noEligibleCandidatesMustBeIn', 'No eligible candidates (must be in interview stage+)')}</SelectItem>
                       )}
                     </SelectContent>
                   </Select>
@@ -855,11 +855,11 @@ export function JobClosureDialog({ open, onOpenChange, job, applications, onComp
                               size="sm"
                               onClick={() => setIsOverridingSourcer(true)}
                             >
-                              {t('jobs.jobclosuredialog.override', 'Override')}
+                              {t('jobsSection.jobclosuredialog.override', 'Override')}
                             </Button>
                           </div>
                         </div>
-                        <p className="text-xs text-muted-foreground">{t('jobs.jobclosuredialog.thisPersonWillReceiveTheCommission', 'This person will receive the commission for this placement.')}</p>
+                        <p className="text-xs text-muted-foreground">{t('jobsSection.jobclosuredialog.thisPersonWillReceiveTheCommission', 'This person will receive the commission for this placement.')}</p>
                       </div>
                     ) : !isSplittingCredit && isOverridingSourcer ? (
                       /* Override mode: Editable dropdown + reason */
@@ -901,10 +901,10 @@ export function JobClosureDialog({ open, onOpenChange, job, applications, onComp
                             setSourcerOverrideReason("");
                           }}
                         >
-                          {t('jobs.jobclosuredialog.cancelOverride', 'Cancel Override')}
+                          {t('jobsSection.jobclosuredialog.cancelOverride', 'Cancel Override')}
                         </Button>
                         
-                        <p className="text-xs text-muted-foreground">{t('jobs.jobclosuredialog.thisPersonWillReceiveTheCommission', 'This person will receive the commission for this placement.')}</p>
+                        <p className="text-xs text-muted-foreground">{t('jobsSection.jobclosuredialog.thisPersonWillReceiveTheCommission', 'This person will receive the commission for this placement.')}</p>
                       </div>
                     ) : (
                       /* Split credit mode */
@@ -1000,10 +1000,10 @@ export function JobClosureDialog({ open, onOpenChange, job, applications, onComp
                             setSourcerOverrideReason("");
                           }}
                         >
-                          {t('jobs.jobclosuredialog.cancelOverride', 'Cancel Override')}
+                          {t('jobsSection.jobclosuredialog.cancelOverride', 'Cancel Override')}
                         </Button>
                         
-                        <p className="text-xs text-muted-foreground">{t('jobs.jobclosuredialog.commissionWillBeSplitAccordingTo', 'Commission will be split according to the percentages above.')}</p>
+                        <p className="text-xs text-muted-foreground">{t('jobsSection.jobclosuredialog.commissionWillBeSplitAccordingTo', 'Commission will be split according to the percentages above.')}</p>
                       </div>
                     )}
                   </div>
@@ -1032,14 +1032,14 @@ export function JobClosureDialog({ open, onOpenChange, job, applications, onComp
             {closureType === "cancelled" && (
               <div className="p-4 rounded-lg bg-muted/50 text-center">
                 <Ban className="w-8 h-8 mx-auto text-muted-foreground mb-2" />
-                <p className="text-sm text-muted-foreground">{t('jobs.jobclosuredialog.theSearchWasCancelledByThe', 'The search was cancelled by the client. Continue to capture learnings.')}</p>
+                <p className="text-sm text-muted-foreground">{t('jobsSection.jobclosuredialog.theSearchWasCancelledByThe', 'The search was cancelled by the client. Continue to capture learnings.')}</p>
               </div>
             )}
 
             {closureType === "on_hold" && (
               <div className="p-4 rounded-lg bg-amber-500/10 text-center">
                 <Pause className="w-8 h-8 mx-auto text-amber-500 mb-2" />
-                <p className="text-sm text-muted-foreground">{t('jobs.jobclosuredialog.thisJobWillBePausedYou', 'This job will be paused. You can reactivate it later from the job management page.')}</p>
+                <p className="text-sm text-muted-foreground">{t('jobsSection.jobclosuredialog.thisJobWillBePausedYou', 'This job will be paused. You can reactivate it later from the job management page.')}</p>
               </div>
             )}
 
@@ -1248,7 +1248,7 @@ export function JobClosureDialog({ open, onOpenChange, job, applications, onComp
           </div>
           <div className="flex gap-2">
             <Button variant="outline" onClick={() => onOpenChange(false)} disabled={loading}>
-              {t('jobs.jobclosuredialog.cancel', 'Cancel')}
+              {t('jobsSection.jobclosuredialog.cancel', 'Cancel')}
             </Button>
             {step < 4 ? (
               <Button
@@ -1258,13 +1258,13 @@ export function JobClosureDialog({ open, onOpenChange, job, applications, onComp
                   (step === 2 && !canProceedStep2)
                 }
               >
-                {t('jobs.jobclosuredialog.next', 'Next')}
+                {t('jobsSection.jobclosuredialog.next', 'Next')}
                 <ChevronRight className="w-4 h-4 ml-1" />
               </Button>
             ) : (
               <Button onClick={handleSubmit} disabled={loading}>
                 {loading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-                {closureType === "hired" ? t('jobs.jobclosuredialog.completePlacement', 'Complete Placement') : t('jobs.jobclosuredialog.closeJob', 'Close Job')}
+                {closureType === "hired" ? t('jobsSection.jobclosuredialog.completePlacement', 'Complete Placement') : t('jobsSection.jobclosuredialog.closeJob', 'Close Job')}
               </Button>
             )}
           </div>

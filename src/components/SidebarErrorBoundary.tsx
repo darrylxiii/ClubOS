@@ -139,14 +139,14 @@ function SidebarRetryButton({ onRetry, retryCount }: { onRetry: () => void; retr
         size="icon"
         onClick={onRetry}
         className="h-10 w-10 text-primary hover:text-primary/80"
-        title={t("actions.retrySidebar", "Retry loading sidebar")}
+        title={t("actionsSection.retrySidebar", "Retry loading sidebar")}
       >
         <RefreshCw className="h-5 w-5" />
       </Button>
 
       {retryCount < MAX_AUTO_RETRY && (
         <p className="text-[10px] text-muted-foreground text-center px-2">
-          {t("errors.retrying", "Retrying...")}
+          {t("errorsSection.retrying", "Retrying...")}
         </p>
       )}
     </>

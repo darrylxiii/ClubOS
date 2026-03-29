@@ -186,11 +186,11 @@ export function CompanyFeeConfigDialog({
       queryClient.invalidateQueries({ queryKey: ["company-fees"] });
       queryClient.invalidateQueries({ queryKey: ["deal-pipeline"] });
       queryClient.invalidateQueries({ queryKey: ["company"] });
-      toast.success(t('financial.configUpdated'));
+      toast.success(t('financialSection.configUpdated'));
       onOpenChange(false);
     },
     onError: (error: Error) => {
-      toast.error(error.message || t('financial.configUpdateFailed'));
+      toast.error(error.message || t('financialSection.configUpdateFailed'));
     },
   });
 
@@ -216,17 +216,17 @@ export function CompanyFeeConfigDialog({
       <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            {t('financial.configure', { name: company?.name })}
+            {t('financialSection.configure', { name: company?.name })}
           </DialogTitle>
           <DialogDescription>
-            {t('financial.feeStructureDesc')}
+            {t('financialSection.feeStructureDesc')}
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-6 py-4">
           {/* Fee Type Selection */}
           <div className="space-y-3">
-            <Label className="text-sm font-medium">{t('financial.feeStructureType')}</Label>
+            <Label className="text-sm font-medium">{t('financialSection.feeStructureType')}</Label>
             <RadioGroup
               value={feeType}
               onValueChange={(v) => setFeeType(v as FeeType)}
@@ -242,7 +242,7 @@ export function CompanyFeeConfigDialog({
               >
                 <RadioGroupItem value="percentage" id="percentage" className="sr-only" />
                 <Percent className="h-6 w-6" />
-                <span className="text-sm font-medium">{t('financial.percentage')}</span>
+                <span className="text-sm font-medium">{t('financialSection.percentage')}</span>
                 <span className="text-xs text-muted-foreground text-center">
                   % of salary
                 </span>
@@ -258,7 +258,7 @@ export function CompanyFeeConfigDialog({
               >
                 <RadioGroupItem value="fixed" id="fixed" className="sr-only" />
                 <DollarSign className="h-6 w-6" />
-                <span className="text-sm font-medium">{t('financial.fixedFee')}</span>
+                <span className="text-sm font-medium">{t('financialSection.fixedFee')}</span>
                 <span className="text-xs text-muted-foreground text-center">
                   Set amount
                 </span>
@@ -274,7 +274,7 @@ export function CompanyFeeConfigDialog({
               >
                 <RadioGroupItem value="hybrid" id="hybrid" className="sr-only" />
                 <Shuffle className="h-6 w-6" />
-                <span className="text-sm font-medium">{t('financial.hybrid')}</span>
+                <span className="text-sm font-medium">{t('financialSection.hybrid')}</span>
                 <span className="text-xs text-muted-foreground text-center">
                   Choose per role
                 </span>
@@ -286,7 +286,7 @@ export function CompanyFeeConfigDialog({
           <div className="space-y-4">
             {(feeType === "percentage" || feeType === "hybrid") && (
               <div className="space-y-2">
-                <Label htmlFor="percentage-input">{t('financial.feePercentage')}</Label>
+                <Label htmlFor="percentage-input">{t('financialSection.feePercentage')}</Label>
                 <div className="flex items-center gap-2">
                   <Input
                     id="percentage-input"
@@ -305,7 +305,7 @@ export function CompanyFeeConfigDialog({
 
             {(feeType === "fixed" || feeType === "hybrid") && (
               <div className="space-y-2">
-                <Label htmlFor="fixed-input">{t('financial.fixedFeeAmount')}</Label>
+                <Label htmlFor="fixed-input">{t('financialSection.fixedFeeAmount')}</Label>
                 <div className="flex items-center gap-2">
                   <span className="text-muted-foreground">€</span>
                   <Input
@@ -325,7 +325,7 @@ export function CompanyFeeConfigDialog({
 
           {/* Notes */}
           <div className="space-y-2">
-            <Label htmlFor="notes">{t('financial.notesOptional')}</Label>
+            <Label htmlFor="notes">{t('financialSection.notesOptional')}</Label>
             <Textarea
               id="notes"
               value={notes}
@@ -340,7 +340,7 @@ export function CompanyFeeConfigDialog({
             <div className="flex items-start gap-2">
               <Info className="h-4 w-4 text-muted-foreground mt-0.5" />
               <div>
-                <p className="text-sm font-medium">{t('financial.revenueCalcPreview')}</p>
+                <p className="text-sm font-medium">{t('financialSection.revenueCalcPreview')}</p>
                 <p className="text-xs text-muted-foreground mt-1">{getPreviewText()}</p>
               </div>
             </div>
@@ -361,8 +361,8 @@ export function CompanyFeeConfigDialog({
               <Button variant="ghost" className="w-full justify-between p-0 h-auto hover:bg-transparent">
                 <span className="flex items-center gap-2 text-sm font-medium">
                   <Building2 className="h-4 w-4" />
-                  {t('financial.bankDetails')}
-                  {bankIban && <span className="text-xs text-muted-foreground">({t('financial.configured')})</span>}
+                  {t('financialSection.bankDetails')}
+                  {bankIban && <span className="text-xs text-muted-foreground">({t('financialSection.configured')})</span>}
                 </span>
                 <ChevronDown className={`h-4 w-4 transition-transform ${bankSectionOpen ? 'rotate-180' : ''}`} />
               </Button>
@@ -370,7 +370,7 @@ export function CompanyFeeConfigDialog({
             <CollapsibleContent className="space-y-4 pt-4">
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="bank-name">{t('financial.bankName')}</Label>
+                  <Label htmlFor="bank-name">{t('financialSection.bankName')}</Label>
                   <Input
                     id="bank-name"
                     value={bankName}
@@ -379,7 +379,7 @@ export function CompanyFeeConfigDialog({
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="bank-bic">{t('financial.bicSwift')}</Label>
+                  <Label htmlFor="bank-bic">{t('financialSection.bicSwift')}</Label>
                   <Input
                     id="bank-bic"
                     value={bankBic}
@@ -398,11 +398,11 @@ export function CompanyFeeConfigDialog({
                   className={bankIban && !validateIBAN(bankIban) ? "border-destructive" : ""}
                 />
                 {bankIban && !validateIBAN(bankIban) && (
-                  <p className="text-xs text-destructive">{t('financial.invalidIBAN')}</p>
+                  <p className="text-xs text-destructive">{t('financialSection.invalidIBAN')}</p>
                 )}
               </div>
               <div className="space-y-2">
-                <Label htmlFor="bank-holder">{t('financial.accountHolderName')}</Label>
+                <Label htmlFor="bank-holder">{t('financialSection.accountHolderName')}</Label>
                 <Input
                   id="bank-holder"
                   value={bankAccountHolder}
@@ -422,7 +422,7 @@ export function CompanyFeeConfigDialog({
               <Button variant="ghost" className="w-full justify-between p-0 h-auto hover:bg-transparent">
                 <span className="flex items-center gap-2 text-sm font-medium">
                   <CreditCard className="h-4 w-4" />
-                  {t('financial.paymentTerms')}
+                  {t('financialSection.paymentTerms')}
                   {paymentCode && <span className="text-xs text-muted-foreground">({paymentCode})</span>}
                 </span>
                 <ChevronDown className={`h-4 w-4 transition-transform ${paymentSectionOpen ? 'rotate-180' : ''}`} />
@@ -431,7 +431,7 @@ export function CompanyFeeConfigDialog({
             <CollapsibleContent className="space-y-4 pt-4">
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="payment-terms">{t('financial.paymentTerms')}</Label>
+                  <Label htmlFor="payment-terms">{t('financialSection.paymentTerms')}</Label>
                   <Select
                     value={paymentTerms.toString()}
                     onValueChange={(v) => setPaymentTerms(parseInt(v))}
@@ -449,7 +449,7 @@ export function CompanyFeeConfigDialog({
                   </Select>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="payment-code">{t('financial.paymentCode')}</Label>
+                  <Label htmlFor="payment-code">{t('financialSection.paymentCode')}</Label>
                   <Input
                     id="payment-code"
                     value={paymentCode}
@@ -468,11 +468,11 @@ export function CompanyFeeConfigDialog({
 
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>
-            {t('actions.cancel')}
+            {t('actionsSection.cancel')}
           </Button>
           <Button onClick={() => updateMutation.mutate()} disabled={updateMutation.isPending}>
             {updateMutation.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-            {t('financial.saveConfiguration')}
+            {t('financialSection.saveConfiguration')}
           </Button>
         </DialogFooter>
       </DialogContent>

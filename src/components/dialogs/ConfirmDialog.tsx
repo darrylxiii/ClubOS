@@ -56,12 +56,12 @@ export function ConfirmDialog({
           <AlertDialogDescription>{description}</AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel onClick={handleCancel}>{cancelText || t('actions.cancel', 'Cancel')}</AlertDialogCancel>
+          <AlertDialogCancel onClick={handleCancel}>{cancelText || t('actionsSection.cancel', 'Cancel')}</AlertDialogCancel>
           <AlertDialogAction
             onClick={handleConfirm}
             className={variant === "destructive" ? "bg-destructive text-destructive-foreground hover:bg-destructive/90" : ""}
           >
-            {confirmText || t('actions.continue', 'Continue')}
+            {confirmText || t('actionsSection.continue', 'Continue')}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

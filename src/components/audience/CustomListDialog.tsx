@@ -50,7 +50,7 @@ export const CustomListDialog = ({ isOpen, onClose, onSave, list }: CustomListDi
 
   const handleSave = async () => {
     if (!name.trim()) {
-      toast.error(t('audience.pleaseEnterAListName'));
+      toast.error(t('audienceSection.pleaseEnterAListName'));
       return;
     }
 
@@ -76,7 +76,7 @@ export const CustomListDialog = ({ isOpen, onClose, onSave, list }: CustomListDi
           .eq('id', list.id);
 
         if (error) throw error;
-        toast.success(t('audience.listUpdated'));
+        toast.success(t('audienceSection.listUpdated'));
       } else {
         // Create new list
         const { error } = await (supabase as any)
@@ -84,13 +84,13 @@ export const CustomListDialog = ({ isOpen, onClose, onSave, list }: CustomListDi
           .insert(listData);
 
         if (error) throw error;
-        toast.success(t('audience.listCreated'));
+        toast.success(t('audienceSection.listCreated'));
       }
 
       onSave();
     } catch (error) {
       console.error('Error saving list:', error);
-      toast.error(t('audience.failedToSaveList'));
+      toast.error(t('audienceSection.failedToSaveList'));
     } finally {
       setSaving(false);
     }
@@ -105,7 +105,7 @@ export const CustomListDialog = ({ isOpen, onClose, onSave, list }: CustomListDi
 
         <div className="space-y-4 py-4">
           <div className="space-y-2">
-            <Label htmlFor="list-name">{t('audience.listName')}</Label>
+            <Label htmlFor="list-name">{t('audienceSection.listName')}</Label>
             <Input
               id="list-name"
               value={name}
@@ -116,19 +116,19 @@ export const CustomListDialog = ({ isOpen, onClose, onSave, list }: CustomListDi
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="list-description">{t('audience.descriptionOptional')}</Label>
+            <Label htmlFor="list-description">{t('audienceSection.descriptionOptional')}</Label>
             <Textarea
               id="list-description"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              placeholder={t('audience.whatIsThisListFor')}
+              placeholder={t('audienceSection.whatIsThisListFor')}
               className="bg-background/50 resize-none"
               rows={3}
             />
           </div>
 
           <div className="space-y-2">
-            <Label>{t('audience.icon')}</Label>
+            <Label>{t('audienceSection.icon')}</Label>
             <div className="flex flex-wrap gap-2">
               {iconOptions.map((icon) => (
                 <button
@@ -148,7 +148,7 @@ export const CustomListDialog = ({ isOpen, onClose, onSave, list }: CustomListDi
           </div>
 
           <div className="space-y-2">
-            <Label>{t('audience.color')}</Label>
+            <Label>{t('audienceSection.color')}</Label>
             <div className="flex flex-wrap gap-2">
               {colorOptions.map((color) => (
                 <button
@@ -168,7 +168,7 @@ export const CustomListDialog = ({ isOpen, onClose, onSave, list }: CustomListDi
         </div>
 
         <div className="flex gap-3">
-          <Button variant="outline" onClick={onClose} className="flex-1">{t('audience.cancel')}</Button>
+          <Button variant="outline" onClick={onClose} className="flex-1">{t('audienceSection.cancel')}</Button>
           <Button onClick={handleSave} disabled={saving} className="flex-1">
             {saving ? 'Saving...' : list ? 'Update List' : 'Create List'}
           </Button>

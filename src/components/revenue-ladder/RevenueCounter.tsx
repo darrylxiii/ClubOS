@@ -43,6 +43,7 @@ function AnimatedNumber({ value }: { value: number }) {
 }
 
 export function RevenueCounter({
+  const { t } = useTranslation('common');
   value,
   label,
   target,

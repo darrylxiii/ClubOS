@@ -197,6 +197,7 @@ export function GigMarketplace() {
 }
 
 function GigCard({ gig }: { gig: any }) {
+  const { t } = useTranslation('common');
   const navigate = useNavigate();
   const [isSaved, setIsSaved] = useState(false);
 

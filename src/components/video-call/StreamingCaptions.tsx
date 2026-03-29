@@ -49,17 +49,17 @@ export function StreamingCaptions({
               <>
                 <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
                 <Mic className="h-3 w-3" />
-                {t('meetings.liveTranscription', 'Live Transcription')}
+                {t('meetingsSection.liveTranscription', 'Live Transcription')}
               </>
             ) : (
               <>
                 <MicOff className="h-3 w-3" />
-                {t('meetings.connecting', 'Connecting...')}
+                {t('meetingsSection.connecting', 'Connecting...')}
               </>
             )}
           </Badge>
           <span className="text-xs text-muted-foreground">
-            {source || t('meetings.poweredByScribe', 'Powered by ElevenLabs Scribe')}
+            {source || t('meetingsSection.poweredByScribe', 'Powered by ElevenLabs Scribe')}
           </span>
         </div>
         
@@ -93,7 +93,7 @@ export function StreamingCaptions({
                 <div className="flex items-center gap-2 text-xs text-muted-foreground">
                   <span className="font-semibold">{participantName}</span>
                   <Badge variant="outline" className="text-xs px-1 py-0">
-                    {t('meetings.typing', 'typing...')}
+                    {t('meetingsSection.typing', 'typing...')}
                   </Badge>
                 </div>
                 <p className="text-muted-foreground italic">{partialTranscript}</p>
@@ -103,7 +103,7 @@ export function StreamingCaptions({
 
           {!partialTranscript && recentCommitted.length === 0 && isConnected && (
             <p className="text-center text-muted-foreground text-sm py-2">
-              {t('meetings.startSpeaking', 'Start speaking to see live transcription...')}
+              {t('meetingsSection.startSpeaking', 'Start speaking to see live transcription...')}
             </p>
           )}
         </div>

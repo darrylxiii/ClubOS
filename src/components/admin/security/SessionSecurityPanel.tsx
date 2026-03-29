@@ -203,6 +203,7 @@ function StatsCard({
 }
 
 function SessionRow({ session, showReason = false }: { session: UserSession; showReason?: boolean }) {
+  const { t } = useTranslation('common');
   const terminateSession = useTerminateSession();
   const terminateAllUserSessions = useTerminateAllUserSessions();
 

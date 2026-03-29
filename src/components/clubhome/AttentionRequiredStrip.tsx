@@ -41,9 +41,9 @@ export function AttentionRequiredStrip() {
   }
 
   const urgencyItems = [
-    { label: t('dashboard.attention.pending', 'Pending'), count: cmdData?.pending || 0, icon: Clock, href: "/admin?tab=users", color: "text-amber-500" },
-    { label: t('dashboard.attention.overdue', 'Overdue'), count: cmdData?.overdue || 0, icon: AlertTriangle, href: "/applications?filter=overdue", color: "text-red-500" },
-    { label: t('dashboard.attention.alerts', 'Alerts'), count: cmdData?.alerts || 0, icon: Shield, href: "/admin/anti-hacking", color: "text-red-500" },
+    { label: t('dashboardSection.attention.pending', 'Pending'), count: cmdData?.pending || 0, icon: Clock, href: "/admin?tab=users", color: "text-amber-500" },
+    { label: t('dashboardSection.attention.overdue', 'Overdue'), count: cmdData?.overdue || 0, icon: AlertTriangle, href: "/applications?filter=overdue", color: "text-red-500" },
+    { label: t('dashboardSection.attention.alerts', 'Alerts'), count: cmdData?.alerts || 0, icon: Shield, href: "/admin/anti-hacking", color: "text-red-500" },
   ];
 
   const topSignals = (signals || []).slice(0, 3);

@@ -58,7 +58,7 @@ export function FinancialAlertsBanner() {
       })}
       {alerts.length > 5 && (
         <p className="text-xs text-muted-foreground text-center">
-          {t('financial.moreAlerts', { count: alerts.length - 5 })}
+          {t('financialSection.moreAlerts', { count: alerts.length - 5 })}
         </p>
       )}
     </div>

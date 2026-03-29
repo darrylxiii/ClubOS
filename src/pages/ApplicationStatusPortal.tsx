@@ -19,6 +19,7 @@ interface ApplicationStatus {
 }
 
 export default function ApplicationStatusPortal() {
+  const { t } = useTranslation('common');
   const { token } = useParams<{ token: string }>();
   const navigate = useNavigate();
   const [status, setStatus] = useState<ApplicationStatus | null>(null);

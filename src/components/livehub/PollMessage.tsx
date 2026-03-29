@@ -67,6 +67,7 @@ function SortableRankingItem({ id, index, option, isClosed }: { id: number; inde
 }
 
 export const PollMessage = ({ pollId, pollData }: PollMessageProps) => {
+    const { t } = useTranslation('common');
     const { user } = useAuth();
     const [votes, setVotes] = useState<Record<number, number>>({}); // option index -> count
     const [totalVotes, setTotalVotes] = useState(0);

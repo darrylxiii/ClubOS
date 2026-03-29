@@ -1,4 +1,7 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, lazy, Suspense } from "react";
+import { VERTEX_SHADER, SHADER_THEMES, DEFAULT_THEME_ID, type ShaderTheme } from "./shaderThemes";
+
+const Warp = lazy(() => import("@paper-design/shaders-react").then((mod) => ({ default: mod.Warp })));
 
 declare global {
   interface Window {
@@ -8,29 +11,59 @@ declare global {
 
 type BackdropMode = "pending" | "static" | "webgl";
 
+interface ShaderAnimationProps {
+  /** Active shader theme ID — defaults to the first (quantum-shimmer) */
+  themeId?: string;
+}
+
 /**
  * Full-screen auth backdrop. Uses a lightweight gradient when
  * `prefers-reduced-motion` is set or before WebGL is ready — avoids burning
  * GPU + loading legacy Three from CDN for users who need a calm sign-in.
  */
-export function ShaderAnimation() {
+export function ShaderAnimation({ themeId = DEFAULT_THEME_ID }: ShaderAnimationProps) {
   const [mode, setMode] = useState<BackdropMode>("pending");
+  const [fragmentShader, setFragmentShader] = useState<string | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const sceneRef = useRef<{
     camera: any;
     scene: any;
     renderer: any;
     uniforms: any;
+    mesh: any;
     animationId: number | null;
     resizeHandler: (() => void) | null;
+    mouseHandler: ((e: MouseEvent) => void) | null;
   }>({
     camera: null,
     scene: null,
     renderer: null,
     uniforms: null,
+    mesh: null,
     animationId: null,
     resizeHandler: null,
+    mouseHandler: null,
   });
+
+  /* resolve theme object */
+  const theme: ShaderTheme =
+    SHADER_THEMES.find((t) => t.id === themeId) || SHADER_THEMES[0];
+
+  /* current theme ID for hot-swap detection */
+  const activeThemeRef = useRef(theme.id);
+
+  /* load fragment shader dynamically */
+  useEffect(() => {
+    let isMounted = true;
+    theme.loadFragmentShader().then(shaderText => {
+      if (isMounted) setFragmentShader(shaderText);
+    }).catch(() => {
+      if (isMounted) setFragmentShader('void main() { gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0); }');
+    });
+    return () => {
+      isMounted = false;
+    };
+  }, [theme]);
 
   useEffect(() => {
     const reduced =
@@ -43,6 +76,7 @@ export function ShaderAnimation() {
     setMode("webgl");
   }, []);
 
+  /* ── Initial WebGL setup (only once) ───────────────────── */
   useEffect(() => {
     if (mode !== "webgl") return;
 
@@ -63,6 +97,9 @@ export function ShaderAnimation() {
       if (sceneRef.current.resizeHandler) {
         window.removeEventListener("resize", sceneRef.current.resizeHandler);
       }
+      if (sceneRef.current.mouseHandler) {
+        window.removeEventListener("mousemove", sceneRef.current.mouseHandler);
+      }
       if (sceneRef.current.renderer) {
         sceneRef.current.renderer.dispose();
       }
@@ -70,7 +107,48 @@ export function ShaderAnimation() {
         script.parentNode.removeChild(script);
       }
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mode]);
+
+  /* ── Hot-swap shader when theme changes ────────────────── */
+  useEffect(() => {
+    if (mode !== "webgl") return;
+    if (!fragmentShader) return;
+    
+    const { scene, renderer, camera, uniforms } = sceneRef.current;
+    if (!scene || !renderer || !window.THREE) return;
+
+    if (theme.id === activeThemeRef.current && sceneRef.current.mesh) return;
+    activeThemeRef.current = theme.id;
+
+    const THREE = window.THREE;
+
+    /* Remove old mesh */
+    if (sceneRef.current.mesh) {
+      scene.remove(sceneRef.current.mesh);
+      sceneRef.current.mesh.geometry.dispose();
+      sceneRef.current.mesh.material.dispose();
+    }
+
+    /* Create new material with new shader */
+    const geometry = new THREE.PlaneBufferGeometry(2, 2);
+    const safeFragmentShader = theme.id === "paperWarp" 
+      ? 'void main() { gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0); }' 
+      : fragmentShader;
+
+    const material = new THREE.ShaderMaterial({
+      uniforms,
+      vertexShader: VERTEX_SHADER,
+      fragmentShader: safeFragmentShader,
+    });
+    const mesh = new THREE.Mesh(geometry, material);
+    scene.add(mesh);
+    sceneRef.current.mesh = mesh;
+
+    /* Force an immediate render */
+    renderer.render(scene, camera);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [fragmentShader, mode, theme.id]);
 
   const initThreeJS = () => {
     if (!containerRef.current || !window.THREE) return;
@@ -86,55 +164,19 @@ export function ShaderAnimation() {
     const uniforms = {
       time: { type: "f", value: 1.0 },
       resolution: { type: "v2", value: new THREE.Vector2() },
+      iTime: { type: "f", value: 1.0 },
+      iResolution: { type: "v2", value: new THREE.Vector2() },
+      iMouse: { type: "v2", value: new THREE.Vector2(window.innerWidth / 2, window.innerHeight / 2) },
     };
 
-    const vertexShader = `
-      void main() {
-        gl_Position = vec4( position, 1.0 );
-      }
-    `;
-
-    const fragmentShader = `
-      #define TWO_PI 6.2831853072
-      #define PI 3.14159265359
-      precision highp float;
-      uniform vec2 resolution;
-      uniform float time;
-
-      float random (in float x) {
-          return fract(sin(x)*1e4);
-      }
-      float random (vec2 st) {
-          return fract(sin(dot(st.xy,
-                               vec2(12.9898,78.233)))*
-              43758.5453123);
-      }
-
-      varying vec2 vUv;
-      void main(void) {
-        vec2 uv = (gl_FragCoord.xy * 2.0 - resolution.xy) / min(resolution.x, resolution.y);
-
-        vec2 fMosaicScal = vec2(4.0, 2.0);
-        vec2 vScreenSize = vec2(256,256);
-        uv.x = floor(uv.x * vScreenSize.x / fMosaicScal.x) / (vScreenSize.x / fMosaicScal.x);
-        uv.y = floor(uv.y * vScreenSize.y / fMosaicScal.y) / (vScreenSize.y / fMosaicScal.y);
-
-        float t = time*0.06+random(uv.x)*0.4;
-        float lineWidth = 0.0008;
-        vec3 color = vec3(0.0);
-        for(int j = 0; j < 3; j++){
-          for(int i=0; i < 5; i++){
-            color[j] += lineWidth*float(i*i) / abs(fract(t - 0.01*float(j)+float(i)*0.01)*1.0 - length(uv));
-          }
-        }
-        gl_FragColor = vec4(color[2],color[1],color[0],1.0);
-      }
-    `;
+    // We start without a mesh, letting the fragmentShader hot-swap logic add it
+    // once the shader code properly loads.
+    const safeFragmentShader = 'void main() { gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0); }';
 
     const material = new THREE.ShaderMaterial({
       uniforms,
-      vertexShader,
-      fragmentShader,
+      vertexShader: VERTEX_SHADER,
+      fragmentShader: safeFragmentShader,
     });
 
     const mesh = new THREE.Mesh(geometry, material);
@@ -149,23 +191,33 @@ export function ShaderAnimation() {
       renderer.setSize(rect.width, rect.height);
       uniforms.resolution.value.x = renderer.domElement.width;
       uniforms.resolution.value.y = renderer.domElement.height;
+      uniforms.iResolution.value.x = renderer.domElement.width;
+      uniforms.iResolution.value.y = renderer.domElement.height;
+    };
+
+    const onMouseMove = (e: MouseEvent) => {
+      uniforms.iMouse.value.set(e.clientX, container.clientHeight - e.clientY);
     };
 
     onWindowResize();
     window.addEventListener("resize", onWindowResize, false);
+    window.addEventListener("mousemove", onMouseMove, false);
 
     sceneRef.current = {
       camera,
       scene,
       renderer,
       uniforms,
+      mesh,
       animationId: null,
       resizeHandler: onWindowResize,
+      mouseHandler: onMouseMove,
     };
 
     const animate = () => {
       sceneRef.current.animationId = requestAnimationFrame(animate);
-      uniforms.time.value += 0.015;
+      uniforms.time.value += 0.02;
+      uniforms.iTime.value += 0.02;
       renderer.render(scene, camera);
     };
 
@@ -182,10 +234,34 @@ export function ShaderAnimation() {
   }
 
   return (
-    <div
-      ref={containerRef}
-      className="fixed inset-0 z-0 h-full w-full"
-      aria-hidden
-    />
+    <>
+      <div
+        ref={containerRef}
+        className={`fixed inset-0 z-0 h-full w-full ${theme.id === 'paperWarp' ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}
+        aria-hidden
+      />
+      {theme.id === "paperWarp" && (
+        <div className="fixed inset-0 z-0 h-full w-full bg-black/90" aria-hidden>
+          <div className="absolute inset-0">
+            <Suspense fallback={null}>
+              <Warp
+                style={{ height: "100%", width: "100%" }}
+                proportion={0.45}
+                softness={1}
+                distortion={0.25}
+                swirl={0.8}
+                swirlIterations={10}
+                shape="checks"
+                shapeScale={0.1}
+                scale={1}
+                rotation={0}
+                speed={1}
+                colors={["hsl(200, 100%, 20%)", "hsl(160, 100%, 75%)", "hsl(180, 90%, 30%)", "hsl(170, 100%, 80%)"]}
+              />
+            </Suspense>
+          </div>
+        </div>
+      )}
+    </>
   );
 }

@@ -123,8 +123,8 @@ export default function Post() {
             Back to Feed
           </Button>
           <div className="text-center py-12">
-            <h2 className="text-2xl font-bold mb-2">{t('post.text2')}</h2>
-            <p className="text-muted-foreground mb-4">{t('post.desc')}</p>
+            <h2 className="text-2xl font-bold mb-2">{t('postSection.text2')}</h2>
+            <p className="text-muted-foreground mb-4">{t('postSection.desc')}</p>
             <Button onClick={() => navigate('/feed')}>
               Go to Feed
             </Button>

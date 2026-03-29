@@ -125,6 +125,7 @@ export function PollPost({ pollId, question, options, totalVotes, onVote }: Poll
 
 // Poll Creator Component
 export function CreatePoll({ onPollCreated }: { onPollCreated: (pollData: any) => void }) {
+  const { t } = useTranslation('common');
   const [question, setQuestion] = useState("");
   const [options, setOptions] = useState(["", ""]);
 

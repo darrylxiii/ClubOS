@@ -223,7 +223,7 @@ export default function ExpenseFormDialog({ open, onOpenChange, editExpense }: E
           }
 
           next.vat_amount = (parsed.vat_amount ?? 0).toString();
-          filled.push(vatExempt ? t('financial.expenseformdialog.vatExempt0', 'VAT (exempt → 0)') : t('financial.expenseformdialog.vatAmount', 'VAT Amount'));
+          filled.push(vatExempt ? t('financialSection.expenseformdialog.vatExempt0', 'VAT (exempt → 0)') : t('financialSection.expenseformdialog.vatAmount', 'VAT Amount'));
 
           if (parsed.suggested_expense_category) {
             next.category_name = parsed.suggested_expense_category;
@@ -307,7 +307,7 @@ export default function ExpenseFormDialog({ open, onOpenChange, editExpense }: E
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["operating-expenses"] });
-      toast.success(isEdit ? t('financial.expenseformdialog.expenseUpdated', 'Expense updated.') : t('financial.expenseformdialog.expenseAdded', 'Expense added.'));
+      toast.success(isEdit ? t('financialSection.expenseformdialog.expenseUpdated', 'Expense updated.') : t('financialSection.expenseformdialog.expenseAdded', 'Expense added.'));
       onOpenChange(false);
     },
     onError: (error: Error) => {
@@ -331,7 +331,7 @@ export default function ExpenseFormDialog({ open, onOpenChange, editExpense }: E
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>{isEdit ? t('financial.expenseformdialog.editExpense', 'Edit Expense') : t('financial.expenseformdialog.addNewExpense', 'Add New Expense')}</DialogTitle>
+          <DialogTitle>{isEdit ? t('financialSection.expenseformdialog.editExpense', 'Edit Expense') : t('financialSection.expenseformdialog.addNewExpense', 'Add New Expense')}</DialogTitle>
           <DialogDescription>
             {isEdit
               ? "Update expense details."
@@ -351,7 +351,7 @@ export default function ExpenseFormDialog({ open, onOpenChange, editExpense }: E
             {isUploading || isParsing ? (
               <div className="flex items-center justify-center gap-2 text-muted-foreground">
                 <Loader2 className="h-5 w-5 animate-spin" />
-                <span>{isParsing ? t('financial.expenseformdialog.parsingInvoiceWithAiQuin', 'Parsing invoice with AI (QUIN)...') : t('financial.expenseformdialog.uploading', 'Uploading...')}</span>
+                <span>{isParsing ? t('financialSection.expenseformdialog.parsingInvoiceWithAiQuin', 'Parsing invoice with AI (QUIN)...') : t('financialSection.expenseformdialog.uploading', 'Uploading...')}</span>
               </div>
             ) : form.receipt_url ? (
               <div className="flex items-center justify-center gap-2 text-muted-foreground">
@@ -454,7 +454,7 @@ export default function ExpenseFormDialog({ open, onOpenChange, editExpense }: E
             <Label className="flex items-center gap-2">
               VAT Amount ({currency}, optional)
               {isVatExempt && (
-                <Badge variant="secondary" className="text-xs font-normal">{t('financial.expenseformdialog.vatExemptSetTo0', 'VAT exempt — set to 0')}</Badge>
+                <Badge variant="secondary" className="text-xs font-normal">{t('financialSection.expenseformdialog.vatExemptSetTo0', 'VAT exempt — set to 0')}</Badge>
               )}
             </Label>
             <Input
@@ -542,7 +542,7 @@ export default function ExpenseFormDialog({ open, onOpenChange, editExpense }: E
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>{t("cancel", "Cancel")}</Button>
             <Button type="submit" disabled={saveMutation.isPending}>
-              {saveMutation.isPending ? "Saving..." : isEdit ? t('financial.expenseformdialog.updateExpense', 'Update Expense') : t('financial.expenseformdialog.addExpense', 'Add Expense')}
+              {saveMutation.isPending ? "Saving..." : isEdit ? t('financialSection.expenseformdialog.updateExpense', 'Update Expense') : t('financialSection.expenseformdialog.addExpense', 'Add Expense')}
             </Button>
           </DialogFooter>
         </form>

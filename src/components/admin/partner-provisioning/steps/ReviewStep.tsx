@@ -48,6 +48,7 @@ function Row({ label, value, onEdit }: { label: string; value: string; onEdit?: 
 }
 
 export function ReviewStep({
+  const { t } = useTranslation('common');
   form,
   companies,
   isProvisioning,

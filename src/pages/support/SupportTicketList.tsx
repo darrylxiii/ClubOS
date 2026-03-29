@@ -76,12 +76,12 @@ export default function SupportTicketList() {
       
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-3xl font-bold mb-2">{t('support.tickets')}</h1>
-          <p className="text-muted-foreground">{t('support.trackRequests')}</p>
+          <h1 className="text-3xl font-bold mb-2">{t('supportSection.tickets')}</h1>
+          <p className="text-muted-foreground">{t('supportSection.trackRequests')}</p>
         </div>
         <Button onClick={() => navigate('/support/tickets/new')}>
           <Plus className="h-4 w-4 mr-2" />
-          {t('support.newTicket')}
+          {t('supportSection.newTicket')}
         </Button>
       </div>
 
@@ -90,7 +90,7 @@ export default function SupportTicketList() {
           <div className="relative flex-1">
             <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder={t('support.searchTickets')}
+              placeholder={t('supportSection.searchTickets')}
               className="pl-9"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}

@@ -206,6 +206,7 @@ function SelectedUserBadges({ selectedUserIds, users, onRemove, disabled }: Sele
 }
 
 export function StealthViewerSelector({
+  const { t } = useTranslation('common');
   jobId,
   companyId,
   selectedUserIds,

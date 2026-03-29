@@ -67,20 +67,20 @@ export const SupportWidget = () => {
       </SheetTrigger>
       <SheetContent className="w-full sm:max-w-md overflow-y-auto">
         <SheetHeader>
-          <SheetTitle>{t('support.title', 'Support & Help')}</SheetTitle>
+          <SheetTitle>{t('supportSection.title', 'Support & Help')}</SheetTitle>
           <SheetDescription>
-            {t('support.description', 'Search our knowledge base or contact support')}
+            {t('supportSection.description', 'Search our knowledge base or contact support')}
           </SheetDescription>
         </SheetHeader>
 
         <div className="mt-6 space-y-6">
           {/* Quick Search */}
           <div className="space-y-3">
-            <label className="text-sm font-medium">{t('support.quickSearch', 'Quick Search')}</label>
+            <label className="text-sm font-medium">{t('supportSection.quickSearch', 'Quick Search')}</label>
             <div className="relative">
               <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder={t('support.searchForHelp')}
+                placeholder={t('supportSection.searchForHelp')}
                 className="pl-9"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
@@ -109,7 +109,7 @@ export const SupportWidget = () => {
 
           {/* Contact Support */}
           <div className="space-y-3">
-            <label className="text-sm font-medium">{t('support.needMoreHelp', 'Need More Help?')}</label>
+            <label className="text-sm font-medium">{t('supportSection.needMoreHelp', 'Need More Help?')}</label>
             <Button
               onClick={() => {
                 navigate('/support/tickets/new');
@@ -117,14 +117,14 @@ export const SupportWidget = () => {
               }}
               className="w-full"
             >
-              {t('support.createSupportTicket', 'Create Support Ticket')}
+              {t('supportSection.createSupportTicket', 'Create Support Ticket')}
             </Button>
           </div>
 
           {/* Your Open Tickets */}
           {openTickets && openTickets.length > 0 && (
             <div className="space-y-3">
-              <label className="text-sm font-medium">{t('support.yourOpenTickets', 'Your Open Tickets')}</label>
+              <label className="text-sm font-medium">{t('supportSection.yourOpenTickets', 'Your Open Tickets')}</label>
               <div className="space-y-2">
                 {openTickets.map((ticket) => (
                   <button

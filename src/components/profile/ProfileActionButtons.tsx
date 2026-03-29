@@ -67,7 +67,7 @@ export function ProfileActionButtons({
           className="gap-2 glass backdrop-blur-xl border-2 border-accent hover:shadow-glass-xl transition-all hover:scale-105"
         >
           <MessageCircle className="w-5 h-5" />
-          {t('profile.sendMessage')}
+          {t('profileSection.sendMessage')}
         </Button>
 
         <DropdownMenu>
@@ -77,26 +77,26 @@ export function ProfileActionButtons({
               className="gap-2 glass backdrop-blur-xl border-2 border-accent hover:shadow-glass-xl transition-all hover:scale-105"
             >
               <Calendar className="w-5 h-5" />
-              {t('profile.bookMeeting')}
+              {t('profileSection.bookMeeting')}
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent className="w-56 glass backdrop-blur-xl border-accent/30">
             <DropdownMenuItem onClick={() => onBookMeeting('video')} className="gap-2 cursor-pointer">
               <Video className="w-4 h-4" />
-              {t('profile.scheduleVideoCall')}
+              {t('profileSection.scheduleVideoCall')}
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => onBookMeeting('vr')} className="gap-2 cursor-pointer">
               <Sparkles className="w-4 h-4" />
-              {t('profile.meetClubLounge')}
+              {t('profileSection.meetClubLounge')}
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => onBookMeeting('advisory')} className="gap-2 cursor-pointer">
               <Users className="w-4 h-4" />
-              {t('profile.requestAdvisory')}
+              {t('profileSection.requestAdvisory')}
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={() => onBookMeeting('suggest')} className="gap-2 cursor-pointer">
               <Sparkles className="w-4 h-4 text-accent" />
-              {t('profile.aiSuggestBestTime')}
+              {t('profileSection.aiSuggestBestTime')}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
@@ -110,7 +110,7 @@ export function ProfileActionButtons({
           className="gap-2 glass border-accent/30 hover:border-accent hover:shadow-glass transition-all"
         >
           <FileText className="w-4 h-4" />
-          {t('profile.requestResume')}
+          {t('profileSection.requestResume')}
         </Button>
 
         <Button 
@@ -119,7 +119,7 @@ export function ProfileActionButtons({
           className="gap-2 glass border-accent/30 hover:border-accent hover:shadow-glass transition-all"
         >
           <UserPlus className="w-4 h-4" />
-          {t('profile.connect')}
+          {t('profileSection.connect')}
         </Button>
 
         <Button 
@@ -128,7 +128,7 @@ export function ProfileActionButtons({
           className="gap-2 glass border-accent/30 hover:border-accent hover:shadow-glass transition-all"
         >
           <Bell className="w-4 h-4" />
-          {t('profile.follow')}
+          {t('profileSection.follow')}
         </Button>
 
         <Button
@@ -137,7 +137,7 @@ export function ProfileActionButtons({
           className="gap-2 glass border-accent/30 hover:border-accent hover:shadow-glass transition-all"
         >
           <Mic className="w-4 h-4" />
-          {t('profile.voiceNote')}
+          {t('profileSection.voiceNote')}
         </Button>
       </div>
 
@@ -149,7 +149,7 @@ export function ProfileActionButtons({
           className="gap-2 glass border-accent/30 hover:border-accent hover:shadow-glass transition-all"
         >
           <ThumbsUp className="w-4 h-4" />
-          {t('profile.endorse')}
+          {t('profileSection.endorse')}
         </Button>
 
         <Button 
@@ -158,7 +158,7 @@ export function ProfileActionButtons({
           className="gap-2 glass border-accent/30 hover:border-accent hover:shadow-glass transition-all"
         >
           <Award className="w-4 h-4" />
-          {t('profile.verify')}
+          {t('profileSection.verify')}
         </Button>
 
         <DropdownMenu>
@@ -174,11 +174,11 @@ export function ProfileActionButtons({
           <DropdownMenuContent className="w-56 glass backdrop-blur-xl border-accent/30">
             <DropdownMenuItem onClick={() => onExport('summary')} className="gap-2 cursor-pointer">
               <FileText className="w-4 h-4" />
-              {t('profile.aiCareerSummary')}
+              {t('profileSection.aiCareerSummary')}
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => onExport('vcard')} className="gap-2 cursor-pointer">
               <Download className="w-4 h-4" />
-              {t('profile.quantumIdVcard')}
+              {t('profileSection.quantumIdVcard')}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
@@ -189,7 +189,7 @@ export function ProfileActionButtons({
           className="gap-2 glass border-accent/30 hover:border-accent hover:shadow-glass transition-all"
         >
           <Users className="w-4 h-4" />
-          {t('profile.invite')}
+          {t('profileSection.invite')}
         </Button>
       </div>
 
@@ -202,7 +202,7 @@ export function ProfileActionButtons({
           className="gap-2 text-muted-foreground hover:text-destructive transition-colors"
         >
           <Shield className="w-4 h-4" />
-          {t('profile.reportBlock')}
+          {t('profileSection.reportBlock')}
         </Button>
       </div>
     </div>

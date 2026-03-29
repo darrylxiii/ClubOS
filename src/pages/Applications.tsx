@@ -151,7 +151,7 @@ export default function Applications({ embedded = false }: { embedded?: boolean 
           <div className="frosted-glass p-3 rounded-lg border border-border/20 shadow-lg">
             <div className="flex items-center gap-2 text-sm">
               <InlineLoader className="text-muted-foreground" />
-              <span className="text-muted-foreground font-medium">{t('applications.text3')}</span>
+              <span className="text-muted-foreground font-medium">{t('applicationsSection.text3')}</span>
             </div>
           </div>
         </div>
@@ -160,23 +160,23 @@ export default function Applications({ embedded = false }: { embedded?: boolean 
       <div className="w-full px-4 sm:px-6 lg:px-8 py-8 space-y-6">
         {/* Header */}
         <div>
-          <h1 className="text-4xl font-black uppercase tracking-tight mb-2">{t('applications.title')}</h1>
-          <p className="text-muted-foreground">{t('applications.desc')}</p>
+          <h1 className="text-4xl font-black uppercase tracking-tight mb-2">{t('applicationsSection.title')}</h1>
+          <p className="text-muted-foreground">{t('applicationsSection.desc')}</p>
         </div>
 
         <Tabs defaultValue="active" className="w-full">
           <TabsList className="grid w-full max-w-2xl grid-cols-3 h-auto min-h-[44px]">
             <TabsTrigger value="active" className="min-h-[44px] text-xs sm:text-sm">
               <span className="hidden sm:inline">Active ({activeApplications.length})</span>
-              <span className="sm:hidden">{t('applications.text4')}</span>
+              <span className="sm:hidden">{t('applicationsSection.text4')}</span>
             </TabsTrigger>
             <TabsTrigger value="rejected" className="min-h-[44px] text-xs sm:text-sm">
               <span className="hidden sm:inline">Rejected ({rejectedApplications.length})</span>
-              <span className="sm:hidden">{t('applications.text5')}</span>
+              <span className="sm:hidden">{t('applicationsSection.text5')}</span>
             </TabsTrigger>
             <TabsTrigger value="archived" className="min-h-[44px] text-xs sm:text-sm">
               <span className="hidden sm:inline">Archived ({archivedApplications.length})</span>
-              <span className="sm:hidden">{t('applications.text6')}</span>
+              <span className="sm:hidden">{t('applicationsSection.text6')}</span>
             </TabsTrigger>
           </TabsList>
 
@@ -184,7 +184,7 @@ export default function Applications({ embedded = false }: { embedded?: boolean 
             {activeApplications.length === 0 ? (
               <Card>
                 <CardContent className="py-12 text-center">
-                  <p className="text-muted-foreground text-sm sm:text-base">{t('applications.desc2')}</p>
+                  <p className="text-muted-foreground text-sm sm:text-base">{t('applicationsSection.desc2')}</p>
                 </CardContent>
               </Card>
             ) : isMobile ? (
@@ -207,7 +207,7 @@ export default function Applications({ embedded = false }: { embedded?: boolean 
             {archivedApplications.length === 0 ? (
               <Card>
                 <CardContent className="py-12 text-center">
-                  <p className="text-muted-foreground">{t('applications.text7')}</p>
+                  <p className="text-muted-foreground">{t('applicationsSection.text7')}</p>
                 </CardContent>
               </Card>
             ) : (
@@ -256,6 +256,7 @@ export default function Applications({ embedded = false }: { embedded?: boolean 
 }
 
 function ApplicationCard({ application }: { application: Application }) {
+  const { t } = useTranslation('common');
   const navigate = useNavigate();
 
   const formatSalaryRange = () => {
@@ -315,7 +316,7 @@ function ApplicationCard({ application }: { application: Application }) {
               size="icon"
               variant="ghost"
               className="min-h-[44px] min-w-[44px]"
-              title={t('applications.text8')}
+              title={t('applicationsSection.text8')}
               onClick={(e) => {
                 e.stopPropagation();
                 navigate(`/jobs?tab=interview-prep&jobId=${application.job_id}&title=${encodeURIComponent(application.job?.title || application.position)}`);

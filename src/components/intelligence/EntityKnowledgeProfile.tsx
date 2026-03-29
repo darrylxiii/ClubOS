@@ -137,7 +137,7 @@ export const EntityKnowledgeProfile = ({
         setExamples(examples.filter((_, i) => i !== idx));
     };
 
-    if (loading) return <div>{t('intelligence.entityknowledgeprofile.loadingIntelligenceConfiguration', 'Loading Intelligence Configuration...')}</div>;
+    if (loading) return <div>{t('intelligenceSection.entityknowledgeprofile.loadingIntelligenceConfiguration', 'Loading Intelligence Configuration...')}</div>;
 
     return (
         <div className="grid gap-6 md:grid-cols-2">
@@ -150,12 +150,12 @@ export const EntityKnowledgeProfile = ({
                             Voice & Style
                         </CardTitle>
                         <CardDescription>
-                            {entityType === 'user' ? t('intelligence.entityknowledgeprofile.howShouldTheAiSpeakWhen', 'How should the AI speak when pretending to be you?') : t('intelligence.entityknowledgeprofile.defineTheSpecificToneForThis', 'Define the specific tone for this context.')}
+                            {entityType === 'user' ? t('intelligenceSection.entityknowledgeprofile.howShouldTheAiSpeakWhen', 'How should the AI speak when pretending to be you?') : t('intelligenceSection.entityknowledgeprofile.defineTheSpecificToneForThis', 'Define the specific tone for this context.')}
                         </CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
                         <div className="space-y-2">
-                            <Label>{t('intelligence.entityknowledgeprofile.toneDescriptor', 'Tone Descriptor')}</Label>
+                            <Label>{t('intelligenceSection.entityknowledgeprofile.toneDescriptor', 'Tone Descriptor')}</Label>
                             <Input
                                 placeholder={entityType === 'user' ? "e.g. Helpful, Direct, Casual" : "e.g. Professional, Witty"}
                                 value={voiceTone}
@@ -164,10 +164,10 @@ export const EntityKnowledgeProfile = ({
                         </div>
 
                         <div className="space-y-2">
-                            <Label>{t('intelligence.entityknowledgeprofile.voiceExamples', 'Voice Examples')}</Label>
+                            <Label>{t('intelligenceSection.entityknowledgeprofile.voiceExamples', 'Voice Examples')}</Label>
                             <div className="flex gap-2">
                                 <Input
-                                    placeholder={t('intelligence.entityknowledgeprofile.addASampleSentence', 'Add a sample sentence...')}
+                                    placeholder={t('intelligenceSection.entityknowledgeprofile.addASampleSentence', 'Add a sample sentence...')}
                                     value={newExample}
                                     onChange={(e) => setNewExample(e.target.value)}
                                     onKeyDown={(e) => e.key === 'Enter' && addExample()}
@@ -197,10 +197,10 @@ export const EntityKnowledgeProfile = ({
                     </CardHeader>
                     <CardContent className="space-y-4">
                         <div className="space-y-2">
-                            <Label>{t('intelligence.entityknowledgeprofile.keywordsToInclude', 'Keywords to Include')}</Label>
+                            <Label>{t('intelligenceSection.entityknowledgeprofile.keywordsToInclude', 'Keywords to Include')}</Label>
                             <div className="flex gap-2">
                                 <Input
-                                    placeholder={t('intelligence.entityknowledgeprofile.addKeyword', 'Add keyword...')}
+                                    placeholder={t('intelligenceSection.entityknowledgeprofile.addKeyword', 'Add keyword...')}
                                     value={newKeyword}
                                     onChange={(e) => setNewKeyword(e.target.value)}
                                     onKeyDown={(e) => e.key === 'Enter' && addKeyword()}
@@ -234,21 +234,21 @@ export const EntityKnowledgeProfile = ({
                     </CardHeader>
                     <CardContent className="space-y-6">
                         <div className="space-y-2">
-                            <Label>{t('intelligence.entityknowledgeprofile.customInstructions', 'Custom Instructions')}</Label>
+                            <Label>{t('intelligenceSection.entityknowledgeprofile.customInstructions', 'Custom Instructions')}</Label>
                             <Textarea
                                 className="min-h-[200px]"
-                                placeholder={t('intelligence.entityknowledgeprofile.egAlwaysIncludeMyCalendlyLink', 'E.g. Always include my Calendly link. Be concise. Never apologize.')}
+                                placeholder={t('intelligenceSection.entityknowledgeprofile.egAlwaysIncludeMyCalendlyLink', 'E.g. Always include my Calendly link. Be concise. Never apologize.')}
                                 value={instructions}
                                 onChange={(e) => setInstructions(e.target.value)}
                             />
-                            <p className="text-xs text-muted-foreground">{t('intelligence.entityknowledgeprofile.theseInstructionsWillBeInjectedInto', 'These instructions will be injected into the system prompt for queries with this context.')}</p>
+                            <p className="text-xs text-muted-foreground">{t('intelligenceSection.entityknowledgeprofile.theseInstructionsWillBeInjectedInto', 'These instructions will be injected into the system prompt for queries with this context.')}</p>
                         </div>
 
                         <div className="pt-4 border-t">
-                            <Label className="mb-4 block">{t('intelligence.entityknowledgeprofile.knowledgeSourcesReadonlyAlpha', 'Knowledge Sources (Read-Only Alpha)')}</Label>
+                            <Label className="mb-4 block">{t('intelligenceSection.entityknowledgeprofile.knowledgeSourcesReadonlyAlpha', 'Knowledge Sources (Read-Only Alpha)')}</Label>
                             <div className="space-y-4">
                                 <div className="flex items-center justify-between">
-                                    <span className="text-sm">{t('intelligence.entityknowledgeprofile.indexedContent', 'Indexed Content')}</span>
+                                    <span className="text-sm">{t('intelligenceSection.entityknowledgeprofile.indexedContent', 'Indexed Content')}</span>
                                     <Switch checked={true} disabled />
                                 </div>
                             </div>
@@ -257,7 +257,7 @@ export const EntityKnowledgeProfile = ({
                     <div className="p-6 pt-0 mt-auto">
                         <Button className="w-full" onClick={handleSave} disabled={isSaving}>
                             {isSaving ? <span className="animate-spin mr-2">⏳</span> : <Save className="w-4 h-4 mr-2" />}
-                            Save {entityType === 'user' ? t('intelligence.entityknowledgeprofile.myPersona', 'My Persona') : t('intelligence.entityknowledgeprofile.profile', 'Profile')}
+                            Save {entityType === 'user' ? t('intelligenceSection.entityknowledgeprofile.myPersona', 'My Persona') : t('intelligenceSection.entityknowledgeprofile.profile', 'Profile')}
                         </Button>
                     </div>
                 </Card>

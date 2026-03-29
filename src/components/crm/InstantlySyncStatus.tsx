@@ -119,6 +119,7 @@ const { t } = useTranslation('common');
 }
 
 export function InstantlySyncStatus({ 
+  const { t } = useTranslation('common');
   onSyncCampaigns, 
   onSyncLeads,
   onSyncHealth,

@@ -76,11 +76,11 @@ const INITIAL_LINK_STATE = {
 };
 
 function generateSlug(title: string) {
-  const { t } = useTranslation('settings');
   return title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
 }
 
 export default function Scheduling() {
+  const { t } = useTranslation('common');
   const { user } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
   const currentTab = searchParams.get('tab') || 'links';

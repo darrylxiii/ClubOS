@@ -155,7 +155,7 @@ export function SpeakingBadge({ isSpeaking, level = 0, className }: SpeakingBadg
         />
       </div>
       <span className="text-[10px] font-semibold text-emerald-400 uppercase tracking-wider">
-        {t('shared.speaking', 'Speaking')}
+        {t('sharedSection.speaking', 'Speaking')}
       </span>
     </div>
   );

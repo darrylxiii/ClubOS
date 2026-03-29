@@ -273,6 +273,7 @@ function AgentCard({ agent }: { agent: AgentRegistry }) {
 }
 
 function DecisionItem({ decision }: { decision: AgentDecision }) {
+  const { t } = useTranslation('common');
   const [expanded, setExpanded] = useState(false);
 
   return (

@@ -30,7 +30,7 @@ export const HashtagManager = () => {
   const copyHashtags = (hashtags: string[]) => {
     const text = hashtags.map(h => `#${h}`).join(" ");
     navigator.clipboard.writeText(text);
-    toast.success(t('social.hashtags.copied'));
+    toast.success(t('socialSection.hashtags.copied'));
   };
 
   return (
@@ -40,9 +40,9 @@ export const HashtagManager = () => {
         <div className="flex items-center justify-between mb-6">
           <h3 className="text-lg font-semibold flex items-center gap-2">
             <TrendingUp className="h-5 w-5" />
-            {t('social.hashtags.trending')}
+            {t('socialSection.hashtags.trending')}
           </h3>
-          <Button variant="outline" size="sm">{t('actions.refresh')}</Button>
+          <Button variant="outline" size="sm">{t('actionsSection.refresh')}</Button>
         </div>
 
         <div className="space-y-3">
@@ -56,7 +56,7 @@ export const HashtagManager = () => {
                   <div>
                     <p className="font-semibold">#{item.tag}</p>
                     <p className="text-sm text-muted-foreground">
-                      {t('social.hashtags.postsCount', { count: item.count.toLocaleString() })}
+                      {t('socialSection.hashtags.postsCount', { count: item.count.toLocaleString() })}
                     </p>
                   </div>
                 </div>
@@ -73,10 +73,10 @@ export const HashtagManager = () => {
       {/* Saved Hashtag Sets */}
       <Card className="p-6">
         <div className="flex items-center justify-between mb-6">
-          <h3 className="text-lg font-semibold">{t('social.hashtags.savedSets')}</h3>
+          <h3 className="text-lg font-semibold">{t('socialSection.hashtags.savedSets')}</h3>
           <Button size="sm" className="gap-2">
             <Plus className="h-4 w-4" />
-            {t('social.hashtags.newSet')}
+            {t('socialSection.hashtags.newSet')}
           </Button>
         </div>
 
@@ -92,7 +92,7 @@ export const HashtagManager = () => {
                   className="gap-2"
                 >
                   <Copy className="h-3 w-3" />
-                  {t('actions.copy')}
+                  {t('actionsSection.copy')}
                 </Button>
               </div>
               <div className="flex flex-wrap gap-2">
@@ -108,9 +108,9 @@ export const HashtagManager = () => {
 
         {/* Create New Set */}
         <Card className="p-4 bg-card/50 mt-4">
-          <h4 className="font-semibold mb-3">{t('social.hashtags.createCustom')}</h4>
-          <Input placeholder={t('social.hashtags.enterHashtags')} className="mb-3" />
-          <Button className="w-full">{t('social.hashtags.saveSet')}</Button>
+          <h4 className="font-semibold mb-3">{t('socialSection.hashtags.createCustom')}</h4>
+          <Input placeholder={t('socialSection.hashtags.enterHashtags')} className="mb-3" />
+          <Button className="w-full">{t('socialSection.hashtags.saveSet')}</Button>
         </Card>
       </Card>
     </div>

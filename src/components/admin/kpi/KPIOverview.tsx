@@ -127,6 +127,7 @@ const { t } = useTranslation('common');
 }
 
 function AlertsCard({ alerts }: { alerts: CriticalAlert[] }) {
+  const { t } = useTranslation('common');
   const criticalAlerts = alerts.filter(a => a.severity === 'critical');
   const warningAlerts = alerts.filter(a => a.severity === 'warning');
 
@@ -178,6 +179,7 @@ function AlertsCard({ alerts }: { alerts: CriticalAlert[] }) {
 }
 
 function InsightsCard({ allKPIs }: { allKPIs: UnifiedKPI[] }) {
+  const { t } = useTranslation('common');
   const insights = useCrossDomainInsights(allKPIs);
 
   return (

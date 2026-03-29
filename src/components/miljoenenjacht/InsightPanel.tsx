@@ -55,7 +55,7 @@ export const InsightPanel = memo(({ currentRound, avgDecisionTime, riskTrend, re
         <CardContent className="p-4">
           <div className="flex items-center gap-2 mb-3">
             <Brain className="w-4 h-4 text-primary" />
-            <span className="text-sm font-semibold">{t('miljoenenjacht.liveInsights')}</span>
+            <span className="text-sm font-semibold">{t('miljoenenjachtSection.liveInsights')}</span>
           </div>
           <div className="space-y-2">
             {insights.map((insight, i) => {

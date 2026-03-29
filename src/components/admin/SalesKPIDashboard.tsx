@@ -116,6 +116,7 @@ function TrendIndicator({ kpi }: { kpi: SalesKPI }) {
 }
 
 function StatusBadge({ kpi }: { kpi: SalesKPI }) {
+  const { t } = useTranslation('common');
   const value = kpi.value;
   const warning = kpi.threshold_warning;
   const critical = kpi.threshold_critical;
@@ -193,6 +194,7 @@ function KPICard({ kpi }: { kpi: SalesKPI }) {
 }
 
 function CategoryTab({ category, kpis }: { category: string; kpis: SalesKPI[] }) {
+  const { t } = useTranslation('common');
   const config = categoryConfig[category as keyof typeof categoryConfig];
   const Icon = config?.icon || MessageSquare;
   
@@ -216,6 +218,7 @@ function CategoryTab({ category, kpis }: { category: string; kpis: SalesKPI[] })
 }
 
 function OverviewStats({ kpis }: { kpis: Record<string, SalesKPI[]> | undefined }) {
+  const { t } = useTranslation('common');
   if (!kpis) return null;
   
   const getKPI = (category: string, name: string) => 
@@ -330,6 +333,7 @@ function OverviewStats({ kpis }: { kpis: Record<string, SalesKPI[]> | undefined 
 }
 
 export function SalesKPIDashboard() {
+  const { t } = useTranslation('common');
   const [periodType, setPeriodType] = useState('daily');
   const { data: groupedKpis, isLoading, refetch } = useGroupedSalesKPIs(periodType);
   const calculateKpis = useCalculateSalesKPIs();

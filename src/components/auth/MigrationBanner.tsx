@@ -48,7 +48,7 @@ export const MigrationBanner = () => {
             <button
               type="button"
               onClick={() => setIsVisible(false)}
-              className="shrink-0 rounded-full p-1.5 text-muted-foreground transition-colors hover:bg-foreground/10 hover:text-foreground"
+              className="shrink-0 rounded-full p-1.5 text-muted-foreground transition-colors hover:bg-foreground/10 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
               aria-label={t("migrationBanner.dismiss")}
             >
               <X className="h-4 w-4" aria-hidden />

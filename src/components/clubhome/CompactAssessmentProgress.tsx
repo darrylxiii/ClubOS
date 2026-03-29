@@ -52,16 +52,16 @@ export function CompactAssessmentProgress() {
             <Brain className="h-4 w-4 text-purple-500" />
           </div>
           <div>
-            <h3 className="text-sm font-semibold">{t("dashboard.assessmentProgress.title")}</h3>
+            <h3 className="text-sm font-semibold">{t("dashboardSection.assessmentProgress.title")}</h3>
             <p className="text-xs text-muted-foreground">
-              {t("dashboard.assessmentProgress.completed", { completed: stats.completed, total: TOTAL_ASSESSMENTS })}
+              {t("dashboardSection.assessmentProgress.completed", { completed: stats.completed, total: TOTAL_ASSESSMENTS })}
             </p>
           </div>
         </div>
         {stats.avgScore > 0 && (
           <div className="text-right">
             <div className="text-lg font-bold">{stats.avgScore}%</div>
-            <div className="text-[10px] text-muted-foreground">{t("dashboard.assessmentProgress.avgScore")}</div>
+            <div className="text-[10px] text-muted-foreground">{t("dashboardSection.assessmentProgress.avgScore")}</div>
           </div>
         )}
       </div>
@@ -69,20 +69,20 @@ export function CompactAssessmentProgress() {
       <div className="space-y-1">
         <Progress value={progressPct} className="h-2" />
         <p className="text-[11px] text-muted-foreground text-right">
-          {t("dashboard.assessmentProgress.percentComplete", { percent: progressPct })}
+          {t("dashboardSection.assessmentProgress.percentComplete", { percent: progressPct })}
         </p>
       </div>
 
       {stats.completed < TOTAL_ASSESSMENTS ? (
         <Button variant="outline" size="sm" className="w-full text-xs" onClick={() => navigate("/assessments")}>
           <Target className="h-3 w-3 mr-1" />
-          {t("dashboard.assessmentProgress.continue")}
+          {t("dashboardSection.assessmentProgress.continue")}
           <ChevronRight className="h-3 w-3 ml-auto" />
         </Button>
       ) : (
         <Button variant="ghost" size="sm" className="w-full text-xs text-muted-foreground" onClick={() => navigate("/assessments")}>
           <Award className="h-3 w-3 mr-1" />
-          {t("dashboard.assessmentProgress.viewResults")}
+          {t("dashboardSection.assessmentProgress.viewResults")}
           <ChevronRight className="h-3 w-3 ml-auto" />
         </Button>
       )}

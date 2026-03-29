@@ -114,14 +114,14 @@ export const LinkedInImport = () => {
       <DialogTrigger asChild>
         <Button variant="outline" className="w-full">
           <LinkedinIcon className="w-4 h-4 mr-2" />
-          {t('profile.importFromLinkedIn')}
+          {t('profileSection.importFromLinkedIn')}
         </Button>
       </DialogTrigger>
       <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <LinkedinIcon className="w-5 h-5" />
-            {t('profile.importLinkedInProfile')}
+            {t('profileSection.importLinkedInProfile')}
           </DialogTitle>
         </DialogHeader>
         
@@ -129,14 +129,14 @@ export const LinkedInImport = () => {
           <Alert>
             <AlertCircle className="h-4 w-4" />
             <AlertDescription>
-              {t('profile.linkedInImportDesc')}{' '}
-              {t('profile.linkedInPrivacyNotice', 'Data imported from LinkedIn is processed per our')}{' '}
+              {t('profileSection.linkedInImportDesc')}{' '}
+              {t('profileSection.linkedInPrivacyNotice', 'Data imported from LinkedIn is processed per our')}{' '}
               <Link to="/legal/privacy" className="text-primary hover:underline">{t('privacy_policy', 'Privacy Policy')}</Link>.
             </AlertDescription>
           </Alert>
 
           <div className="space-y-2">
-            <Label htmlFor="linkedin-url">{t('profile.linkedInProfileUrl')}</Label>
+            <Label htmlFor="linkedin-url">{t('profileSection.linkedInProfileUrl')}</Label>
             <Input
               id="linkedin-url"
               type="url"
@@ -155,18 +155,18 @@ export const LinkedInImport = () => {
             {importing ? (
               <>
                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                {t('profile.importingFromLinkedIn')}
+                {t('profileSection.importingFromLinkedIn')}
               </>
             ) : (
               <>
                 <LinkedinIcon className="w-4 h-4 mr-2" />
-                {t('profile.importProfile')}
+                {t('profileSection.importProfile')}
               </>
             )}
           </Button>
 
           <p className="text-xs text-muted-foreground text-center">
-            {t('profile.importWillInclude')}
+            {t('profileSection.importWillInclude')}
           </p>
         </div>
       </DialogContent>

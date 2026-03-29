@@ -41,7 +41,7 @@ export default function CertificateVerify() {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="animate-pulse text-muted-foreground">{t('certificate.verifying', 'Verifying certificate...')}</div>
+        <div className="animate-pulse text-muted-foreground">{t('certificateSection.verifying', 'Verifying certificate...')}</div>
       </div>
     );
   }
@@ -51,7 +51,7 @@ export default function CertificateVerify() {
       <div className="min-h-screen bg-background flex items-center justify-center">
         <Card className="p-12 text-center max-w-md">
           <Award className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-          <h2 className="text-2xl font-bold mb-2">{t('certificate.notFound', 'Certificate Not Found')}</h2>
+          <h2 className="text-2xl font-bold mb-2">{t('certificateSection.notFound', 'Certificate Not Found')}</h2>
           <p className="text-muted-foreground">
             This verification code is invalid or the certificate does not exist.
           </p>
@@ -89,7 +89,7 @@ export default function CertificateVerify() {
         <div className="flex items-center gap-3 mb-8 p-4 rounded-xl bg-green-500/10 border border-green-500/20">
           <CheckCircle2 className="h-6 w-6 text-green-500 flex-shrink-0" />
           <div>
-            <p className="font-semibold text-green-700 dark:text-green-400">{t('certificate.verified', 'Verified Certificate')}</p>
+            <p className="font-semibold text-green-700 dark:text-green-400">{t('certificateSection.verified', 'Verified Certificate')}</p>
             <p className="text-sm text-muted-foreground">
               This certificate was issued by ClubOS Academy and is authentic.
             </p>
@@ -101,26 +101,26 @@ export default function CertificateVerify() {
           <div className="text-center space-y-4">
             <Award className="h-16 w-16 mx-auto text-primary" />
             <div>
-              <p className="text-sm text-muted-foreground uppercase tracking-wider">{t('certificate.ofCompletion', 'Certificate of Completion')}</p>
+              <p className="text-sm text-muted-foreground uppercase tracking-wider">{t('certificateSection.ofCompletion', 'Certificate of Completion')}</p>
               <h1 className="text-3xl font-bold mt-2">{course?.title || "Course"}</h1>
             </div>
           </div>
 
           <div className="text-center space-y-2">
-            <p className="text-muted-foreground">{t('certificate.awardedTo', 'Awarded to')}</p>
+            <p className="text-muted-foreground">{t('certificateSection.awardedTo', 'Awarded to')}</p>
             <p className="text-2xl font-semibold">{profile?.full_name || "Student"}</p>
           </div>
 
           <div className="grid grid-cols-2 gap-4 pt-4 border-t">
             <div className="text-center">
-              <p className="text-xs text-muted-foreground">{t('certificate.issuedOn', 'Issued On')}</p>
+              <p className="text-xs text-muted-foreground">{t('certificateSection.issuedOn', 'Issued On')}</p>
               <div className="flex items-center justify-center gap-1 mt-1">
                 <Calendar className="h-4 w-4 text-muted-foreground" />
                 <p className="text-sm font-medium">{issuedDate}</p>
               </div>
             </div>
             <div className="text-center">
-              <p className="text-xs text-muted-foreground">{t('certificate.certificateNumber', 'Certificate Number')}</p>
+              <p className="text-xs text-muted-foreground">{t('certificateSection.certificateNumber', 'Certificate Number')}</p>
               <p className="text-sm font-mono font-medium mt-1">{data.certificate_number}</p>
             </div>
           </div>

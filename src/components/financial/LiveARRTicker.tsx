@@ -73,22 +73,22 @@ export function LiveARRTicker() {
 
   const metrics = [
     {
-      label: t('financial.annualizedRevenue'),
+      label: t('financialSection.annualizedRevenue'),
       value: formatCurrency(data?.annualized || 0, 'EUR'),
       icon: Activity,
     },
     {
-      label: t('financial.monthlyRunRate'),
+      label: t('financialSection.monthlyRunRate'),
       value: formatCurrency(data?.mrr || 0, 'EUR'),
       icon: Activity,
     },
     {
-      label: t('financial.ytdRevenue', { months: data?.month || 0 }),
+      label: t('financialSection.ytdRevenue', { months: data?.month || 0 }),
       value: formatCurrency(data?.ytdRevenue || 0, 'EUR'),
       icon: TrendingUp,
     },
     {
-      label: t('financial.yoyGrowthRate'),
+      label: t('financialSection.yoyGrowthRate'),
       value: `${(data?.yoyGrowth || 0).toFixed(1)}%`,
       icon: (data?.yoyGrowth || 0) >= 0 ? TrendingUp : TrendingDown,
       color: (data?.yoyGrowth || 0) >= 0 ? 'text-success' : 'text-destructive',

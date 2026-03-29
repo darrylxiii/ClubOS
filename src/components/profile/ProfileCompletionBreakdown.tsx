@@ -38,7 +38,7 @@ export const ProfileCompletionBreakdown = ({
         <div className="flex items-center gap-2 px-1">
           <AlertCircle className="h-4 w-4 text-amber-500" />
           <span className="text-sm text-muted-foreground">
-            {t('profile.itemsToComplete', { count: totalIncomplete })}
+            {t('profileSection.itemsToComplete', { count: totalIncomplete })}
           </span>
         </div>
       )}
@@ -112,7 +112,7 @@ export const ProfileCompletionBreakdown = ({
       {/* Show more indicator */}
       {incompleteTasks.length > maxToShow && (
         <p className="text-xs text-muted-foreground text-center pt-1">
-          {t('profile.moreItemsToComplete', { count: incompleteTasks.length - maxToShow })}
+          {t('profileSection.moreItemsToComplete', { count: incompleteTasks.length - maxToShow })}
         </p>
       )}
     </div>

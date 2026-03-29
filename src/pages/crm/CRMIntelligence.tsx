@@ -90,6 +90,7 @@ function sentimentBar(score: number) {
 // ─── Main Component ─────────────────────────────────────────────────────────
 
 export default function CRMIntelligence() {
+  const { t } = useTranslation('common');
   const [riskFilter, setRiskFilter] = useState<RiskFilter>('all');
   const [entityFilter, setEntityFilter] = useState<string>('all');
   const { relationships, loading: healthLoading, stats, refetch } = useRelationshipHealth(

@@ -216,7 +216,7 @@ export function FocusTimeSettings() {
                     <Shield className="h-5 w-5" />
                     Focus Time Blocks
                   </CardTitle>
-                  <CardDescription>{t('scheduling.focustimesettings.defineProtectedTimeBlocksForDeep', 'Define protected time blocks for deep work')}</CardDescription>
+                  <CardDescription>{t('schedulingSection.focustimesettings.defineProtectedTimeBlocksForDeep', 'Define protected time blocks for deep work')}</CardDescription>
                 </div>
                 <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
                   <DialogTrigger asChild>
@@ -228,7 +228,7 @@ export function FocusTimeSettings() {
                   <DialogContent>
                     <DialogHeader>
                       <DialogTitle>{t("add_focus_block", "Add Focus Block")}</DialogTitle>
-                      <DialogDescription>{t('scheduling.focustimesettings.createANewProtectedTimeBlock', 'Create a new protected time block')}</DialogDescription>
+                      <DialogDescription>{t('schedulingSection.focustimesettings.createANewProtectedTimeBlock', 'Create a new protected time block')}</DialogDescription>
                     </DialogHeader>
                     <div className="space-y-4">
                       <div className="grid grid-cols-2 gap-4">
@@ -322,10 +322,10 @@ export function FocusTimeSettings() {
                     </div>
                     <DialogFooter>
                       <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>
-                        {t('scheduling.focustimesettings.cancel', 'Cancel')}
+                        {t('schedulingSection.focustimesettings.cancel', 'Cancel')}
                       </Button>
                       <Button onClick={handleAddBlock} disabled={createBlock.isPending}>
-                        {createBlock.isPending ? t('scheduling.focustimesettings.creating', 'Creating...') : t('scheduling.focustimesettings.createBlock', 'Create Block')}
+                        {createBlock.isPending ? t('schedulingSection.focustimesettings.creating', 'Creating...') : t('schedulingSection.focustimesettings.createBlock', 'Create Block')}
                       </Button>
                     </DialogFooter>
                   </DialogContent>
@@ -399,14 +399,14 @@ export function FocusTimeSettings() {
           <Card>
             <CardHeader>
               <CardTitle>{t("focus_time_preferences", "Focus Time Preferences")}</CardTitle>
-              <CardDescription>{t('scheduling.focustimesettings.configureHowFocusTimeProtectionWorks', 'Configure how focus time protection works')}</CardDescription>
+              <CardDescription>{t('schedulingSection.focustimesettings.configureHowFocusTimeProtectionWorks', 'Configure how focus time protection works')}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <div>
                     <Label>{t("enable_focus_defender", "Enable Focus Defender")}</Label>
-                    <p className="text-sm text-muted-foreground">{t('scheduling.focustimesettings.protectFocusBlocksFromMeetingRequests', 'Protect focus blocks from meeting requests')}</p>
+                    <p className="text-sm text-muted-foreground">{t('schedulingSection.focustimesettings.protectFocusBlocksFromMeetingRequests', 'Protect focus blocks from meeting requests')}</p>
                   </div>
                   <Switch
                     checked={localPrefs.enable_focus_defender}
@@ -417,7 +417,7 @@ export function FocusTimeSettings() {
                 <div className="flex items-center justify-between">
                   <div>
                     <Label>{t("protect_mornings", "Protect Mornings")}</Label>
-                    <p className="text-sm text-muted-foreground">{t('scheduling.focustimesettings.keepMorningsFreeForFocusedWork', 'Keep mornings free for focused work')}</p>
+                    <p className="text-sm text-muted-foreground">{t('schedulingSection.focustimesettings.keepMorningsFreeForFocusedWork', 'Keep mornings free for focused work')}</p>
                   </div>
                   <Switch
                     checked={localPrefs.protect_mornings}
@@ -447,7 +447,7 @@ export function FocusTimeSettings() {
                 <div className="flex items-center justify-between">
                   <div>
                     <Label>{t("allow_override_with_reason", "Allow Override with Reason")}</Label>
-                    <p className="text-sm text-muted-foreground">{t('scheduling.focustimesettings.letBookersOverrideProtectionWithA', 'Let bookers override protection with a reason')}</p>
+                    <p className="text-sm text-muted-foreground">{t('schedulingSection.focustimesettings.letBookersOverrideProtectionWithA', 'Let bookers override protection with a reason')}</p>
                   </div>
                   <Switch
                     checked={localPrefs.allow_override_with_reason}
@@ -525,7 +525,7 @@ export function FocusTimeSettings() {
               </div>
 
               <Button onClick={handleSavePreferences} disabled={savePreferences.isPending}>
-                {savePreferences.isPending ? t('scheduling.focustimesettings.saving', 'Saving...') : t('scheduling.focustimesettings.savePreferences', 'Save Preferences')}
+                {savePreferences.isPending ? t('schedulingSection.focustimesettings.saving', 'Saving...') : t('schedulingSection.focustimesettings.savePreferences', 'Save Preferences')}
               </Button>
             </CardContent>
           </Card>
@@ -538,14 +538,14 @@ export function FocusTimeSettings() {
                 <Brain className="h-5 w-5" />
                 AI Pattern Analysis
               </CardTitle>
-              <CardDescription>{t('scheduling.focustimesettings.letQuinAnalyzeYourMeetingPatterns', 'Let QUIN analyze your meeting patterns and suggest optimal focus blocks')}</CardDescription>
+              <CardDescription>{t('schedulingSection.focustimesettings.letQuinAnalyzeYourMeetingPatterns', 'Let QUIN analyze your meeting patterns and suggest optimal focus blocks')}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <Button 
                 onClick={() => analyzePatterns.mutate()}
                 disabled={analyzePatterns.isPending}
               >
-                {analyzePatterns.isPending ? t('scheduling.focustimesettings.analyzing', 'Analyzing...') : t('scheduling.focustimesettings.analyzeMyPatterns', 'Analyze My Patterns')}
+                {analyzePatterns.isPending ? t('schedulingSection.focustimesettings.analyzing', 'Analyzing...') : t('schedulingSection.focustimesettings.analyzeMyPatterns', 'Analyze My Patterns')}
               </Button>
 
               {analyzePatterns.data && (
@@ -574,7 +574,7 @@ export function FocusTimeSettings() {
                               auto_detected: true,
                             })}
                           >
-                            {t('scheduling.focustimesettings.addBlock', 'Add Block')}
+                            {t('schedulingSection.focustimesettings.addBlock', 'Add Block')}
                           </Button>
                         </div>
                       ))}

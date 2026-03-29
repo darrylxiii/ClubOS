@@ -82,7 +82,7 @@ const BlogCard: React.FC<BlogCardProps> = ({
           <span className="text-border">·</span>
           <span className="flex items-center gap-1">
             <Clock className="h-3.5 w-3.5" aria-hidden="true" />
-            {t('blog.minRead', { count: post.readTime })}
+            {t('blog.minRead', { minutes: post.readTime })}
           </span>
         </div>
       </div>

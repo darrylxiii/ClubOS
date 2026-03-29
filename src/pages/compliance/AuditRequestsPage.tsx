@@ -360,6 +360,7 @@ export default function AuditRequestsPage() {
 }
 
 function CreateAuditRequestDialog({ onSubmit }: { onSubmit: (data: any) => void }) {
+  const { t } = useTranslation('common');
   const [open, setOpen] = useState(false);
   const [formData, setFormData] = useState({
     audit_type: "",

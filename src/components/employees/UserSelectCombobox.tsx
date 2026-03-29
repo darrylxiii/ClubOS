@@ -85,12 +85,12 @@ export const UserSelectCombobox = ({
           {isWaitingForCompany ? (
             <div className="flex items-center gap-2 text-muted-foreground">
               <Loader2 className="h-4 w-4 animate-spin" />
-              <span>{t('employees.loadingCompany')}</span>
+              <span>{t('employeesSection.loadingCompany')}</span>
             </div>
           ) : isLoading ? (
             <div className="flex items-center gap-2 text-muted-foreground">
               <Loader2 className="h-4 w-4 animate-spin" />
-              <span>{t('employees.loadingUsers')}</span>
+              <span>{t('employeesSection.loadingUsers')}</span>
             </div>
           ) : selectedUser ? (
             <div className="flex items-center gap-3">
@@ -111,7 +111,7 @@ export const UserSelectCombobox = ({
               )}
             </div>
           ) : (
-            <span className="text-muted-foreground">{placeholder || t('employees.selectUser')}</span>
+            <span className="text-muted-foreground">{placeholder || t('employeesSection.selectUser')}</span>
           )}
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
@@ -124,7 +124,7 @@ export const UserSelectCombobox = ({
       >
         <Command className="rounded-lg border-0">
           <CommandInput 
-            placeholder={t('employees.searchByNameEmailRole')} 
+            placeholder={t('employeesSection.searchByNameEmailRole')} 
             className="h-10"
           />
           <CommandList className="max-h-[280px] overflow-y-auto overscroll-contain">
@@ -134,16 +134,16 @@ export const UserSelectCombobox = ({
               </div>
             ) : error ? (
               <div className="py-6 text-center text-sm text-destructive">
-                {t('employees.errorLoadingUsers')}
+                {t('employeesSection.errorLoadingUsers')}
               </div>
             ) : !users?.length ? (
               <CommandEmpty>
                 {companyId
-                  ? t('employees.noUsersInCompany')
-                  : t('employees.noUsersFound')}
+                  ? t('employeesSection.noUsersInCompany')
+                  : t('employeesSection.noUsersFound')}
               </CommandEmpty>
             ) : (
-              <CommandGroup heading={t('employees.usersAvailable', { count: users?.length || 0 })}>
+              <CommandGroup heading={t('employeesSection.usersAvailable', { count: users?.length || 0 })}>
                 {users?.map((user) => (
                   <CommandItem
                     key={user.id}

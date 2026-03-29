@@ -73,7 +73,7 @@ export const CommandStrip = () => {
 
   const items: CommandItem[] = [
     {
-      label: t('dashboard.attention.pending', 'Pending'),
+      label: t('dashboardSection.attention.pending', 'Pending'),
       count: data?.pending || 0,
       icon: Clock,
       href: "/admin?tab=users",
@@ -81,7 +81,7 @@ export const CommandStrip = () => {
       bgClass: data?.pending ? "bg-amber-500/10 border-amber-500/20" : "bg-emerald-500/10 border-emerald-500/20",
     },
     {
-      label: t('dashboard.attention.overdue', 'Overdue'),
+      label: t('dashboardSection.attention.overdue', 'Overdue'),
       count: data?.overdue || 0,
       icon: AlertTriangle,
       href: "/applications?filter=overdue",
@@ -89,7 +89,7 @@ export const CommandStrip = () => {
       bgClass: data?.overdue ? "bg-red-500/10 border-red-500/20" : "bg-emerald-500/10 border-emerald-500/20",
     },
     {
-      label: t('dashboard.attention.atRisk', 'At Risk'),
+      label: t('dashboardSection.attention.atRisk', 'At Risk'),
       count: data?.atRisk || 0,
       icon: Building2,
       href: "/admin?tab=companies",
@@ -97,7 +97,7 @@ export const CommandStrip = () => {
       bgClass: data?.atRisk ? "bg-orange-500/10 border-orange-500/20" : "bg-emerald-500/10 border-emerald-500/20",
     },
     {
-      label: t('dashboard.attention.alerts', 'Alerts'),
+      label: t('dashboardSection.attention.alerts', 'Alerts'),
       count: data?.alerts || 0,
       icon: Shield,
       href: "/admin/anti-hacking",

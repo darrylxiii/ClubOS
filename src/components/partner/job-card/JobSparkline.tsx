@@ -105,8 +105,8 @@ export const JobSparkline = memo(({ jobId, candidateCount, daysOpen }: JobSparkl
           </div>
         </TooltipTrigger>
         <TooltipContent side="top" className="text-xs">
-          <div className="font-medium">{t('partner.sevenDayTrend', '7-day trend')}</div>
-          <div className="text-muted-foreground">{t('partner.applicationsThisWeek', '{{count}} applications this week', { count: total })}</div>
+          <div className="font-medium">{t('partnerSection.sevenDayTrend', '7-day trend')}</div>
+          <div className="text-muted-foreground">{t('partnerSection.applicationsThisWeek', '{{count}} applications this week', { count: total })}</div>
         </TooltipContent>
       </Tooltip>
     </TooltipProvider>

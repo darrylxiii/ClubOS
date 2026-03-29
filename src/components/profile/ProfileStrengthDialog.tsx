@@ -151,7 +151,7 @@ export const ProfileStrengthDialog = ({
                   className="text-xs h-8"
                 >
                   <CheckCircle2 className="h-3 w-3 mr-1" />
-                  {t('profile.markDone')}
+                  {t('profileSection.markDone')}
                 </Button>
               )}
             </div>
@@ -171,7 +171,7 @@ export const ProfileStrengthDialog = ({
                 <Target className="h-6 w-6 text-white" />
               </div>
               <div>
-                <DialogTitle className="text-xl">{t('profile.profileStrength')}</DialogTitle>
+                <DialogTitle className="text-xl">{t('profileSection.profileStrength')}</DialogTitle>
                 <div className="flex items-center gap-2 mt-1">
                   <Progress value={stats?.completion_percentage || 0} className="w-32 h-2" />
                   <span className="text-sm font-semibold text-primary">
@@ -212,7 +212,7 @@ export const ProfileStrengthDialog = ({
                     ) : (
                       <Circle className="h-4 w-4" />
                     )}
-                    <span className="font-semibold">{t('profile.level', { level })}</span>
+                    <span className="font-semibold">{t('profileSection.level', { level })}</span>
                   </div>
                   <span className="text-[10px] text-muted-foreground">
                     {completedCount}/{levelTasks.length}
@@ -229,11 +229,11 @@ export const ProfileStrengthDialog = ({
                   <div className="flex items-center gap-2 mb-4">
                     <Trophy className="h-5 w-5 text-primary" />
                     <h3 className="font-semibold">
-                      {level === 1 && t('profile.levelEssential')}
-                      {level === 2 && t('profile.levelFoundation')}
-                      {level === 3 && t('profile.levelEngagement')}
-                      {level === 4 && t('profile.levelAdvanced')}
-                      {level === 5 && t('profile.levelPowerUser')}
+                      {level === 1 && t('profileSection.levelEssential')}
+                      {level === 2 && t('profileSection.levelFoundation')}
+                      {level === 3 && t('profileSection.levelEngagement')}
+                      {level === 4 && t('profileSection.levelAdvanced')}
+                      {level === 5 && t('profileSection.levelPowerUser')}
                     </h3>
                   </div>
                   {getTasksByLevel(allTasks, level).map(renderTaskItem)}

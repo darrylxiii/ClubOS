@@ -107,6 +107,7 @@ function SortableItem({ module, onEditModule, onDeleteModule }: { module: Module
 }
 
 export function CourseBuilder({ modules, onModulesChange, onEditModule, onDeleteModule, onAddModule }: CourseBuilderProps) {
+    const { t } = useTranslation('common');
     const sensors = useSensors(
         useSensor(PointerSensor),
         useSensor(KeyboardSensor, {

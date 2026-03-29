@@ -161,6 +161,7 @@ export function ReferralJobTracker() {
 }
 
 function TrackedJobCard({ job }: { job: TrackedJob }) {
+  const { t } = useTranslation('common');
   const stages = ['applied', 'screening', 'interview', 'final', 'offer', 'hired'];
   const maxStageReached = stages.findIndex(s => 
     Object.keys(job.stageBreakdown).includes(s)

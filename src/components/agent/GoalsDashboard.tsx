@@ -284,6 +284,7 @@ export function GoalsDashboard() {
 }
 
 function GoalCard({ 
+  const { t } = useTranslation('common');
   goal, 
   onUpdateStatus 
 }: { 

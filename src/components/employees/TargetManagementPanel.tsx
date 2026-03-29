@@ -223,6 +223,7 @@ export function TargetManagementPanel() {
 }
 
 function TargetRow({ 
+  const { t } = useTranslation('common');
   target, 
   onRecalculate, 
   onDelete,

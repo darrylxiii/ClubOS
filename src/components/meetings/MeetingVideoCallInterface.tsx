@@ -279,7 +279,7 @@ export function MeetingVideoCallInterface({
 
   const activeTranscriptionSource = isTranscribing 
     ? 'ElevenLabs Scribe' 
-    : (transcript ? t('meetings.meetingvideocallinterface.browserSpeechApi', 'Browser Speech API') : t('meetings.meetingvideocallinterface.notConnected', 'Not connected'));
+    : (transcript ? t('meetingsSection.meetingvideocallinterface.browserSpeechApi', 'Browser Speech API') : t('meetingsSection.meetingvideocallinterface.notConnected', 'Not connected'));
 
   const isAnyTranscriptionActive = isTranscribing || !!transcript;
 
@@ -343,7 +343,7 @@ export function MeetingVideoCallInterface({
       log.warn('Meeting', 'Critical network quality detected. Switching to Audio Only.');
       toggleVideo();
       toast.warning(t("poor_connection_detected", "Poor connection detected"), {
-        description: t('meetings.meetingvideocallinterface.turningOffVideoToPreserveAudio', 'Turning off video to preserve audio quality.')
+        description: t('meetingsSection.meetingvideocallinterface.turningOffVideoToPreserveAudio', 'Turning off video to preserve audio quality.')
       });
     } else if (suggestedAction === 'downgrade-quality' && isVideoEnabled) {
       // Logic for downgrading bitrate is handled internally by WebRTC hook,
@@ -648,7 +648,7 @@ export function MeetingVideoCallInterface({
     }
     const sharing = await toggleScreenShare();
     setIsScreenSharing(sharing);
-    toast(sharing ? t('meetings.meetingvideocallinterface.screenSharingStarted', 'Screen sharing started') : t('meetings.meetingvideocallinterface.screenSharingStopped', 'Screen sharing stopped'));
+    toast(sharing ? t('meetingsSection.meetingvideocallinterface.screenSharingStarted', 'Screen sharing started') : t('meetingsSection.meetingvideocallinterface.screenSharingStopped', 'Screen sharing stopped'));
   };
 
   const pipVideoRef = useRef<HTMLVideoElement | null>(null);
@@ -736,7 +736,7 @@ export function MeetingVideoCallInterface({
   const handleToggleHandRaise = async () => {
     const newState = !isHandRaised;
     setIsHandRaised(newState);
-    toast(isHandRaised ? t('meetings.meetingvideocallinterface.handLowered', 'Hand lowered') : t('meetings.meetingvideocallinterface.handRaised', 'Hand raised'));
+    toast(isHandRaised ? t('meetingsSection.meetingvideocallinterface.handLowered', 'Hand lowered') : t('meetingsSection.meetingvideocallinterface.handRaised', 'Hand raised'));
 
     // Broadcast hand raise to all participants via webrtc_signals
     try {
@@ -1115,7 +1115,7 @@ export function MeetingVideoCallInterface({
           </div>
           <div>
             <h3 className="text-xl font-bold mb-2">{t("cameramicrophone_access_required", "Camera/Microphone Access Required")}</h3>
-            <p className="text-muted-foreground mb-4">{t('meetings.meetingvideocallinterface.pleaseEnableCameraAndMicrophonePermissions', 'Please enable camera and microphone permissions in your browser.')}</p>
+            <p className="text-muted-foreground mb-4">{t('meetingsSection.meetingvideocallinterface.pleaseEnableCameraAndMicrophonePermissions', 'Please enable camera and microphone permissions in your browser.')}</p>
             <div className="text-sm text-muted-foreground space-y-2 text-left bg-muted/50 rounded-lg p-4">
               <p className="font-semibold">{t("how_to_enable", "How to enable:")}</p>
               <ol className="list-decimal list-inside space-y-1">
@@ -1126,8 +1126,8 @@ export function MeetingVideoCallInterface({
             </div>
           </div>
           <div className="flex gap-3">
-            <Button onClick={handleEndCall} variant="outline" className="flex-1">{t('meetings.meetingvideocallinterface.leaveMeeting', 'Leave Meeting')}</Button>
-            <Button onClick={handleRetry} className="flex-1">{t('meetings.meetingvideocallinterface.tryAgain', 'Try Again')}</Button>
+            <Button onClick={handleEndCall} variant="outline" className="flex-1">{t('meetingsSection.meetingvideocallinterface.leaveMeeting', 'Leave Meeting')}</Button>
+            <Button onClick={handleRetry} className="flex-1">{t('meetingsSection.meetingvideocallinterface.tryAgain', 'Try Again')}</Button>
           </div>
         </div>
       </div>,
@@ -1176,7 +1176,7 @@ export function MeetingVideoCallInterface({
         <div className="absolute top-8 left-1/2 -translate-x-1/2 z-50 animate-in fade-in slide-in-from-top duration-500">
           <div className="flex items-center gap-3 px-8 py-4 bg-black/60 backdrop-blur-2xl rounded-full border border-white/10 shadow-[0_8px_32px_rgba(0,0,0,0.4)]">
             <Users className="h-5 w-5 text-white/80" />
-            <span className="text-base font-medium text-white/90 tracking-wide">{t('meetings.meetingvideocallinterface.waitingForOthersToJoin', 'Waiting for others to join...')}</span>
+            <span className="text-base font-medium text-white/90 tracking-wide">{t('meetingsSection.meetingvideocallinterface.waitingForOthersToJoin', 'Waiting for others to join...')}</span>
           </div>
         </div>
       )}
@@ -1336,7 +1336,7 @@ export function MeetingVideoCallInterface({
                 log.debug('Meeting', 'Falling back to WebRTC P2P mode');
                 setUseLiveKitMode(false);
                 toast.info(t("switched_to_direct_peertopeer", "Switched to direct peer-to-peer mode"), {
-                  description: t('meetings.meetingvideocallinterface.usingDirectConnectionForThisMeeting', 'Using direct connection for this meeting')
+                  description: t('meetingsSection.meetingvideocallinterface.usingDirectConnectionForThisMeeting', 'Using direct connection for this meeting')
                 });
               }}
               className="h-full w-full"
@@ -1398,7 +1398,7 @@ export function MeetingVideoCallInterface({
 
             <div className="space-y-4">
               <h3 className="text-3xl font-bold text-white tracking-tight">
-                {pendingRequestsCount > 0 ? t('meetings.meetingvideocallinterface.guestApprovalRequired', 'Guest Approval Required') : t('meetings.meetingvideocallinterface.waitingForOthersToJoin1', 'Waiting for others to join')}
+                {pendingRequestsCount > 0 ? t('meetingsSection.meetingvideocallinterface.guestApprovalRequired', 'Guest Approval Required') : t('meetingsSection.meetingvideocallinterface.waitingForOthersToJoin1', 'Waiting for others to join')}
               </h3>
               <p className="text-lg text-white/70 leading-relaxed">
                 {pendingRequestsCount > 0 ? (
@@ -1407,7 +1407,7 @@ export function MeetingVideoCallInterface({
                   </>
                 ) : (
                   <>
-                    {t('meetings.meetingvideocallinterface.shareTheMeetingCode', 'Share the meeting code:')} <span className="font-mono text-primary font-bold text-xl">{meeting.meeting_code}</span>
+                    {t('meetingsSection.meetingvideocallinterface.shareTheMeetingCode', 'Share the meeting code:')} <span className="font-mono text-primary font-bold text-xl">{meeting.meeting_code}</span>
                   </>
                 )}
               </p>
@@ -1439,7 +1439,7 @@ export function MeetingVideoCallInterface({
                 }}
                 className="mt-4"
               >
-                {t('meetings.meetingvideocallinterface.startMeetingAnyway', 'Start Meeting Anyway')}
+                {t('meetingsSection.meetingvideocallinterface.startMeetingAnyway', 'Start Meeting Anyway')}
               </Button>
             )}
           </div>
@@ -1646,7 +1646,7 @@ export function MeetingVideoCallInterface({
               <div className="text-center text-muted-foreground py-12">
                 <p className="font-medium">{t("no_transcriptions_yet", "No transcriptions yet")}</p>
                 <p className="text-sm mt-2">
-                  {isTranscribing ? t('meetings.meetingvideocallinterface.listening', 'Listening...') : t('meetings.meetingvideocallinterface.transcriptionWillAppearHereWhenEnabled', 'Transcription will appear here when enabled')}
+                  {isTranscribing ? t('meetingsSection.meetingvideocallinterface.listening', 'Listening...') : t('meetingsSection.meetingvideocallinterface.transcriptionWillAppearHereWhenEnabled', 'Transcription will appear here when enabled')}
                 </p>
                 {!transcriptionEnabled && (
                   <Button
@@ -1655,7 +1655,7 @@ export function MeetingVideoCallInterface({
                     size="sm"
                     className="mt-4"
                   >
-                    {t('meetings.meetingvideocallinterface.enableTranscription', 'Enable Transcription')}
+                    {t('meetingsSection.meetingvideocallinterface.enableTranscription', 'Enable Transcription')}
                   </Button>
                 )}
               </div>

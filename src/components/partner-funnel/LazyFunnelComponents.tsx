@@ -71,6 +71,7 @@ export function LoadingSpinner({ text = "Loading..." }: { text?: string }) {
 
 // Lazy loading wrapper with better error handling
 export function LazyComponent({
+  const { t } = useTranslation('common');
   factory,
   fallback,
   componentProps = {}

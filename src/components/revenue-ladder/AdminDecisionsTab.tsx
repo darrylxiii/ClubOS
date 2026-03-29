@@ -244,6 +244,7 @@ const statusConfig = {
 };
 
 function DecisionCard({ proposal, index, onDecide }: DecisionCardProps) {
+  const { t } = useTranslation('common');
   const { data: votes } = useProposalVotes(proposal.id);
   const status = proposal.status as keyof typeof statusConfig;
   const config = statusConfig[status] || statusConfig.pending;

@@ -120,19 +120,19 @@ export default function CandidateOnboarding() {
             <Card className="max-w-lg w-full p-10 text-center glass-effect">
               <Sparkles className="w-14 h-14 mx-auto mb-6 text-primary" />
               <h1 className="text-3xl font-bold mb-3 text-foreground">
-                {t('candidate.alreadyMember.title', "You're already a member")}
+                {t('candidateSection.alreadyMember.title', "You're already a member")}
               </h1>
               <p className="text-muted-foreground text-base mb-8">
-                {t('candidate.alreadyMember.message', "You've completed onboarding. Explore your dashboard or invite a friend to join The Quantum Club.")}
+                {t('candidateSection.alreadyMember.message', "You've completed onboarding. Explore your dashboard or invite a friend to join The Quantum Club.")}
               </p>
               <div className="flex flex-col sm:flex-row gap-3 justify-center">
                 <Button variant="primary" onClick={() => navigate('/home')}>
                   <Home className="w-4 h-4" />
-                  {t('candidate.alreadyMember.dashboard', 'Go to Dashboard')}
+                  {t('candidateSection.alreadyMember.dashboard', 'Go to Dashboard')}
                 </Button>
                 <Button variant="outline" onClick={() => navigate('/referrals')}>
                   <UserPlus className="w-4 h-4" />
-                  {t('candidate.alreadyMember.invite', 'Invite a Friend')}
+                  {t('candidateSection.alreadyMember.invite', 'Invite a Friend')}
                 </Button>
               </div>
             </Card>
@@ -182,7 +182,7 @@ export default function CandidateOnboarding() {
                 {'Applications Temporarily Paused'}
               </h1>
               <p className="text-muted-foreground text-lg">
-                {t('candidate.paused.message', "We're currently at capacity and not accepting new applications. Please check back soon or join our waitlist.")}
+                {t('candidateSection.paused.message', "We're currently at capacity and not accepting new applications. Please check back soon or join our waitlist.")}
               </p>
             </Card>
           </div>

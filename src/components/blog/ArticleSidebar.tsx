@@ -53,7 +53,7 @@ const ArticleSidebar: React.FC<ArticleSidebarProps> = ({ post, popularPosts, cla
                 <li key={article.id}>
                   <Link to={`/blog/${article.category}/${article.slug}`} className="group block">
                     <p className="text-sm text-foreground group-hover:text-foreground/70 transition-colors line-clamp-2 font-medium">{article.title}</p>
-                    <p className="text-xs text-muted-foreground mt-1">{t('blog.minRead', { count: article.readTime })}</p>
+                    <p className="text-xs text-muted-foreground mt-1">{t('blog.minRead', { minutes: article.readTime })}</p>
                   </Link>
                 </li>
               ))}

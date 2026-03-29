@@ -75,8 +75,8 @@ export const NotificationsPreviewWidget = () => {
         </div>
         <CardDescription className="text-xs sm:text-sm">
           {unreadCount > 0
-            ? t('notifications.unreadCount', '{{count}} unread notification', { count: unreadCount })
-            : t('notifications.allCaughtUp', "You're all caught up!")
+            ? t('notificationsSection.unreadCount', '{{count}} unread notification', { count: unreadCount })
+            : t('notificationsSection.allCaughtUp', "You're all caught up!")
           }
         </CardDescription>
       </CardHeader>

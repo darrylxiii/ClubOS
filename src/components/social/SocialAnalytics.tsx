@@ -8,28 +8,28 @@ export const SocialAnalytics = () => {
   const { t } = useTranslation("common");
   const stats = [
     {
-      label: t('social.analytics.totalReach'),
+      label: t('socialSection.analytics.totalReach'),
       value: "45.2K",
       change: "+12.5%",
       trend: "up",
       icon: Eye
     },
     {
-      label: t('social.analytics.engagementRate'),
+      label: t('socialSection.analytics.engagementRate'),
       value: "8.4%",
       change: "+2.1%",
       trend: "up",
       icon: Heart
     },
     {
-      label: t('social.analytics.totalComments'),
+      label: t('socialSection.analytics.totalComments'),
       value: "1,234",
       change: "-3.2%",
       trend: "down",
       icon: MessageCircle
     },
     {
-      label: t('social.analytics.shares'),
+      label: t('socialSection.analytics.shares'),
       value: "892",
       change: "+15.8%",
       trend: "up",
@@ -93,24 +93,24 @@ export const SocialAnalytics = () => {
       {/* Detailed Analytics */}
       <Tabs defaultValue="overview" className="space-y-4">
         <TabsList>
-          <TabsTrigger value="overview">{t('social.analytics.tabs.overview')}</TabsTrigger>
-          <TabsTrigger value="posts">{t('social.analytics.tabs.topPosts')}</TabsTrigger>
-          <TabsTrigger value="audience">{t('social.analytics.tabs.audience')}</TabsTrigger>
-          <TabsTrigger value="growth">{t('social.analytics.tabs.growth')}</TabsTrigger>
+          <TabsTrigger value="overview">{t('socialSection.analytics.tabs.overview')}</TabsTrigger>
+          <TabsTrigger value="posts">{t('socialSection.analytics.tabs.topPosts')}</TabsTrigger>
+          <TabsTrigger value="audience">{t('socialSection.analytics.tabs.audience')}</TabsTrigger>
+          <TabsTrigger value="growth">{t('socialSection.analytics.tabs.growth')}</TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="space-y-4">
           <Card className="p-6">
-            <h3 className="text-lg font-semibold mb-4">{t('social.analytics.performanceOverview')}</h3>
+            <h3 className="text-lg font-semibold mb-4">{t('socialSection.analytics.performanceOverview')}</h3>
             <div className="h-64 flex items-center justify-center text-muted-foreground">
-              {t('social.analytics.chartPlaceholder')}
+              {t('socialSection.analytics.chartPlaceholder')}
             </div>
           </Card>
         </TabsContent>
 
         <TabsContent value="posts" className="space-y-4">
           <Card className="p-6">
-            <h3 className="text-lg font-semibold mb-4">{t('social.analytics.topPerformingPosts')}</h3>
+            <h3 className="text-lg font-semibold mb-4">{t('socialSection.analytics.topPerformingPosts')}</h3>
             <div className="space-y-4">
               {topPosts.map((post) => (
                 <Card key={post.id} className="p-4 bg-card/50">
@@ -140,18 +140,18 @@ export const SocialAnalytics = () => {
 
         <TabsContent value="audience">
           <Card className="p-6">
-            <h3 className="text-lg font-semibold mb-4">{t('social.analytics.audienceInsights')}</h3>
+            <h3 className="text-lg font-semibold mb-4">{t('socialSection.analytics.audienceInsights')}</h3>
             <div className="h-64 flex items-center justify-center text-muted-foreground">
-              {t('social.analytics.audiencePlaceholder')}
+              {t('socialSection.analytics.audiencePlaceholder')}
             </div>
           </Card>
         </TabsContent>
 
         <TabsContent value="growth">
           <Card className="p-6">
-            <h3 className="text-lg font-semibold mb-4">{t('social.analytics.growthTrends')}</h3>
+            <h3 className="text-lg font-semibold mb-4">{t('socialSection.analytics.growthTrends')}</h3>
             <div className="h-64 flex items-center justify-center text-muted-foreground">
-              {t('social.analytics.growthPlaceholder')}
+              {t('socialSection.analytics.growthPlaceholder')}
             </div>
           </Card>
         </TabsContent>

@@ -121,6 +121,7 @@ const { t } = useTranslation('common');
 }
 
 export function StageCustomizationPanel() {
+  const { t } = useTranslation('common');
   const [stages, setStages] = useState<CRMStage[]>(DEFAULT_STAGES);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);

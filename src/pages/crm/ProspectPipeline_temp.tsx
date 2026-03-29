@@ -346,7 +346,7 @@ function ProspectPipelineContent() {
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <Input
                 ref={searchInputRef}
-                placeholder={t('placeholder.searchProspects', 'Search prospects...')}
+                placeholder={t('placeholderSection.searchProspects', 'Search prospects...')}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-9 w-48 bg-muted/20 border-border/30"
@@ -355,7 +355,7 @@ function ProspectPipelineContent() {
 
             <Select value={selectedCampaign} onValueChange={setSelectedCampaign}>
               <SelectTrigger className="w-40 bg-muted/20 border-border/30">
-                <SelectValue placeholder={t('placeholder.allCampaigns', 'All Campaigns')} />
+                <SelectValue placeholder={t('placeholderSection.allCampaigns', 'All Campaigns')} />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">{t('allCampaigns', 'All Campaigns')}</SelectItem>
@@ -401,7 +401,7 @@ function ProspectPipelineContent() {
                     <Label>{t("owner", "Owner")}</Label>
                     <Select value={selectedOwner} onValueChange={setSelectedOwner}>
                       <SelectTrigger className="w-full">
-                        <SelectValue placeholder={t('placeholder.allOwners', 'All Owners')} />
+                        <SelectValue placeholder={t('placeholderSection.allOwners', 'All Owners')} />
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="all">{t('allOwners', 'All Owners')}</SelectItem>

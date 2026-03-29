@@ -157,23 +157,23 @@ export function AddStageDialog({ open, onOpenChange, onSave, currentStagesCount,
     switch (stepId) {
       case "essentials":
         if (!stage.name.trim()) {
-          return { valid: false, message: t('partner.addstagedialog.stageNameIsRequired', 'Stage name is required'), field: "stage-name" };
+          return { valid: false, message: t('partnerSection.addstagedialog.stageNameIsRequired', 'Stage name is required'), field: "stage-name" };
         }
         if (!stage.owner) {
-          return { valid: false, message: t('partner.addstagedialog.stageOwnershipIsRequired', 'Stage ownership is required'), field: "stage-owner" };
+          return { valid: false, message: t('partnerSection.addstagedialog.stageOwnershipIsRequired', 'Stage ownership is required'), field: "stage-owner" };
         }
         return { valid: true };
       case "type":
         if (stage.format === "in_person" && !stage.location?.trim()) {
-          return { valid: false, message: t('partner.addstagedialog.locationIsRequiredForInpersonStages', 'Location is required for in-person stages'), field: "location" };
+          return { valid: false, message: t('partnerSection.addstagedialog.locationIsRequiredForInpersonStages', 'Location is required for in-person stages'), field: "location" };
         }
         if (stage.format === "online" && !stage.meeting_link?.trim()) {
-          return { valid: false, message: t('partner.addstagedialog.meetingLinkIsRequiredForOnline', 'Meeting link is required for online stages'), field: "meeting-link" };
+          return { valid: false, message: t('partnerSection.addstagedialog.meetingLinkIsRequiredForOnline', 'Meeting link is required for online stages'), field: "meeting-link" };
         }
         return { valid: true };
       case "template":
         if (stage.save_as_template && !stage.template_name?.trim()) {
-          return { valid: false, message: t('partner.addstagedialog.templateNameIsRequiredWhenSaving', 'Template name is required when saving as template'), field: "template-name" };
+          return { valid: false, message: t('partnerSection.addstagedialog.templateNameIsRequiredWhenSaving', 'Template name is required when saving as template'), field: "template-name" };
         }
         return { valid: true };
       default:
@@ -261,13 +261,13 @@ export function AddStageDialog({ open, onOpenChange, onSave, currentStagesCount,
   };
 
   const steps = [
-    { id: "essentials", label: t('partner.addstagedialog.essentials', 'Essentials'), icon: FileText, required: true },
-    { id: "type", label: t('partner.addstagedialog.stageType', 'Stage Type'), icon: Building2, required: true },
-    { id: "scheduling", label: t('partner.addstagedialog.scheduling', 'Scheduling'), icon: Calendar, required: false },
-    { id: "team", label: t('partner.addstagedialog.team', 'Team'), icon: Users, required: false },
-    { id: "materials", label: t('partner.addstagedialog.materials', 'Materials'), icon: FileText, required: false },
-    { id: "evaluation", label: t('partner.addstagedialog.evaluation', 'Evaluation'), icon: Settings, required: false },
-    { id: "template", label: t('partner.addstagedialog.template', 'Template'), icon: BookTemplate, required: false }
+    { id: "essentials", label: t('partnerSection.addstagedialog.essentials', 'Essentials'), icon: FileText, required: true },
+    { id: "type", label: t('partnerSection.addstagedialog.stageType', 'Stage Type'), icon: Building2, required: true },
+    { id: "scheduling", label: t('partnerSection.addstagedialog.scheduling', 'Scheduling'), icon: Calendar, required: false },
+    { id: "team", label: t('partnerSection.addstagedialog.team', 'Team'), icon: Users, required: false },
+    { id: "materials", label: t('partnerSection.addstagedialog.materials', 'Materials'), icon: FileText, required: false },
+    { id: "evaluation", label: t('partnerSection.addstagedialog.evaluation', 'Evaluation'), icon: Settings, required: false },
+    { id: "template", label: t('partnerSection.addstagedialog.template', 'Template'), icon: BookTemplate, required: false }
   ];
 
   const goToNextStep = () => {
@@ -377,7 +377,7 @@ export function AddStageDialog({ open, onOpenChange, onSave, currentStagesCount,
                           </button>
                         </TooltipTrigger>
                         <TooltipContent>
-                          <p>{step.required ? t('partner.addstagedialog.required', 'Required') : t('partner.addstagedialog.optional', 'Optional')}</p>
+                          <p>{step.required ? t('partnerSection.addstagedialog.required', 'Required') : t('partnerSection.addstagedialog.optional', 'Optional')}</p>
                           {isCompleted && !stepComplete && <p className="text-xs text-destructive">{t("incomplete", "Incomplete")}</p>}
                         </TooltipContent>
                       </Tooltip>
@@ -503,10 +503,10 @@ export function AddStageDialog({ open, onOpenChange, onSave, currentStagesCount,
                   
                   <div className="grid grid-cols-2 gap-4 mt-4">
                     {[
-                      { value: 'online', icon: Video, label: t('partner.addstagedialog.onlinevirtual', 'Online/Virtual'), desc: 'Video or phone meetings' },
-                      { value: 'in_person', icon: Building2, label: t('partner.addstagedialog.inperson', 'In-Person'), desc: 'Face-to-face meetings' },
-                      { value: 'hybrid', icon: Users, label: t('partner.addstagedialog.hybrid', 'Hybrid'), desc: 'Flexible format' },
-                      { value: 'assessment', icon: ClipboardList, label: t('partner.addstagedialog.assessment', 'Assessment'), desc: 'Tests & challenges' }
+                      { value: 'online', icon: Video, label: t('partnerSection.addstagedialog.onlinevirtual', 'Online/Virtual'), desc: 'Video or phone meetings' },
+                      { value: 'in_person', icon: Building2, label: t('partnerSection.addstagedialog.inperson', 'In-Person'), desc: 'Face-to-face meetings' },
+                      { value: 'hybrid', icon: Users, label: t('partnerSection.addstagedialog.hybrid', 'Hybrid'), desc: 'Flexible format' },
+                      { value: 'assessment', icon: ClipboardList, label: t('partnerSection.addstagedialog.assessment', 'Assessment'), desc: 'Tests & challenges' }
                     ].map(({ value, icon: Icon, label, desc }) => (
                       <button
                         key={value}
@@ -734,15 +734,15 @@ export function AddStageDialog({ open, onOpenChange, onSave, currentStagesCount,
                   <div className="space-y-3">
                     <div className="flex items-center space-x-3 p-3 rounded-lg hover:bg-muted/50 transition-colors">
                       <Checkbox id="self-schedule" />
-                      <label htmlFor="self-schedule" className="text-sm cursor-pointer flex-1">{t('partner.addstagedialog.allowCandidateSelfscheduling', 'Allow candidate self-scheduling')}</label>
+                      <label htmlFor="self-schedule" className="text-sm cursor-pointer flex-1">{t('partnerSection.addstagedialog.allowCandidateSelfscheduling', 'Allow candidate self-scheduling')}</label>
                     </div>
                     <div className="flex items-center space-x-3 p-3 rounded-lg hover:bg-muted/50 transition-colors">
                       <Checkbox id="approval" />
-                      <label htmlFor="approval" className="text-sm cursor-pointer flex-1">{t('partner.addstagedialog.requireApprovalBeforeScheduling', 'Require approval before scheduling')}</label>
+                      <label htmlFor="approval" className="text-sm cursor-pointer flex-1">{t('partnerSection.addstagedialog.requireApprovalBeforeScheduling', 'Require approval before scheduling')}</label>
                     </div>
                     <div className="flex items-center space-x-3 p-3 rounded-lg hover:bg-muted/50 transition-colors">
                       <Checkbox id="buffer" />
-                      <label htmlFor="buffer" className="text-sm cursor-pointer flex-1">{t('partner.addstagedialog.addBufferTimeBetweenInterviews', 'Add buffer time between interviews')}</label>
+                      <label htmlFor="buffer" className="text-sm cursor-pointer flex-1">{t('partnerSection.addstagedialog.addBufferTimeBetweenInterviews', 'Add buffer time between interviews')}</label>
                     </div>
                   </div>
                 </div>
@@ -793,15 +793,15 @@ export function AddStageDialog({ open, onOpenChange, onSave, currentStagesCount,
                   <div className="space-y-3">
                     <div className="flex items-center space-x-3 p-3 rounded-lg hover:bg-muted/50 transition-colors">
                       <Checkbox id="notify-team" defaultChecked />
-                      <label htmlFor="notify-team" className="text-sm cursor-pointer flex-1">{t('partner.addstagedialog.notifyTeamWhenCandidateEntersStage', 'Notify team when candidate enters stage')}</label>
+                      <label htmlFor="notify-team" className="text-sm cursor-pointer flex-1">{t('partnerSection.addstagedialog.notifyTeamWhenCandidateEntersStage', 'Notify team when candidate enters stage')}</label>
                     </div>
                     <div className="flex items-center space-x-3 p-3 rounded-lg hover:bg-muted/50 transition-colors">
                       <Checkbox id="notify-candidate" defaultChecked />
-                      <label htmlFor="notify-candidate" className="text-sm cursor-pointer flex-1">{t('partner.addstagedialog.sendAutomatedEmailToCandidate', 'Send automated email to candidate')}</label>
+                      <label htmlFor="notify-candidate" className="text-sm cursor-pointer flex-1">{t('partnerSection.addstagedialog.sendAutomatedEmailToCandidate', 'Send automated email to candidate')}</label>
                     </div>
                     <div className="flex items-center space-x-3 p-3 rounded-lg hover:bg-muted/50 transition-colors">
                       <Checkbox id="reminders" defaultChecked />
-                      <label htmlFor="reminders" className="text-sm cursor-pointer flex-1">{t('partner.addstagedialog.sendReminders', 'Send reminders')}</label>
+                      <label htmlFor="reminders" className="text-sm cursor-pointer flex-1">{t('partnerSection.addstagedialog.sendReminders', 'Send reminders')}</label>
                     </div>
                   </div>
                 </div>
@@ -880,11 +880,11 @@ export function AddStageDialog({ open, onOpenChange, onSave, currentStagesCount,
                     </div>
                     <div className="flex items-center space-x-3 p-3 rounded-lg hover:bg-muted/50 transition-colors">
                       <Checkbox id="auto-advance" />
-                      <label htmlFor="auto-advance" className="text-sm cursor-pointer flex-1">{t('partner.addstagedialog.autoadvanceOnPassingScore', 'Auto-advance on passing score')}</label>
+                      <label htmlFor="auto-advance" className="text-sm cursor-pointer flex-1">{t('partnerSection.addstagedialog.autoadvanceOnPassingScore', 'Auto-advance on passing score')}</label>
                     </div>
                     <div className="flex items-center space-x-3 p-3 rounded-lg hover:bg-muted/50 transition-colors">
                       <Checkbox id="gdpr" defaultChecked />
-                      <label htmlFor="gdpr" className="text-sm cursor-pointer flex-1">{t('partner.addstagedialog.includeGdprConsentForm', 'Include GDPR consent form')}</label>
+                      <label htmlFor="gdpr" className="text-sm cursor-pointer flex-1">{t('partnerSection.addstagedialog.includeGdprConsentForm', 'Include GDPR consent form')}</label>
                     </div>
                   </div>
                 </div>
@@ -900,14 +900,14 @@ export function AddStageDialog({ open, onOpenChange, onSave, currentStagesCount,
                       checked={stage.save_as_template}
                       onCheckedChange={(checked) => updateStage({ save_as_template: checked as boolean })}
                     />
-                    <label htmlFor="save-template" className="text-sm font-medium">{t('partner.addstagedialog.saveThisStageAsAReusable', 'Save this stage as a reusable template')}</label>
+                    <label htmlFor="save-template" className="text-sm font-medium">{t('partnerSection.addstagedialog.saveThisStageAsAReusable', 'Save this stage as a reusable template')}</label>
                   </div>
 
                   {stage.save_as_template && (
                     <div className="space-y-4 mt-4 pl-6 animate-fade-in">
                       <div className="space-y-2">
                         <Label htmlFor="template-name">
-                          {t('partner.addstagedialog.templateName', 'Template Name')} <span className="text-destructive">*</span>
+                          {t('partnerSection.addstagedialog.templateName', 'Template Name')} <span className="text-destructive">*</span>
                         </Label>
                         <Input
                           ref={templateNameRef}
@@ -942,7 +942,7 @@ export function AddStageDialog({ open, onOpenChange, onSave, currentStagesCount,
                     Browse Template Library
                   </h4>
                   <p className="text-sm text-muted-foreground">{t('addStageDialog.quickstartWithPreconfiguredStageTemplate')}</p>
-                  <Button variant="outline" className="w-full">{t('partner.addstagedialog.viewTemplateLibrary', 'View Template Library')}</Button>
+                  <Button variant="outline" className="w-full">{t('partnerSection.addstagedialog.viewTemplateLibrary', 'View Template Library')}</Button>
                 </div>
               </div>
             )}
@@ -963,7 +963,7 @@ export function AddStageDialog({ open, onOpenChange, onSave, currentStagesCount,
             size="lg"
             className="w-full sm:w-auto"
           >
-            {t('partner.addstagedialog.previous', 'Previous')}
+            {t('partnerSection.addstagedialog.previous', 'Previous')}
           </Button>
 
           <div className="flex gap-2 w-full sm:w-auto">
@@ -973,7 +973,7 @@ export function AddStageDialog({ open, onOpenChange, onSave, currentStagesCount,
                 className="bg-gradient-to-r from-primary to-secondary hover:opacity-90 flex-1 sm:flex-initial"
                 size="lg"
               >
-                {t('partner.addstagedialog.nextStep', 'Next Step')}
+                {t('partnerSection.addstagedialog.nextStep', 'Next Step')}
                 <ChevronRight className="w-4 h-4 ml-2" />
               </Button>
             ) : (

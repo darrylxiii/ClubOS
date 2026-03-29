@@ -166,7 +166,7 @@ export const PortfolioSection = ({ userId, isReadOnly = false }: PortfolioSectio
         <div className="flex justify-between items-center">
           <div className="flex items-center gap-2">
             <Folder className="w-5 h-5" />
-            <CardTitle>{t('profile.portfolio')}</CardTitle>
+            <CardTitle>{t('profileSection.portfolio')}</CardTitle>
           </div>
           <Dialog open={isDialogOpen} onOpenChange={(open) => {
             setIsDialogOpen(open);
@@ -176,17 +176,17 @@ export const PortfolioSection = ({ userId, isReadOnly = false }: PortfolioSectio
               <DialogTrigger asChild>
                 <Button size="sm">
                   <Plus className="w-4 h-4 mr-2" />
-                  {t('profile.addProject')}
+                  {t('profileSection.addProject')}
                 </Button>
               </DialogTrigger>
             )}
             <DialogContent className="max-w-2xl">
               <DialogHeader>
-                <DialogTitle>{editingId ? t('common:actions.edit') : t('common:actions.add')} {t('profile.portfolioItem')}</DialogTitle>
+                <DialogTitle>{editingId ? t('common:actions.edit') : t('common:actions.add')} {t('profileSection.portfolioItem')}</DialogTitle>
               </DialogHeader>
               <div className="space-y-4">
                 <div className="space-y-2">
-                  <Label>{t('profile.title')} *</Label>
+                  <Label>{t('profileSection.title')} *</Label>
                   <Input 
                     value={formData.title}
                     onChange={(e) => setFormData({...formData, title: e.target.value})}
@@ -195,36 +195,36 @@ export const PortfolioSection = ({ userId, isReadOnly = false }: PortfolioSectio
                 </div>
 
                 <div className="space-y-2">
-                  <Label>{t('profile.type')}</Label>
+                  <Label>{t('profileSection.type')}</Label>
                   <Select value={formData.type} onValueChange={(value) => setFormData({...formData, type: value})}>
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="project">{t('profile.project')}</SelectItem>
-                      <SelectItem value="code">{t('profile.code')}</SelectItem>
-                      <SelectItem value="design">{t('profile.design')}</SelectItem>
-                      <SelectItem value="video">{t('profile.video')}</SelectItem>
-                      <SelectItem value="presentation">{t('profile.presentation')}</SelectItem>
-                      <SelectItem value="article">{t('profile.article')}</SelectItem>
-                      <SelectItem value="case_study">{t('profile.caseStudy')}</SelectItem>
+                      <SelectItem value="project">{t('profileSection.project')}</SelectItem>
+                      <SelectItem value="code">{t('profileSection.code')}</SelectItem>
+                      <SelectItem value="design">{t('profileSection.design')}</SelectItem>
+                      <SelectItem value="video">{t('profileSection.video')}</SelectItem>
+                      <SelectItem value="presentation">{t('profileSection.presentation')}</SelectItem>
+                      <SelectItem value="article">{t('profileSection.article')}</SelectItem>
+                      <SelectItem value="case_study">{t('profileSection.caseStudy')}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
 
                 <div className="space-y-2">
-                  <Label>{t('profile.description')}</Label>
+                  <Label>{t('profileSection.description')}</Label>
                   <Textarea
                     value={formData.description}
                     onChange={(e) => setFormData({...formData, description: e.target.value})}
-                    placeholder={t('profile.describeProject')}
+                    placeholder={t('profileSection.describeProject')}
                     rows={4}
                   />
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label>{t('profile.projectUrl')}</Label>
+                    <Label>{t('profileSection.projectUrl')}</Label>
                     <Input 
                       value={formData.project_url}
                       onChange={(e) => setFormData({...formData, project_url: e.target.value})}
@@ -232,7 +232,7 @@ export const PortfolioSection = ({ userId, isReadOnly = false }: PortfolioSectio
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label>{t('profile.githubUrl')}</Label>
+                    <Label>{t('profileSection.githubUrl')}</Label>
                     <Input 
                       value={formData.github_url}
                       onChange={(e) => setFormData({...formData, github_url: e.target.value})}
@@ -242,7 +242,7 @@ export const PortfolioSection = ({ userId, isReadOnly = false }: PortfolioSectio
                 </div>
 
                 <div className="space-y-2">
-                  <Label>{t('profile.thumbnailUrl')}</Label>
+                  <Label>{t('profileSection.thumbnailUrl')}</Label>
                   <Input 
                     value={formData.thumbnail_url}
                     onChange={(e) => setFormData({...formData, thumbnail_url: e.target.value})}
@@ -251,7 +251,7 @@ export const PortfolioSection = ({ userId, isReadOnly = false }: PortfolioSectio
                 </div>
 
                 <div className="space-y-2">
-                  <Label>{t('profile.tagsCommaSeparated')}</Label>
+                  <Label>{t('profileSection.tagsCommaSeparated')}</Label>
                   <Input 
                     value={formData.tags}
                     onChange={(e) => setFormData({...formData, tags: e.target.value})}
@@ -266,11 +266,11 @@ export const PortfolioSection = ({ userId, isReadOnly = false }: PortfolioSectio
                     onChange={(e) => setFormData({...formData, featured: e.target.checked})}
                     className="rounded"
                   />
-                  <Label>{t('profile.featureThisProject')}</Label>
+                  <Label>{t('profileSection.featureThisProject')}</Label>
                 </div>
 
                 <Button onClick={handleSave} className="w-full">
-                  {editingId ? t('common:actions.update') : t('common:actions.add')} {t('profile.project')}
+                  {editingId ? t('common:actions.update') : t('common:actions.add')} {t('profileSection.project')}
                 </Button>
               </div>
             </DialogContent>
@@ -294,7 +294,7 @@ export const PortfolioSection = ({ userId, isReadOnly = false }: PortfolioSectio
 
           {filteredItems.length === 0 ? (
             <p className="text-muted-foreground text-center py-8">
-              {t('profile.noPortfolioYet')}
+              {t('profileSection.noPortfolioYet')}
             </p>
           ) : (
             <div className="grid md:grid-cols-2 gap-4">
@@ -314,7 +314,7 @@ export const PortfolioSection = ({ userId, isReadOnly = false }: PortfolioSectio
                       <div className="flex-1">
                         <h4 className="font-semibold">{item.title}</h4>
                         {item.featured && (
-                          <Badge variant="default" className="text-xs mt-1">{t('profile.featured')}</Badge>
+                          <Badge variant="default" className="text-xs mt-1">{t('profileSection.featured')}</Badge>
                         )}
                       </div>
                       {!isReadOnly && (

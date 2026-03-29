@@ -85,8 +85,8 @@ export const BankerOffer = memo(({ offer, expectedValue, onDeal, onNoDeal, onHes
                 📞
               </motion.div>
               <div className="space-y-2">
-                <h2 className="text-3xl font-bold" role="status" aria-live="polite">{t('miljoenenjacht.theBankerIsCalling')}</h2>
-                <p className="text-muted-foreground">{t('miljoenenjacht.preparingYourOffer')}</p>
+                <h2 className="text-3xl font-bold" role="status" aria-live="polite">{t('miljoenenjachtSection.theBankerIsCalling')}</h2>
+                <p className="text-muted-foreground">{t('miljoenenjachtSection.preparingYourOffer')}</p>
               </div>
             </CardContent>
           </Card>
@@ -98,7 +98,7 @@ export const BankerOffer = memo(({ offer, expectedValue, onDeal, onNoDeal, onHes
                 <h2 
                   id="banker-offer-title" 
                   className="text-2xl md:text-3xl font-bold"
-                >{t('miljoenenjacht.bankersOffer')}</h2>
+                >{t('miljoenenjachtSection.bankersOffer')}</h2>
                 
                 <motion.div
                   initial={{ scale: 0 }}
@@ -134,18 +134,18 @@ export const BankerOffer = memo(({ offer, expectedValue, onDeal, onNoDeal, onHes
                   onClick={handleNoDeal}
                   onMouseEnter={handleButtonHover}
                   className="h-16 text-lg border-2"
-                  aria-label={t('miljoenenjacht.rejectOfferAndContinuePlaying')}
-                >{t('miljoenenjacht.nODEAL')}</Button>
+                  aria-label={t('miljoenenjachtSection.rejectOfferAndContinuePlaying')}
+                >{t('miljoenenjachtSection.nODEAL')}</Button>
                 <Button
                   size="lg"
                   onClick={handleDeal}
                   onMouseEnter={handleButtonHover}
                   className="h-16 text-lg bg-gradient-to-r from-primary to-primary/80"
-                  aria-label={t('miljoenenjacht.acceptOfferAndEndGame')}
-                >{t('miljoenenjacht.dEAL ')}</Button>
+                  aria-label={t('miljoenenjachtSection.acceptOfferAndEndGame')}
+                >{t('miljoenenjachtSection.dEAL ')}</Button>
               </div>
 
-              <p className="text-center text-sm text-muted-foreground">{t('miljoenenjacht.takeTheMoneyAndEndTheGameOrContinuePlayi')}</p>
+              <p className="text-center text-sm text-muted-foreground">{t('miljoenenjachtSection.takeTheMoneyAndEndTheGameOrContinuePlayi')}</p>
             </CardContent>
           </Card>
         )}

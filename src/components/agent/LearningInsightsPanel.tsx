@@ -203,6 +203,7 @@ export function LearningInsightsPanel() {
 }
 
 function RuleCard({ rule }: { rule: BehaviorRule }) {
+  const { t } = useTranslation('common');
   const totalOutcomes = (rule.positive_outcomes || 0) + (rule.negative_outcomes || 0);
   const successRate = totalOutcomes > 0 
     ? ((rule.positive_outcomes || 0) / totalOutcomes * 100) 

@@ -9,8 +9,8 @@ export default function InteractionEntry() {
   return (
     <div className="w-full px-4 sm:px-6 lg:px-8 py-8">
       <div className="mb-6">
-        <h1 className="text-3xl font-bold">{t('interactions.newInteraction')}</h1>
-        <p className="text-muted-foreground">{t('interactions.recordManual')}</p>
+        <h1 className="text-3xl font-bold">{t('interactionsSection.newInteraction')}</h1>
+        <p className="text-muted-foreground">{t('interactionsSection.recordManual')}</p>
       </div>
 
       <InteractionEntryForm onSuccess={() => navigate('/interactions')} />

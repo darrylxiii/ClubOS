@@ -139,6 +139,7 @@ interface TimeEntryRowProps {
 }
 
 function TimeEntryRow({ entry, onEdit, onDelete }: TimeEntryRowProps) {
+  const { t } = useTranslation('common');
   const hours = secondsToHours(entry.duration_seconds);
   
   return (

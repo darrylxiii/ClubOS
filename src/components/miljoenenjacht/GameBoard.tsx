@@ -20,7 +20,7 @@ export const GameBoard = memo(({ cases, playerCase, onSelectCase, selectableCase
     <div 
       className="grid grid-cols-2 gap-2 md:gap-3"
       role="list"
-      aria-label={t('miljoenenjacht.prizeAmountsBoard')}
+      aria-label={t('miljoenenjachtSection.prizeAmountsBoard')}
     >
       <AnimatePresence>
         {sortedCases.map((briefCase) => (

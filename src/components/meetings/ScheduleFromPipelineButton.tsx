@@ -49,6 +49,7 @@ export const ScheduleFromPipelineButton = ({
 
 // Quick action for video call
 export const QuickVideoCallButton = ({
+  const { t } = useTranslation('common');
   candidateId,
   candidateName,
   onStarted

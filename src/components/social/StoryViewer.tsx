@@ -153,7 +153,7 @@ export const StoryViewer = ({ stories, initialIndex, onClose }: StoryViewerProps
           ) : (
             <img
               src={currentStory.media_url}
-              alt={t('social.story.imageAlt')}
+              alt={t('socialSection.story.imageAlt')}
               className="w-full max-h-[70vh] object-contain"
             />
           )}

@@ -40,7 +40,7 @@ export function EarningsFunnelVisualization({ stageBreakdown, isLoading }: Earni
       <CardHeader className="pb-3">
         <CardTitle className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
           <TrendingDown className="h-4 w-4" />
-          {t('employees.pipelineFunnel')}
+          {t('employeesSection.pipelineFunnel')}
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-2">

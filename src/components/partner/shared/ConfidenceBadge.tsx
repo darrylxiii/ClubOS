@@ -18,12 +18,12 @@ export function ConfidenceBadge({ score, label, size = 'sm', className }: Confid
   const clampedScore = Math.max(0, Math.min(100, Math.round(score)));
 
   const config = clampedScore >= 80
-    ? { bg: 'bg-emerald-500/10 text-emerald-500 border-emerald-500/30', level: t('confidence.high', 'High') }
+    ? { bg: 'bg-emerald-500/10 text-emerald-500 border-emerald-500/30', level: t('confidenceSection.high', 'High') }
     : clampedScore >= 50
-    ? { bg: 'bg-amber-500/10 text-amber-500 border-amber-500/30', level: t('confidence.medium', 'Medium') }
-    : { bg: 'bg-rose-500/10 text-rose-500 border-rose-500/30', level: t('confidence.low', 'Low') };
+    ? { bg: 'bg-amber-500/10 text-amber-500 border-amber-500/30', level: t('confidenceSection.medium', 'Medium') }
+    : { bg: 'bg-rose-500/10 text-rose-500 border-rose-500/30', level: t('confidenceSection.low', 'Low') };
 
-  const displayLabel = label || t('confidence.score', '{{score}}% confidence', { score: clampedScore });
+  const displayLabel = label || t('confidenceSection.score', '{{score}}% confidence', { score: clampedScore });
 
   return (
     <Badge

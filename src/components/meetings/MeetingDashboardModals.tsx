@@ -206,6 +206,7 @@ interface MeetingStatusBadgesProps {
 }
 
 export function MeetingStatusBadges({
+  const { t } = useTranslation('common');
   networkQuality,
   isRecording,
   isTranscribing,
@@ -279,6 +280,7 @@ interface DashboardControlButtonsProps {
 }
 
 export function DashboardControlButtons({
+  const { t } = useTranslation('common');
   onOpenPerformance,
   onOpenNetwork,
   onOpenAnalytics,

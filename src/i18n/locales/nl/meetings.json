@@ -1482,5 +1482,6 @@
       "active": "Actief",
       "inactive": "Inactief"
     }
-  }
+  },
+  "common:cancel": "Cancel"
 }

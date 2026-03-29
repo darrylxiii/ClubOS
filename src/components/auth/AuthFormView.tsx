@@ -458,15 +458,15 @@ export function AuthFormView({ layout = 'page', onRequestClose }: AuthFormViewPr
         // Pre-fill form fields from invite metadata
         if (data.recipientName && !fullName) setFullName(data.recipientName);
         if (data.recipientEmail && !email) setEmail(data.recipientEmail);
-        toast.success(data.message || t('invite.validMessage'));
+        toast.success(data.message || t('inviteSection.validMessage'));
       } else {
         setInviteValid(false);
-        toast.error(data?.message || t('invite.invalidOrExpired'));
+        toast.error(data?.message || t('inviteSection.invalidOrExpired'));
       }
     } catch (error) {
       logger.error("Invite validation failed", error instanceof Error ? error : new Error(String(error)), { componentName: 'Auth' });
       setInviteValid(false);
-      toast.error(t('invite.errorValidating'));
+      toast.error(t('inviteSection.errorValidating'));
     } finally {
       setInviteValidating(false);
     }
@@ -781,7 +781,8 @@ export function AuthFormView({ layout = 'page', onRequestClose }: AuthFormViewPr
 
   const cardAndNav = (
     <>
-      <Card className="w-full bg-card/85 backdrop-blur-[16px] border-border/50 shadow-glass-md shadow-inner rounded-2xl">
+      <Card className="relative w-full overflow-hidden rounded-[2rem] border border-white/10 bg-white/[0.03] shadow-[0_32px_64px_-16px_rgba(0,0,0,0.5),inset_0_1px_1px_rgba(255,255,255,0.08)] backdrop-blur-[64px] dark:border-white/[0.05] dark:bg-black/40">
+        <div className="pointer-events-none absolute inset-0 rounded-[2rem] ring-1 ring-inset ring-white/5 dark:ring-white/[0.02]" />
         <motion.div
           variants={layout === "dialog" ? motionPreset.header : undefined}
           initial={layout === "dialog" ? "hidden" : undefined}
@@ -797,24 +798,24 @@ export function AuthFormView({ layout = 'page', onRequestClose }: AuthFormViewPr
             {t('login.brandTagline')}
           </p>
 
-          <div className="space-y-3">
-            <h1 className="tracking-tight text-foreground font-bold text-3xl">
+          <div className="space-y-4">
+            <h1 className="tracking-tighter font-semibold text-3xl sm:text-4xl bg-clip-text text-transparent bg-gradient-to-b from-white to-white/60 drop-shadow-[0_2px_8px_rgba(255,255,255,0.1)] pb-1">
               {isLogin
                 ? t('login.title', 'Welcome Back')
                 : inviteInfo?.targetRole === 'partner'
                   ? t('signup.partnerSetup', 'Activate Capital Partnership')
                   : t('signup.title', 'Activate Syndicate Access')}
             </h1>
-            <div className="flex items-center justify-center gap-2">
+            <div className="mx-auto flex w-fit items-center justify-center gap-2 rounded-full border border-white/[0.08] bg-black/20 px-3.5 py-1.5 shadow-[0_4px_12px_rgba(0,0,0,0.2),inset_0_1px_1px_rgba(255,255,255,0.08)] backdrop-blur-xl">
               {inviteInfo?.targetRole === 'partner' ? (
                 <>
-                  <Building2 className="w-4 h-4 text-foreground/90" />
-                  <p className="text-sm text-foreground/90 font-semibold">{t('text.auth.partnerAccount', 'Partner Account')}</p>
+                  <Building2 className="w-3.5 h-3.5 text-white/80 drop-shadow-[0_0_8px_rgba(255,255,255,0.3)]" />
+                  <p className="text-[12px] text-white/90 font-medium tracking-[0.05em] uppercase drop-shadow-sm">{t('text.auth.partnerAccount', 'Partner Account')}</p>
                 </>
               ) : (
                 <>
-                  <Lock className="w-4 h-4 text-foreground/90" />
-                  <p className="text-sm text-foreground/90 font-semibold">{t('signup.inviteOnly', 'Private Syndicate Access')}</p>
+                  <Lock className="w-3.5 h-3.5 text-white/80 drop-shadow-[0_0_8px_rgba(255,255,255,0.3)]" />
+                  <p className="text-[12px] text-white/90 font-medium tracking-[0.05em] uppercase drop-shadow-sm">{t('signup.inviteOnly', 'INVITE-ONLY')}</p>
                 </>
               )}
             </div>
@@ -832,19 +833,19 @@ export function AuthFormView({ layout = 'page', onRequestClose }: AuthFormViewPr
           {!inviteValidating && inviteValid && inviteInfo && <div className="p-4 rounded-2xl bg-success/10 border border-success/20 backdrop-blur-sm space-y-2">
               <div className="flex items-center justify-center gap-2">
                 <CheckCircle2 className="w-5 h-5 text-success" />
-                <p className="text-sm font-bold text-success">{t('invite.valid', 'Valid Invite')}</p>
+                <p className="text-sm font-bold text-success">{t('inviteSection.valid', 'Valid Invite')}</p>
               </div>
               <p className="text-xs text-foreground/80">
                 {inviteInfo.targetRole === 'partner' && inviteInfo.recipientName
                   ? inviteInfo.referrerName
-                    ? t('invite.partnerWelcomeWithReferrer', {
+                    ? t('inviteSection.partnerWelcomeWithReferrer', {
                         recipientName: inviteInfo.recipientName,
                         referrerName: inviteInfo.referrerName,
                       })
-                    : t('invite.partnerWelcomeSelf', { recipientName: inviteInfo.recipientName })
+                    : t('inviteSection.partnerWelcomeSelf', { recipientName: inviteInfo.recipientName })
                   : inviteInfo.referrerName
-                    ? t('invite.invitedBy', { name: inviteInfo.referrerName })
-                    : t('invite.invitedByMember')}
+                    ? t('inviteSection.invitedBy', { name: inviteInfo.referrerName })
+                    : t('inviteSection.invitedByMember')}
               </p>
               {inviteInfo.companyName && (
                 <p className="text-xs text-foreground/60 flex items-center justify-center gap-1">
@@ -855,7 +856,7 @@ export function AuthFormView({ layout = 'page', onRequestClose }: AuthFormViewPr
 
           {!inviteValidating && inviteValid === false && <Alert className="bg-destructive/10 border-destructive/20 backdrop-blur-sm rounded-2xl">
               <AlertDescription className="text-sm font-medium text-destructive text-center">
-                {t('invite.invalidOrExpired')}
+                {t('inviteSection.invalidOrExpired')}
               </AlertDescription>
             </Alert>}
           </CardHeader>
@@ -898,7 +899,7 @@ export function AuthFormView({ layout = 'page', onRequestClose }: AuthFormViewPr
               <button type="button" onClick={() => {
             setNeedsEmailVerification(false);
             setEmailVerificationCode("");
-           }} className="text-foreground/90 hover:text-foreground hover:underline text-sm w-full text-center">
+           }} className="text-foreground/90 hover:text-foreground hover:underline text-sm w-full text-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/20 rounded">
                 {t('resetPassword.backToLogin', 'Back to Login')}
               </button>
             </div> : mfaRequired ? <div className="space-y-5">
@@ -929,7 +930,7 @@ export function AuthFormView({ layout = 'page', onRequestClose }: AuthFormViewPr
               <button type="button" onClick={() => {
             setMfaRequired(false);
             setMfaCode("");
-          }} className="text-foreground/90 hover:text-foreground hover:underline text-sm w-full text-center">
+          }} className="text-foreground/90 hover:text-foreground hover:underline text-sm w-full text-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/20 rounded">
                 {t('resetPassword.backToLogin', 'Back to Login')}
               </button>
             </div> : isLogin ? <div className="space-y-5">
@@ -957,7 +958,7 @@ export function AuthFormView({ layout = 'page', onRequestClose }: AuthFormViewPr
               {/* Email Input */}
               <div>
                 <label htmlFor="auth-email-login" className="sr-only">{t('login.email', 'Email')}</label>
-                <Input ref={emailInputRef} id="auth-email-login" type="email" autoComplete="email" placeholder={t('login.email', 'Email')} value={email} onChange={e => { setEmail(e.target.value); setMagicLinkSent(false); }} className="h-14 rounded-xl glass-input" required />
+                <Input ref={emailInputRef} id="auth-email-login" type="email" autoComplete="email" placeholder={t('login.email', 'Email')} value={email} onChange={e => { setEmail(e.target.value); setMagicLinkSent(false); }} className="h-14 rounded-full px-6 bg-black/20 border-white/[0.08] text-white placeholder:text-white/40 shadow-[inset_0_2px_8px_rgba(0,0,0,0.4)] focus-visible:bg-black/40 focus-visible:border-white/20 focus-visible:ring-1 focus-visible:ring-white/20 transition-all duration-300" required />
               </div>
 
               {/* Primary CTA: Send Secure Magic Link */}
@@ -967,7 +968,7 @@ export function AuthFormView({ layout = 'page', onRequestClose }: AuthFormViewPr
                 onClick={handleMagicLink}
                 disabled={magicLinkLoading || magicLinkSent}
                 aria-busy={magicLinkLoading}
-                className="relative w-full h-14 rounded-xl gap-3 text-sm font-medium bg-card/25 backdrop-blur-xl border-white/15 hover:bg-card/35 hover:border-white/25 shadow-[0_8px_30px_rgba(0,0,0,0.16)]"
+                className="relative w-full h-14 rounded-full gap-3 text-sm font-medium bg-card/25 backdrop-blur-xl border-white/15 hover:bg-card/35 hover:border-white/25 shadow-[inset_0_1px_1px_rgba(255,255,255,0.1),0_8px_30px_rgba(0,0,0,0.16)] overflow-hidden"
               >
                 <span
                   aria-hidden
@@ -1012,7 +1013,7 @@ export function AuthFormView({ layout = 'page', onRequestClose }: AuthFormViewPr
               <Button
                 type="button"
                 variant="outline"
-                className="w-full h-14 rounded-xl gap-3 text-sm font-medium"
+                className="w-full h-14 rounded-full gap-3 text-[13px] font-medium tracking-wide text-white/90 shadow-[0_2px_10px_rgba(0,0,0,0.2),inset_0_1px_0_rgba(255,255,255,0.06)] border border-white/[0.06] bg-white/[0.03] hover:bg-white/[0.08] hover:shadow-[0_4px_16px_rgba(0,0,0,0.3),inset_0_1px_0_rgba(255,255,255,0.15)] transition-all duration-300"
                 onClick={handleGoogleAuth}
               >
                 <svg className="h-5 w-5" viewBox="0 0 24 24" aria-hidden>
@@ -1027,7 +1028,7 @@ export function AuthFormView({ layout = 'page', onRequestClose }: AuthFormViewPr
               <Button
                 type="button"
                 variant="outline"
-                className="w-full h-14 rounded-xl gap-3 text-sm font-medium"
+                className="w-full h-14 rounded-full gap-3 text-[13px] font-medium tracking-wide text-white/90 shadow-[0_2px_10px_rgba(0,0,0,0.2),inset_0_1px_0_rgba(255,255,255,0.06)] border border-white/[0.06] bg-white/[0.03] hover:bg-white/[0.08] hover:shadow-[0_4px_16px_rgba(0,0,0,0.3),inset_0_1px_0_rgba(255,255,255,0.15)] transition-all duration-300"
                 onClick={handleLinkedInAuth}
               >
                 <svg className="h-5 w-5" viewBox="0 0 24 24" fill="#0A66C2" aria-hidden>
@@ -1039,7 +1040,7 @@ export function AuthFormView({ layout = 'page', onRequestClose }: AuthFormViewPr
               <Button
                 type="button"
                 variant="outline"
-                className="w-full h-14 rounded-xl gap-3 text-sm font-medium"
+                className="w-full h-14 rounded-full gap-3 text-[13px] font-medium tracking-wide text-white/90 shadow-[0_2px_10px_rgba(0,0,0,0.2),inset_0_1px_0_rgba(255,255,255,0.06)] border border-white/[0.06] bg-white/[0.03] hover:bg-white/[0.08] hover:shadow-[0_4px_16px_rgba(0,0,0,0.3),inset_0_1px_0_rgba(255,255,255,0.15)] transition-all duration-300"
                 onClick={handleAppleAuth}
               >
                 <svg className="h-5 w-5" viewBox="0 0 24 24" aria-hidden>
@@ -1056,7 +1057,7 @@ export function AuthFormView({ layout = 'page', onRequestClose }: AuthFormViewPr
                 <button
                   type="button"
                   onClick={() => setShowAccessDialog(true)}
-                  className="text-foreground/90 hover:text-foreground hover:underline text-sm transition-colors"
+                  className="text-foreground/90 hover:text-foreground hover:underline text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/20 rounded"
                 >
                   {t('signup.requestAccess', 'Request Access')}
                 </button>
@@ -1092,7 +1093,7 @@ export function AuthFormView({ layout = 'page', onRequestClose }: AuthFormViewPr
                 <button
                   type="button"
                   onClick={() => setSetPasswordOpen(true)}
-                  className="text-sm text-foreground/50 hover:text-foreground transition-colors"
+                  className="text-sm text-foreground/50 hover:text-foreground transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/20 rounded px-1"
                 >
                   {t('login.setPassword', 'Want to set a permanent password?')} <span className="underline">{t('login.clickHere', 'Click here')}</span>
                 </button>
@@ -1103,12 +1104,12 @@ export function AuthFormView({ layout = 'page', onRequestClose }: AuthFormViewPr
               {/* Sign Up Form (with invite) */}
               <div>
                 <label htmlFor="auth-fullname-signup" className="sr-only">{t('signup.fullName', 'Full Name')}</label>
-                <Input id="auth-fullname-signup" type="text" autoComplete="name" placeholder={t('signup.fullName', 'Full Name')} value={fullName} onChange={e => setFullName(e.target.value)} className="h-14 rounded-xl glass-input" required />
+                <Input id="auth-fullname-signup" type="text" autoComplete="name" placeholder={t('signup.fullName', 'Full Name')} value={fullName} onChange={e => setFullName(e.target.value)} className="h-14 rounded-xl px-6 bg-black/20 border-white/[0.08] text-white placeholder:text-white/40 shadow-[inset_0_2px_8px_rgba(0,0,0,0.4)] focus-visible:bg-black/40 focus-visible:border-white/20 focus-visible:ring-1 focus-visible:ring-white/20 transition-all duration-300" required />
               </div>
 
               <div>
                 <label htmlFor="auth-email-signup" className="sr-only">{t('login.email', 'Email')}</label>
-                <Input id="auth-email-signup" type="email" autoComplete="email" placeholder={t('login.email', 'Email')} value={email} onChange={e => setEmail(e.target.value)} className="h-14 rounded-xl glass-input" required />
+                <Input id="auth-email-signup" type="email" autoComplete="email" placeholder={t('login.email', 'Email')} value={email} onChange={e => setEmail(e.target.value)} className="h-14 rounded-xl px-6 bg-black/20 border-white/[0.08] text-white placeholder:text-white/40 shadow-[inset_0_2px_8px_rgba(0,0,0,0.4)] focus-visible:bg-black/40 focus-visible:border-white/20 focus-visible:ring-1 focus-visible:ring-white/20 transition-all duration-300" required />
               </div>
 
               <AssistedPasswordConfirmation password={password} confirmPassword={confirmPassword} onPasswordChange={setPassword} onConfirmPasswordChange={setConfirmPassword} />
@@ -1126,18 +1127,18 @@ export function AuthFormView({ layout = 'page', onRequestClose }: AuthFormViewPr
         initial={layout === "dialog" ? "hidden" : undefined}
         animate={layout === "dialog" ? "visible" : undefined}
         exit={layout === "dialog" ? "exit" : undefined}
-        className="relative z-10 mt-8 flex flex-wrap justify-center gap-x-5 gap-y-2 text-xs text-muted-foreground"
+        className="relative z-10 mt-6 flex flex-wrap justify-center gap-x-6 gap-y-2 text-[11px] font-medium tracking-wide text-white/40 uppercase"
         aria-label={t('footerNav.ariaLabel')}
       >
-        <Link to="/legal/privacy" className="underline-offset-4 hover:text-foreground hover:underline">
+        <Link to="/legal/privacy" className="transition-colors hover:text-white/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/20 rounded">
           {t('footerNav.privacyPolicy')}
         </Link>
-        <Link to="/legal/terms" className="underline-offset-4 hover:text-foreground hover:underline">
+        <Link to="/legal/terms" className="transition-colors hover:text-white/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/20 rounded">
           {t('footerNav.termsOfService')}
         </Link>
         <a
           href={marketingSiteUrl}
-          className="underline-offset-4 hover:text-foreground hover:underline"
+          className="transition-colors hover:text-white/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/20 rounded"
           rel="noopener noreferrer"
         >
           {t('footerNav.home')}
@@ -1146,7 +1147,7 @@ export function AuthFormView({ layout = 'page', onRequestClose }: AuthFormViewPr
           <button
             type="button"
             onClick={() => onRequestClose?.()}
-            className="underline-offset-4 hover:text-foreground hover:underline"
+            className="transition-colors hover:text-white/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/20 rounded px-1 -mx-1"
           >
             {t('footerNav.close')}
           </button>
@@ -1177,7 +1178,7 @@ export function AuthFormView({ layout = 'page', onRequestClose }: AuthFormViewPr
             const info = `Build ${typeof __BUILD_HASH__ !== 'undefined' ? __BUILD_HASH__ : 'dev'} @ ${typeof __BUILD_TIME__ !== 'undefined' ? __BUILD_TIME__ : 'local'}`;
             navigator.clipboard?.writeText(info);
           }}
-          className="fixed bottom-3 right-3 text-[10px] text-foreground/20 hover:text-foreground/50 transition-colors font-mono z-50"
+          className="fixed bottom-3 right-3 text-[10px] text-foreground/20 hover:text-foreground/50 transition-colors font-mono z-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/20 rounded px-1"
           title="Click to copy version info"
         >
           v{typeof __BUILD_HASH__ !== 'undefined' ? __BUILD_HASH__ : 'dev'}

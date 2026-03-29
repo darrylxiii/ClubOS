@@ -223,7 +223,7 @@ export function ControlsPanel({
           onClick={onToggleAudio}
           isActive={!isAudioEnabled}
           isDangerous={!isAudioEnabled}
-          tooltip={isAudioEnabled ? t('meetings.mute', 'Mute (⌘D)') : t('meetings.unmute', 'Unmute (⌘D)')}
+          tooltip={isAudioEnabled ? t('meetingsSection.mute', 'Mute (⌘D)') : t('meetingsSection.unmute', 'Unmute (⌘D)')}
         >
           {isAudioEnabled ? <Mic className="h-6 w-6" /> : <MicOff className="h-6 w-6" />}
         </ControlButton>
@@ -233,7 +233,7 @@ export function ControlsPanel({
           onClick={onToggleVideo}
           isActive={!isVideoEnabled}
           isDangerous={!isVideoEnabled}
-          tooltip={isVideoEnabled ? t('meetings.stopVideo', 'Stop Video (⌘E)') : t('meetings.startVideo', 'Start Video (⌘E)')}
+          tooltip={isVideoEnabled ? t('meetingsSection.stopVideo', 'Stop Video (⌘E)') : t('meetingsSection.startVideo', 'Start Video (⌘E)')}
         >
           {isVideoEnabled ? <Video className="h-6 w-6" /> : <VideoOff className="h-6 w-6" />}
         </ControlButton>
@@ -242,7 +242,7 @@ export function ControlsPanel({
         <ControlButton
           onClick={onToggleScreenShare}
           isActive={isScreenSharing}
-          tooltip={isScreenSharing ? t('meetings.stopSharing', 'Stop Sharing') : t('meetings.shareScreen', 'Share Screen')}
+          tooltip={isScreenSharing ? t('meetingsSection.stopSharing', 'Stop Sharing') : t('meetingsSection.shareScreen', 'Share Screen')}
         >
           {isScreenSharing ? <MonitorOff className="h-6 w-6" /> : <Monitor className="h-6 w-6" />}
         </ControlButton>
@@ -253,7 +253,7 @@ export function ControlsPanel({
         {/* Chat - Promoted to main controls */}
         <ControlButton
           onClick={onOpenChat}
-          tooltip={t('meetings.chat', 'Chat (⌘⇧C)')}
+          tooltip={t('meetingsSection.chat', 'Chat (⌘⇧C)')}
         >
           <MessageSquare className="h-6 w-6" />
         </ControlButton>
@@ -261,7 +261,7 @@ export function ControlsPanel({
         {/* Participants - Promoted to main controls */}
         <ControlButton
           onClick={onOpenParticipants}
-          tooltip={t('meetings.participants', 'Participants (⌘⇧P)')}
+          tooltip={t('meetingsSection.participants', 'Participants (⌘⇧P)')}
         >
           <Users className="h-6 w-6" />
         </ControlButton>
@@ -275,7 +275,7 @@ export function ControlsPanel({
             <div>
               <ControlButton
                 onClick={() => { }}
-                tooltip={t('meetings.sendReaction', 'Send Reaction')}
+                tooltip={t('meetingsSection.sendReaction', 'Send Reaction')}
               >
                 <span className="text-2xl pt-1">😊</span>
               </ControlButton>
@@ -309,7 +309,7 @@ export function ControlsPanel({
         <ControlButton
           onClick={onToggleHandRaise}
           isActive={isHandRaised}
-          tooltip={isHandRaised ? t('meetings.lowerHand', 'Lower Hand') : t('meetings.raiseHand', 'Raise Hand (⌘⇧H)')}
+          tooltip={isHandRaised ? t('meetingsSection.lowerHand', 'Lower Hand') : t('meetingsSection.raiseHand', 'Raise Hand (⌘⇧H)')}
         >
           <Hand className={cn("h-6 w-6", isHandRaised && "animate-bounce")} />
         </ControlButton>
@@ -323,7 +323,7 @@ export function ControlsPanel({
             <div>
               <ControlButton
                 onClick={() => { }}
-                tooltip={t('meetings.moreOptions', 'More Options')}
+                tooltip={t('meetingsSection.moreOptions', 'More Options')}
               >
                 <MoreVertical className="h-6 w-6" />
               </ControlButton>
@@ -340,37 +340,37 @@ export function ControlsPanel({
           >
             {/* Meeting Actions */}
             <DropdownMenuLabel className="text-white/40 text-[10px] uppercase tracking-widest px-3 py-2 font-semibold">
-              {t('meetings.meetingActions', 'Meeting Actions')}
+              {t('meetingsSection.meetingActions', 'Meeting Actions')}
             </DropdownMenuLabel>
             <DropdownMenuItem onClick={onToggleRecording} className="gap-3 text-white/90 focus:bg-white/10 focus:text-white py-3 px-3 rounded-lg cursor-pointer transition-colors">
               <Circle className={cn("h-4 w-4", isRecording && "fill-rose-500 text-rose-500 animate-pulse")} />
-              <span>{isRecording ? t('meetings.stopRecording', 'Stop Recording') : t('meetings.startRecording', 'Start Recording')}</span>
+              <span>{isRecording ? t('meetingsSection.stopRecording', 'Stop Recording') : t('meetingsSection.startRecording', 'Start Recording')}</span>
               {isRecording && <Badge className="ml-auto bg-rose-600 text-white text-[10px]">REC</Badge>}
             </DropdownMenuItem>
 
             {onToggleCaptions && (
               <DropdownMenuItem onClick={onToggleCaptions} className="gap-3 text-white/90 focus:bg-white/10 focus:text-white py-3 px-3 rounded-lg cursor-pointer transition-colors">
                 <Subtitles className={cn("h-4 w-4", captionsEnabled && "text-primary")} />
-                <span>{captionsEnabled ? t('meetings.hideCaptions', 'Hide Captions') : t('meetings.showCaptions', 'Show Captions')}</span>
+                <span>{captionsEnabled ? t('meetingsSection.hideCaptions', 'Hide Captions') : t('meetingsSection.showCaptions', 'Show Captions')}</span>
               </DropdownMenuItem>
             )}
             {onOpenTranscription && (
               <DropdownMenuItem onClick={onOpenTranscription} className="gap-3 text-white/90 focus:bg-white/10 focus:text-white py-3 px-3 rounded-lg cursor-pointer transition-colors">
                 <FileText className={cn("h-4 w-4", transcriptionEnabled && "text-primary")} />
-                <span>{t('meetings.transcription', 'Transcription')}</span>
+                <span>{t('meetingsSection.transcription', 'Transcription')}</span>
                 {isTranscribing && <Badge className="ml-auto bg-green-500 text-white text-[10px] animate-pulse">LIVE</Badge>}
               </DropdownMenuItem>
             )}
             {onOpenNotes && (
               <DropdownMenuItem onClick={onOpenNotes} className="gap-3 text-white/90 focus:bg-white/10 focus:text-white py-3 px-3 rounded-lg cursor-pointer transition-colors">
                 <FileText className="h-4 w-4" />
-                <span>{t('meetings.meetingNotes', 'Meeting Notes')}</span>
+                <span>{t('meetingsSection.meetingNotes', 'Meeting Notes')}</span>
               </DropdownMenuItem>
             )}
             {onOpenMeetingInfo && (
               <DropdownMenuItem onClick={onOpenMeetingInfo} className="gap-3 text-white/90 focus:bg-white/10 focus:text-white py-3 px-3 rounded-lg cursor-pointer transition-colors">
                 <Info className="h-4 w-4" />
-                <span>{t('meetings.meetingDetails', 'Meeting Details')}</span>
+                <span>{t('meetingsSection.meetingDetails', 'Meeting Details')}</span>
               </DropdownMenuItem>
             )}
 
@@ -380,25 +380,25 @@ export function ControlsPanel({
                 <DropdownMenuSeparator className="bg-white/10 my-2" />
                 <DropdownMenuLabel className="text-white/40 text-[10px] uppercase tracking-widest px-3 py-2 font-semibold flex items-center gap-2">
                   <Sparkles className="h-3 w-3 text-amber-400" />
-                  {t('meetings.interviewTools', 'Interview Tools')}
+                  {t('meetingsSection.interviewTools', 'Interview Tools')}
                 </DropdownMenuLabel>
                 {onToggleBackchannel && (
                   <DropdownMenuItem onClick={onToggleBackchannel} className="gap-3 text-white/90 focus:bg-white/10 focus:text-white py-3 px-3 rounded-lg cursor-pointer transition-colors">
                     <Lock className="h-4 w-4 text-amber-500" />
-                    <span>{t('meetings.interviewerNotes', 'Interviewer Notes')}</span>
+                    <span>{t('meetingsSection.interviewerNotes', 'Interviewer Notes')}</span>
                     <Badge className="ml-auto bg-amber-500/20 text-amber-300 text-[10px]">🔒</Badge>
                   </DropdownMenuItem>
                 )}
                 {onToggleVoting && (
                   <DropdownMenuItem onClick={onToggleVoting} className="gap-3 text-white/90 focus:bg-white/10 focus:text-white py-3 px-3 rounded-lg cursor-pointer transition-colors">
                     <ThumbsUp className="h-4 w-4" />
-                    <span>{t('meetings.voteOnCandidate', 'Vote on Candidate')}</span>
+                    <span>{t('meetingsSection.voteOnCandidate', 'Vote on Candidate')}</span>
                   </DropdownMenuItem>
                 )}
                 {onOpenInterviewIntelligence && (
                   <DropdownMenuItem onClick={onOpenInterviewIntelligence} className="gap-3 text-white/90 focus:bg-white/10 focus:text-white py-3 px-3 rounded-lg cursor-pointer transition-colors">
                     <Sparkles className="h-4 w-4 text-primary" />
-                    <span>{t('meetings.aiIntelligence', 'AI Intelligence')}</span>
+                    <span>{t('meetingsSection.aiIntelligence', 'AI Intelligence')}</span>
                     <Badge className="ml-auto bg-primary/20 text-primary text-[10px]">AI</Badge>
                   </DropdownMenuItem>
                 )}
@@ -407,28 +407,28 @@ export function ControlsPanel({
                 {onToggleQUINVoice && (
                   <DropdownMenuItem onClick={onToggleQUINVoice} className="gap-3 text-white/90 focus:bg-white/10 focus:text-white py-3 px-3 rounded-lg cursor-pointer transition-colors">
                     <Mic2 className={`h-4 w-4 ${showQUINVoice ? 'text-green-400' : ''}`} />
-                    <span>{t('meetings.clubAIVoiceAssistant', 'Club AI Voice Assistant')}</span>
+                    <span>{t('meetingsSection.clubAIVoiceAssistant', 'Club AI Voice Assistant')}</span>
                     {showQUINVoice && <Badge className="ml-auto bg-green-500/20 text-green-300 text-[10px]">ON</Badge>}
                   </DropdownMenuItem>
                 )}
                 {onToggleTranslation && (
                   <DropdownMenuItem onClick={onToggleTranslation} className="gap-3 text-white/90 focus:bg-white/10 focus:text-white py-3 px-3 rounded-lg cursor-pointer transition-colors">
                     <Languages className={`h-4 w-4 ${showTranslation ? 'text-blue-400' : ''}`} />
-                    <span>{t('meetings.liveTranslation', 'Live Translation')}</span>
+                    <span>{t('meetingsSection.liveTranslation', 'Live Translation')}</span>
                     {showTranslation && <Badge className="ml-auto bg-blue-500/20 text-blue-300 text-[10px]">LIVE</Badge>}
                   </DropdownMenuItem>
                 )}
                 {onTogglePredictiveHiring && (
                   <DropdownMenuItem onClick={onTogglePredictiveHiring} className="gap-3 text-white/90 focus:bg-white/10 focus:text-white py-3 px-3 rounded-lg cursor-pointer transition-colors">
                     <Brain className={`h-4 w-4 ${showPredictiveHiring ? 'text-purple-400' : ''}`} />
-                    <span>{t('meetings.predictiveSignals', 'Predictive Signals')}</span>
+                    <span>{t('meetingsSection.predictiveSignals', 'Predictive Signals')}</span>
                     {showPredictiveHiring && <Badge className="ml-auto bg-purple-500/20 text-purple-300 text-[10px]">AI</Badge>}
                   </DropdownMenuItem>
                 )}
                 {onToggleEngagementAnalytics && (
                   <DropdownMenuItem onClick={onToggleEngagementAnalytics} className="gap-3 text-white/90 focus:bg-white/10 focus:text-white py-3 px-3 rounded-lg cursor-pointer transition-colors">
                     <Activity className={`h-4 w-4 ${showEngagementAnalytics ? 'text-cyan-400' : ''}`} />
-                    <span>{t('meetings.engagementAnalytics', 'Engagement Analytics')}</span>
+                    <span>{t('meetingsSection.engagementAnalytics', 'Engagement Analytics')}</span>
                     {showEngagementAnalytics && <Badge className="ml-auto bg-cyan-500/20 text-cyan-300 text-[10px]">LIVE</Badge>}
                   </DropdownMenuItem>
                 )}
@@ -438,28 +438,28 @@ export function ControlsPanel({
             {/* Settings */}
             <DropdownMenuSeparator className="bg-white/10 my-2" />
             <DropdownMenuLabel className="text-white/40 text-[10px] uppercase tracking-widest px-3 py-2 font-semibold">
-              {t('meetings.settings', 'Settings')}
+              {t('meetingsSection.settings', 'Settings')}
             </DropdownMenuLabel>
             <DropdownMenuItem onClick={onOpenSettings} className="gap-3 text-white/90 focus:bg-white/10 focus:text-white py-3 px-3 rounded-lg cursor-pointer transition-colors">
               <Settings className="h-4 w-4" />
-              <span>{t('meetings.audioAndVideo', 'Audio & Video')}</span>
+              <span>{t('meetingsSection.audioAndVideo', 'Audio & Video')}</span>
             </DropdownMenuItem>
             {onOpenBackgrounds && (
               <DropdownMenuItem onClick={onOpenBackgrounds} className="gap-3 text-white/90 focus:bg-white/10 focus:text-white py-3 px-3 rounded-lg cursor-pointer transition-colors">
                 <Image className="h-4 w-4" />
-                <span>{t('meetings.virtualBackgrounds', 'Virtual Backgrounds')}</span>
+                <span>{t('meetingsSection.virtualBackgrounds', 'Virtual Backgrounds')}</span>
               </DropdownMenuItem>
             )}
             {onEnablePiP && (
               <DropdownMenuItem onClick={onEnablePiP} className="gap-3 text-white/90 focus:bg-white/10 focus:text-white py-3 px-3 rounded-lg cursor-pointer transition-colors">
                 <PictureInPicture2 className="h-4 w-4" />
-                <span>{t('meetings.pictureInPicture', 'Picture-in-Picture')}</span>
+                <span>{t('meetingsSection.pictureInPicture', 'Picture-in-Picture')}</span>
               </DropdownMenuItem>
             )}
             {onOpenHostSettings && (
               <DropdownMenuItem onClick={onOpenHostSettings} className="gap-3 text-white/90 focus:bg-white/10 focus:text-white py-3 px-3 rounded-lg cursor-pointer transition-colors">
                 <Settings className="h-4 w-4" />
-                <span>{t('meetings.hostSettings', 'Host Settings')}</span>
+                <span>{t('meetingsSection.hostSettings', 'Host Settings')}</span>
               </DropdownMenuItem>
             )}
 
@@ -468,7 +468,7 @@ export function ControlsPanel({
               <>
                 <DropdownMenuSeparator className="bg-white/10 my-2" />
                 <DropdownMenuLabel className="text-white/40 text-[10px] uppercase tracking-widest px-3 py-2 font-semibold">
-                  {t('meetings.view', 'View')}
+                  {t('meetingsSection.view', 'View')}
                 </DropdownMenuLabel>
                 <DropdownMenuItem onClick={onToggleLayout} className="gap-3 text-white/90 focus:bg-white/10 focus:text-white py-3 px-3 rounded-lg cursor-pointer transition-colors">
                   {layout === 'grid' ? (
@@ -476,7 +476,7 @@ export function ControlsPanel({
                   ) : (
                     <Users className="h-4 w-4" />
                   )}
-                  <span>{layout === 'grid' ? t('meetings.speakerView', 'Speaker View') : t('meetings.gridView', 'Grid View')}</span>
+                  <span>{layout === 'grid' ? t('meetingsSection.speakerView', 'Speaker View') : t('meetingsSection.gridView', 'Grid View')}</span>
                 </DropdownMenuItem>
               </>
             )}
@@ -486,24 +486,24 @@ export function ControlsPanel({
               <>
                 <DropdownMenuSeparator className="bg-white/10 my-2" />
                 <DropdownMenuLabel className="text-white/40 text-[10px] uppercase tracking-widest px-3 py-2 font-semibold">
-                  {t('meetings.advanced', 'Advanced')}
+                  {t('meetingsSection.advanced', 'Advanced')}
                 </DropdownMenuLabel>
                 {onOpenBreakoutRooms && (
                   <DropdownMenuItem onClick={onOpenBreakoutRooms} className="gap-3 text-white/90 focus:bg-white/10 focus:text-white py-3 px-3 rounded-lg cursor-pointer transition-colors">
                     <Users className="h-4 w-4" />
-                    <span>{t('meetings.breakoutRooms', 'Breakout Rooms')}</span>
+                    <span>{t('meetingsSection.breakoutRooms', 'Breakout Rooms')}</span>
                   </DropdownMenuItem>
                 )}
                 {onOpenPolls && (
                   <DropdownMenuItem onClick={onOpenPolls} className="gap-3 text-white/90 focus:bg-white/10 focus:text-white py-3 px-3 rounded-lg cursor-pointer transition-colors">
                     <BarChart3 className="h-4 w-4" />
-                    <span>{t('meetings.livePolls', 'Live Polls')}</span>
+                    <span>{t('meetingsSection.livePolls', 'Live Polls')}</span>
                   </DropdownMenuItem>
                 )}
                 {onOpenQA && (
                   <DropdownMenuItem onClick={onOpenQA} className="gap-3 text-white/90 focus:bg-white/10 focus:text-white py-3 px-3 rounded-lg cursor-pointer transition-colors">
                     <MessageCircleQuestion className="h-4 w-4" />
-                    <span>{t('meetings.qAndA', 'Q&A')}</span>
+                    <span>{t('meetingsSection.qAndA', 'Q&A')}</span>
                   </DropdownMenuItem>
                 )}
               </>
@@ -517,7 +517,7 @@ export function ControlsPanel({
             onClick={onEndCall}
             isDangerous
             isActive
-            tooltip={t('meetings.endCall', 'End Call')}
+            tooltip={t('meetingsSection.endCall', 'End Call')}
           >
             <PhoneOff className="h-6 w-6" />
           </ControlButton>

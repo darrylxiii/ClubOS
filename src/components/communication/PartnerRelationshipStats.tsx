@@ -21,35 +21,35 @@ export function PartnerRelationshipStats({ stats, loading }: PartnerRelationship
   const { t } = useTranslation('common');
   const statCards = [
     {
-      label: t('communication.stats.totalCandidates', 'Total Candidates'),
+      label: t('communicationSection.stats.totalCandidates', 'Total Candidates'),
       value: stats.totalCandidates,
       icon: Users,
       color: 'text-blue-500',
       bg: 'bg-blue-500/10'
     },
     {
-      label: t('communication.stats.healthyRelationships', 'Healthy Relationships'),
+      label: t('communicationSection.stats.healthyRelationships', 'Healthy Relationships'),
       value: stats.healthyRelationships,
       icon: TrendingUp,
       color: 'text-green-500',
       bg: 'bg-green-500/10'
     },
     {
-      label: t('communication.stats.atRisk', 'At Risk'),
+      label: t('communicationSection.stats.atRisk', 'At Risk'),
       value: stats.atRiskRelationships,
       icon: AlertTriangle,
       color: 'text-red-500',
       bg: 'bg-red-500/10'
     },
     {
-      label: t('communication.stats.avgResponseRate', 'Avg Response Rate'),
+      label: t('communicationSection.stats.avgResponseRate', 'Avg Response Rate'),
       value: `${stats.avgResponseRate}%`,
       icon: MessageSquare,
       color: 'text-purple-500',
       bg: 'bg-purple-500/10'
     },
     {
-      label: t('communication.stats.avgEngagement', 'Avg Engagement'),
+      label: t('communicationSection.stats.avgEngagement', 'Avg Engagement'),
       value: `${stats.avgEngagement}/10`,
       icon: Target,
       color: 'text-amber-500',

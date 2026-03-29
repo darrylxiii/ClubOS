@@ -121,7 +121,7 @@ export function CrossChannelPatternAlert({
                     {isResolved && (
                       <Badge variant="outline" className="text-xs bg-green-500/10 text-green-500 border-green-500/30">
                         <CheckCircle className="h-3 w-3 mr-1" />
-                        {t('communication.resolved', 'Resolved')}
+                        {t('communicationSection.resolved', 'Resolved')}
                       </Badge>
                     )}
                   </div>
@@ -131,7 +131,7 @@ export function CrossChannelPatternAlert({
                 </div>
                 <div className="flex items-center gap-2">
                   <Badge variant="secondary" className="text-xs">
-                    {t('communication.confidence', '{{confidence}}% confidence', { confidence })}
+                    {t('communicationSection.confidence', '{{confidence}}% confidence', { confidence })}
                   </Badge>
                   {!isResolved && onResolve && (
                     <Button
@@ -182,7 +182,7 @@ export function CrossChannelPatternAlert({
               <div className="flex items-center gap-1 mt-2 text-xs text-muted-foreground">
                 <Clock className="h-3 w-3" />
                 <span>
-                  {t('communication.detected', 'Detected {{date}}', { date: new Date(pattern.detected_at).toLocaleDateString() })}
+                  {t('communicationSection.detected', 'Detected {{date}}', { date: new Date(pattern.detected_at).toLocaleDateString() })}
                 </span>
               </div>
             </div>

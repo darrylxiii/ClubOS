@@ -274,7 +274,7 @@ export default function APIKeyManagement() {
                     <TableHead>{t("apiKeys.rateLimitCol", "Rate Limit")}</TableHead>
                     <TableHead>{t("apiKeys.usage", "Usage")}</TableHead>
                     <TableHead>{t("apiKeys.expires", "Expires")}</TableHead>
-                    <TableHead>{t("status.title", "Status")}</TableHead>
+                    <TableHead>{t("statusSection.title", "Status")}</TableHead>
                     <TableHead>{t("actions.title", "Actions")}</TableHead>
                   </TableRow>
                 </TableHeader>

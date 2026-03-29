@@ -88,6 +88,7 @@ function WaterfallBar({ timing, duration, maxDuration, startOffset, totalWidth }
 }
 
 function RequestRow({ 
+  const { t } = useTranslation('common');
   request, 
   maxDuration, 
   baseTime,
@@ -223,6 +224,7 @@ function formatBytes(bytes: number): string {
 }
 
 export function RequestWaterfallDashboard() {
+  const { t } = useTranslation('common');
   const [filter, setFilter] = useState('');
   const waterfall = useRequestWaterfall();
   const stats = waterfall.getStats();

@@ -1,0 +1,20 @@
+{
+  "searchEmails": "Search emails...",
+  "addKeywords": "Add keywords",
+  "email": "Email",
+  "actions": {
+    "snooze": "Snooze",
+    "more": "More"
+  },
+  "priority": {
+    "allEmails": "All Emails",
+    "important": "Important",
+    "actionRequired": "Action Required",
+    "action": "Action",
+    "fyi": "FYI",
+    "newsletters": "Newsletters",
+    "news": "News",
+    "lowPriority": "Low Priority",
+    "low": "Low"
+  }
+}

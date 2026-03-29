@@ -57,7 +57,7 @@ const BlogFeatured: React.FC<BlogFeaturedProps> = ({ post }) => {
               <span>·</span>
               <span className="flex items-center gap-1">
                 <Clock className="w-3.5 h-3.5" />
-                {t('blog.minRead', { count: post.readTime })}
+                {t('blog.minRead', { minutes: post.readTime })}
               </span>
             </div>
           </motion.div>

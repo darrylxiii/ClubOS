@@ -369,6 +369,7 @@ interface FreelancerCardProps {
 }
 
 function FreelancerCard({ freelancer, isSaved, onSave, onView, onInvite }: FreelancerCardProps) {
+  const { t } = useTranslation('common');
   const rating = freelancer.freelance_profile?.avg_project_rating || 0;
   const completedProjects = freelancer.freelance_profile?.total_completed_projects || 0;
   const talentLevel = freelancer.freelance_profile?.talent_level;

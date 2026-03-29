@@ -31,6 +31,7 @@ function InfoRow({ icon: Icon, label, value }: InfoRowProps) {
 }
 
 export function AvailabilityCard({ candidate, className }: AvailabilityCardProps) {
+  const { t } = useTranslation('common');
   const {
     notice_period,
     available_hours_per_week,

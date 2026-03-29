@@ -35,6 +35,7 @@ function formatBytes(bytes: number): string {
 }
 
 export function CostOverview() {
+  const { t } = useTranslation('common');
   const { 
     costSummary, 
     cronJobs, 

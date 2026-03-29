@@ -24,10 +24,10 @@ export function ScreenShareOverlay({ participantName }: ScreenShareOverlayProps)
         </div>
         <div className="space-y-2">
           <h3 className="text-xl font-semibold text-white">
-            {t('meetings.yourePresenting', "You're Presenting")}
+            {t('meetingsSection.yourePresenting', "You're Presenting")}
           </h3>
           <p className="text-sm text-white/60 max-w-md">
-            {t('meetings.screenBeingShared', 'Your screen is being shared with all participants')}
+            {t('meetingsSection.screenBeingShared', 'Your screen is being shared with all participants')}
           </p>
         </div>
       </div>

@@ -39,30 +39,30 @@ export const QuickStats = () => {
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">{t('dashboard.quickStats.activeApplications', 'Active Applications')}</CardTitle>
+          <CardTitle className="text-sm font-medium">{t('dashboardSection.quickStats.activeApplications', 'Active Applications')}</CardTitle>
           <Briefcase className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
           <div className="text-2xl font-bold">{stats?.applications || 0}</div>
-          <p className="text-xs text-muted-foreground">{t('dashboard.quickStats.inProgress', 'In progress')}</p>
+          <p className="text-xs text-muted-foreground">{t('dashboardSection.quickStats.inProgress', 'In progress')}</p>
         </CardContent>
       </Card>
 
 
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">{t('dashboard.quickStats.openPositions', 'Open Positions')}</CardTitle>
+          <CardTitle className="text-sm font-medium">{t('dashboardSection.quickStats.openPositions', 'Open Positions')}</CardTitle>
           <TrendingUp className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
           <div className="text-2xl font-bold">{stats?.openJobs || 0}</div>
-          <p className="text-xs text-muted-foreground">{t('dashboard.quickStats.availableNow', 'Available now')}</p>
+          <p className="text-xs text-muted-foreground">{t('dashboardSection.quickStats.availableNow', 'Available now')}</p>
         </CardContent>
       </Card>
 
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">{t('dashboard.quickStats.profileStrength', 'Profile Strength')}</CardTitle>
+          <CardTitle className="text-sm font-medium">{t('dashboardSection.quickStats.profileStrength', 'Profile Strength')}</CardTitle>
           <CheckCircle className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>

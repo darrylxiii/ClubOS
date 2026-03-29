@@ -27,7 +27,7 @@ export function ApplicationFilters({
       <div className="relative flex-1">
         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
         <Input
-          placeholder={t('filters.searchPlaceholder')}
+          placeholder={t('filtersSection.searchPlaceholder')}
           value={searchTerm}
           onChange={(e) => onSearchChange(e.target.value)}
           className="pl-10"
@@ -37,25 +37,25 @@ export function ApplicationFilters({
       <Select value={statusFilter} onValueChange={onStatusFilterChange}>
         <SelectTrigger className="w-full sm:w-[180px]">
           <Filter className="w-4 h-4 mr-2" />
-          <SelectValue placeholder={t('filters.filterByStatus')} />
+          <SelectValue placeholder={t('filtersSection.filterByStatus')} />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="all">{t('status.all')}</SelectItem>
-          <SelectItem value="applied">{t('status.pending')}</SelectItem>
-          <SelectItem value="approved">{t('status.approved')}</SelectItem>
-          <SelectItem value="rejected">{t('status.rejected')}</SelectItem>
+          <SelectItem value="all">{t('statusSection.all')}</SelectItem>
+          <SelectItem value="applied">{t('statusSection.pending')}</SelectItem>
+          <SelectItem value="approved">{t('statusSection.approved')}</SelectItem>
+          <SelectItem value="rejected">{t('statusSection.rejected')}</SelectItem>
         </SelectContent>
       </Select>
 
       <Select value={sortBy} onValueChange={onSortByChange}>
         <SelectTrigger className="w-full sm:w-[180px]">
-          <SelectValue placeholder={t('filters.sortBy')} />
+          <SelectValue placeholder={t('filtersSection.sortBy')} />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="date-desc">{t('filters.dateNewest')}</SelectItem>
-          <SelectItem value="date-asc">{t('filters.dateOldest')}</SelectItem>
-          <SelectItem value="name-asc">{t('filters.nameAZ')}</SelectItem>
-          <SelectItem value="name-desc">{t('filters.nameZA')}</SelectItem>
+          <SelectItem value="date-desc">{t('filtersSection.dateNewest')}</SelectItem>
+          <SelectItem value="date-asc">{t('filtersSection.dateOldest')}</SelectItem>
+          <SelectItem value="name-asc">{t('filtersSection.nameAZ')}</SelectItem>
+          <SelectItem value="name-desc">{t('filtersSection.nameZA')}</SelectItem>
         </SelectContent>
       </Select>
     </div>

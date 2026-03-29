@@ -487,5 +487,18 @@
     "notYetScanned": "GitHub profile not yet scanned.",
     "topLanguages": "Top Languages",
     "notableRepos": "Notable Repositories"
-  }
+  },
+  "a": "A",
+  "T": "T",
+  "fromJob": "From Job",
+  "stage": "Stage",
+  "stageIndex": "Stage Index",
+  "tab": "Tab",
+  "section": "Section",
+  "noteId": "Note Id",
+  "job": "Job",
+  "fromCompany": "From Company",
+  "fromAdmin": "From Admin",
+  "fromSearch": "From Search",
+  "application": "Application"
 }

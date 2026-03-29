@@ -374,6 +374,7 @@ export function DisputeCenter({ contractId }: DisputeCenterProps) {
 }
 
 function DisputeCard({ dispute, currentUserId }: { dispute: Dispute; currentUserId?: string }) {
+  const { t } = useTranslation('common');
   const isRaisedByMe = dispute.raised_by.id === currentUserId;
 
   const getStatusBadge = (status: string) => {

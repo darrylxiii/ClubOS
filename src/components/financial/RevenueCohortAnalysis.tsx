@@ -91,12 +91,12 @@ export function RevenueCohortAnalysis() {
     return (
       <Card>
         <CardHeader>
-          <CardTitle>{t('financial.revenueCohorts')}</CardTitle>
-          <CardDescription>{t('financial.cohortAnalysisDesc')}</CardDescription>
+          <CardTitle>{t('financialSection.revenueCohorts')}</CardTitle>
+          <CardDescription>{t('financialSection.cohortAnalysisDesc')}</CardDescription>
         </CardHeader>
         <CardContent>
           <p className="text-muted-foreground text-center py-8">
-            {t('financial.noPlacementData')}
+            {t('financialSection.noPlacementData')}
           </p>
         </CardContent>
       </Card>
@@ -111,8 +111,8 @@ export function RevenueCohortAnalysis() {
       <CardHeader>
         <div className="flex items-center justify-between">
           <div>
-            <CardTitle>{t('financial.revenueCohorts')}</CardTitle>
-            <CardDescription>{t('financial.cohortAnalysisDesc')}</CardDescription>
+            <CardTitle>{t('financialSection.revenueCohorts')}</CardTitle>
+            <CardDescription>{t('financialSection.cohortAnalysisDesc')}</CardDescription>
           </div>
           <div className="flex gap-2">
             <Badge variant="outline">{totalClients} clients</Badge>
@@ -131,7 +131,7 @@ export function RevenueCohortAnalysis() {
               {
                 dataKey: 'revenue',
                 fill: 'hsl(var(--chart-1))',
-                name: t('financial.totalRevenue'),
+                name: t('financialSection.totalRevenue'),
                 radius: [4, 4, 0, 0],
               },
             ],
@@ -145,11 +145,11 @@ export function RevenueCohortAnalysis() {
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b text-muted-foreground">
-                <th className="text-left py-2 font-medium">{t('financial.cohort')}</th>
-                <th className="text-right py-2 font-medium">{t('financial.clients')}</th>
-                <th className="text-right py-2 font-medium">{t('financial.placements')}</th>
-                <th className="text-right py-2 font-medium">{t('financial.revenue')}</th>
-                <th className="text-right py-2 font-medium">{t('financial.avgDeal')}</th>
+                <th className="text-left py-2 font-medium">{t('financialSection.cohort')}</th>
+                <th className="text-right py-2 font-medium">{t('financialSection.clients')}</th>
+                <th className="text-right py-2 font-medium">{t('financialSection.placements')}</th>
+                <th className="text-right py-2 font-medium">{t('financialSection.revenue')}</th>
+                <th className="text-right py-2 font-medium">{t('financialSection.avgDeal')}</th>
               </tr>
             </thead>
             <tbody>

@@ -157,7 +157,7 @@ export function ProfitLossCard({ year, legalEntity }: ProfitLossCardProps) {
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center justify-between">
-          <span>{t('financial.profitLossSummary')}</span>
+          <span>{t('financialSection.profitLossSummary')}</span>
           <div className={`flex items-center gap-1 text-sm font-normal ${
             profitStatus === 'positive' ? 'text-success' : 
             profitStatus === 'negative' ? 'text-destructive' : 
@@ -169,15 +169,15 @@ export function ProfitLossCard({ year, legalEntity }: ProfitLossCardProps) {
             {data?.netMarginPercent?.toFixed(1)}% margin
           </div>
         </CardTitle>
-        <CardDescription>{t('financial.ytdPerformance')}</CardDescription>
+        <CardDescription>{t('financialSection.ytdPerformance')}</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         {/* Net Revenue (excl. VAT) */}
         <div className="space-y-1">
           <div className="flex justify-between text-sm">
             <span className="text-muted-foreground">
-              {t('financial.netRevenueExclVAT')}
-              <YoYBadge value={yoyRevenueChange} label={t('financial.priorYearRevenue')} />
+              {t('financialSection.netRevenueExclVAT')}
+              <YoYBadge value={yoyRevenueChange} label={t('financialSection.priorYearRevenue')} />
             </span>
             <span className="font-medium">{formatCurrency(data?.netRevenue || 0)}</span>
           </div>
@@ -190,11 +190,11 @@ export function ProfitLossCard({ year, legalEntity }: ProfitLossCardProps) {
         {/* Deductions */}
         <div className="pl-4 border-l-2 border-muted space-y-2">
           <div className="flex justify-between text-sm">
-            <span className="text-muted-foreground">{t('financial.recruiterCommissions')}</span>
+            <span className="text-muted-foreground">{t('financialSection.recruiterCommissions')}</span>
             <span className="text-destructive">-{formatCurrency(data?.totalCommissions || 0)}</span>
           </div>
           <div className="flex justify-between text-sm">
-            <span className="text-muted-foreground">{t('financial.referralPayouts')}</span>
+            <span className="text-muted-foreground">{t('financialSection.referralPayouts')}</span>
             <span className="text-destructive">-{formatCurrency(data?.totalPayouts || 0)}</span>
           </div>
         </div>
@@ -202,7 +202,7 @@ export function ProfitLossCard({ year, legalEntity }: ProfitLossCardProps) {
         {/* Gross Margin */}
         <div className="pt-2 border-t">
           <div className="flex justify-between">
-            <span className="font-medium">{t('financial.grossMargin')}</span>
+            <span className="font-medium">{t('financialSection.grossMargin')}</span>
             <span className={`font-bold ${
               (data?.grossMargin || 0) >= 0 ? 'text-success' : 'text-destructive'
             }`}>
@@ -217,11 +217,11 @@ export function ProfitLossCard({ year, legalEntity }: ProfitLossCardProps) {
         {/* Operating Expenses */}
         <div className="pl-4 border-l-2 border-muted space-y-2">
           <div className="flex justify-between text-sm">
-            <span className="text-muted-foreground">{t('financial.saasSubscriptions')}</span>
+            <span className="text-muted-foreground">{t('financialSection.saasSubscriptions')}</span>
             <span className="text-destructive">-{formatCurrency(data?.totalSubscriptionCosts || 0)}</span>
           </div>
           <div className="flex justify-between text-sm">
-            <span className="text-muted-foreground">{t('financial.otherOperatingExpenses')}</span>
+            <span className="text-muted-foreground">{t('financialSection.otherOperatingExpenses')}</span>
             <span className="text-destructive">-{formatCurrency(data?.totalOtherExpenses || 0)}</span>
           </div>
         </div>
@@ -230,8 +230,8 @@ export function ProfitLossCard({ year, legalEntity }: ProfitLossCardProps) {
         <div className="pt-2 border-t bg-muted/30 -mx-6 px-6 py-3 rounded-b-lg">
           <div className="flex justify-between items-center">
             <span className="font-bold text-lg">
-              {t('financial.netProfit')}
-              <YoYBadge value={yoyProfitChange} label={t('financial.priorYearProfit')} />
+              {t('financialSection.netProfit')}
+              <YoYBadge value={yoyProfitChange} label={t('financialSection.priorYearProfit')} />
             </span>
             <span className={`font-bold text-xl ${
               (data?.netProfit || 0) >= 0 ? 'text-success' : 'text-destructive'
@@ -240,7 +240,7 @@ export function ProfitLossCard({ year, legalEntity }: ProfitLossCardProps) {
             </span>
           </div>
           <div className="text-xs text-muted-foreground mt-1">
-            {t('financial.afterAllDistributions')}
+            {t('financialSection.afterAllDistributions')}
           </div>
         </div>
       </CardContent>

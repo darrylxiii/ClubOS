@@ -76,9 +76,9 @@ export function UnifiedCommunicationTimeline({
       <Card className="border-dashed">
         <CardContent className="flex flex-col items-center justify-center py-12 text-center">
           <MessageSquare className="h-12 w-12 text-muted-foreground/50 mb-4" />
-          <p className="text-muted-foreground">{t('communication.noCommunications', 'No communications yet')}</p>
+          <p className="text-muted-foreground">{t('communicationSection.noCommunications', 'No communications yet')}</p>
           <p className="text-sm text-muted-foreground/70">
-            {t('communication.noCommunicationsDesc', 'Messages, emails, and meetings will appear here')}
+            {t('communicationSection.noCommunicationsDesc', 'Messages, emails, and meetings will appear here')}
           </p>
         </CardContent>
       </Card>
@@ -142,7 +142,7 @@ export function UnifiedCommunicationTimeline({
                               )}
                             </div>
                             <p className="text-xs text-muted-foreground">
-                              {comm.created_at ? format(new Date(comm.created_at), 'MMM d, yyyy h:mm a') : t('communication.unknownDate', 'Unknown date')}
+                              {comm.created_at ? format(new Date(comm.created_at), 'MMM d, yyyy h:mm a') : t('communicationSection.unknownDate', 'Unknown date')}
                             </p>
                           </div>
                         </div>
@@ -163,7 +163,7 @@ export function UnifiedCommunicationTimeline({
 
                       {/* Content preview */}
                       <p className="text-sm text-muted-foreground line-clamp-2">
-                        {comm.content_preview || comm.content_summary || t('communication.noContent', 'No content available')}
+                        {comm.content_preview || comm.content_summary || t('communicationSection.noContent', 'No content available')}
                       </p>
 
                       {/* Topics */}
@@ -188,12 +188,12 @@ export function UnifiedCommunicationTimeline({
                           {isExpanded ? (
                             <>
                               <ChevronUp className="h-3 w-3 mr-1" />
-                              {t('communication.showLess', 'Show less')}
+                              {t('communicationSection.showLess', 'Show less')}
                             </>
                           ) : (
                             <>
                               <ChevronDown className="h-3 w-3 mr-1" />
-                              {t('communication.showAIAnalysis', 'Show AI analysis')}
+                              {t('communicationSection.showAIAnalysis', 'Show AI analysis')}
                             </>
                           )}
                         </Button>
@@ -211,13 +211,13 @@ export function UnifiedCommunicationTimeline({
                             <div className="pt-3 mt-3 border-t space-y-2">
                               {comm.content_summary && (
                                 <div>
-                                  <p className="text-xs font-medium text-muted-foreground mb-1">{t('communication.summary', 'Summary')}</p>
+                                  <p className="text-xs font-medium text-muted-foreground mb-1">{t('communicationSection.summary', 'Summary')}</p>
                                   <p className="text-sm">{comm.content_summary}</p>
                                 </div>
                               )}
                               {comm.ai_analysis && (
                                 <div>
-                                  <p className="text-xs font-medium text-muted-foreground mb-1">{t('communication.aiAnalysis', 'AI Analysis')}</p>
+                                  <p className="text-xs font-medium text-muted-foreground mb-1">{t('communicationSection.aiAnalysis', 'AI Analysis')}</p>
                                   <pre className="text-xs bg-muted/50 p-2 rounded overflow-x-auto">
                                     {JSON.stringify(comm.ai_analysis, null, 2)}
                                   </pre>

@@ -96,6 +96,7 @@ function CardSkeleton() {
 // ─── Component ───────────────────────────────────────────────────
 
 export default function PipelineStageManager() {
+  const { t } = useTranslation('common');
   const [templates, setTemplates] = useState<StageTemplate[]>([]);
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);

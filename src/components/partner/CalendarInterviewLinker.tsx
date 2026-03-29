@@ -465,7 +465,7 @@ export function CalendarInterviewLinker({
               }}
               disabled={event.isLinked}
             >
-              {event.isLinked ? t('partner.calendarinterviewlinker.linked', 'Linked') : t('partner.calendarinterviewlinker.link', 'Link')}
+              {event.isLinked ? t('partnerSection.calendarinterviewlinker.linked', 'Linked') : t('partnerSection.calendarinterviewlinker.link', 'Link')}
             </Button>
           </div>
         </CardContent>

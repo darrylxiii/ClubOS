@@ -54,7 +54,7 @@ export function ProfileActionDialogs({
               <FileText className="w-5 h-5 text-accent" />
               Request Resume
             </DialogTitle>
-            <DialogDescription>{t('profile.profileactiondialogs.requestAnAianalyzedResumeFromThis', 'Request an AI-analyzed resume from this member. They\'ll receive a notification and can share their resume or portfolio.')}</DialogDescription>
+            <DialogDescription>{t('profileSection.profileactiondialogs.requestAnAianalyzedResumeFromThis', 'Request an AI-analyzed resume from this member. They\'ll receive a notification and can share their resume or portfolio.')}</DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <div>
@@ -69,13 +69,13 @@ export function ProfileActionDialogs({
             </div>
             <div className="flex justify-end gap-2">
               <Button variant="outline" onClick={() => onClose('resume')}>
-                {t('profile.profileactiondialogs.cancel', 'Cancel')}
+                {t('profileSection.profileactiondialogs.cancel', 'Cancel')}
               </Button>
               <Button onClick={() => {
                 onSubmit('resume', { message });
                 setMessage("");
               }}>
-                {t('profile.profileactiondialogs.sendRequest', 'Send Request')}
+                {t('profileSection.profileactiondialogs.sendRequest', 'Send Request')}
               </Button>
             </div>
           </div>
@@ -117,13 +117,13 @@ export function ProfileActionDialogs({
             </div>
             <div className="flex justify-end gap-2">
               <Button variant="outline" onClick={() => onClose('meeting')}>
-                {t('profile.profileactiondialogs.cancel', 'Cancel')}
+                {t('profileSection.profileactiondialogs.cancel', 'Cancel')}
               </Button>
               <Button onClick={() => {
                 onSubmit('meeting', { type: meetingType, message });
                 setMessage("");
               }}>
-                {meetingType === 'suggest' ? t('profile.profileactiondialogs.getAiSuggestions', 'Get AI Suggestions') : t('profile.profileactiondialogs.sendRequest', 'Send Request')}
+                {meetingType === 'suggest' ? t('profileSection.profileactiondialogs.getAiSuggestions', 'Get AI Suggestions') : t('profileSection.profileactiondialogs.sendRequest', 'Send Request')}
               </Button>
             </div>
           </div>
@@ -138,7 +138,7 @@ export function ProfileActionDialogs({
               <Award className="w-5 h-5 text-accent" />
               Request Quantum Verification
             </DialogTitle>
-            <DialogDescription>{t('profile.profileactiondialogs.requestVerificationForThisMembersCredentials', 'Request verification for this member\'s credentials, skills, or achievements.')}</DialogDescription>
+            <DialogDescription>{t('profileSection.profileactiondialogs.requestVerificationForThisMembersCredentials', 'Request verification for this member\'s credentials, skills, or achievements.')}</DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <div>
@@ -153,13 +153,13 @@ export function ProfileActionDialogs({
             </div>
             <div className="flex justify-end gap-2">
               <Button variant="outline" onClick={() => onClose('verification')}>
-                {t('profile.profileactiondialogs.cancel', 'Cancel')}
+                {t('profileSection.profileactiondialogs.cancel', 'Cancel')}
               </Button>
               <Button onClick={() => {
                 onSubmit('verification', { message });
                 setMessage("");
               }}>
-                {t('profile.profileactiondialogs.sendRequest', 'Send Request')}
+                {t('profileSection.profileactiondialogs.sendRequest', 'Send Request')}
               </Button>
             </div>
           </div>
@@ -172,16 +172,16 @@ export function ProfileActionDialogs({
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Download className="w-5 h-5 text-accent" />
-              {exportType === 'summary' ? t('profile.profileactiondialogs.downloadAiCareerSummary', 'Download AI Career Summary') : t('profile.profileactiondialogs.exportQuantumId', 'Export Quantum ID')}
+              {exportType === 'summary' ? t('profileSection.profileactiondialogs.downloadAiCareerSummary', 'Download AI Career Summary') : t('profileSection.profileactiondialogs.exportQuantumId', 'Export Quantum ID')}
             </DialogTitle>
             <DialogDescription>
               {exportType === 'summary' 
-                ? t('profile.profileactiondialogs.generateAnAipoweredCareerSummaryIn', 'Generate an AI-powered career summary in PDF format.') : t('profile.profileactiondialogs.exportContactInformationAsAQuantum', 'Export contact information as a Quantum ID vCard with AR code.')}
+                ? t('profileSection.profileactiondialogs.generateAnAipoweredCareerSummaryIn', 'Generate an AI-powered career summary in PDF format.') : t('profileSection.profileactiondialogs.exportContactInformationAsAQuantum', 'Export contact information as a Quantum ID vCard with AR code.')}
             </DialogDescription>
           </DialogHeader>
           <div className="flex justify-end gap-2">
             <Button variant="outline" onClick={() => onClose('export')}>
-              {t('profile.profileactiondialogs.cancel', 'Cancel')}
+              {t('profileSection.profileactiondialogs.cancel', 'Cancel')}
             </Button>
             <Button onClick={() => onSubmit('export', { type: exportType })}>
               <Download className="w-4 h-4 mr-2" />
@@ -199,7 +199,7 @@ export function ProfileActionDialogs({
               <ThumbsUp className="w-5 h-5 text-accent" />
               Endorse Member
             </DialogTitle>
-            <DialogDescription>{t('profile.profileactiondialogs.shareYourExperienceWorkingWithThis', 'Share your experience working with this member.')}</DialogDescription>
+            <DialogDescription>{t('profileSection.profileactiondialogs.shareYourExperienceWorkingWithThis', 'Share your experience working with this member.')}</DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <div>
@@ -231,13 +231,13 @@ export function ProfileActionDialogs({
             </div>
             <div className="flex justify-end gap-2">
               <Button variant="outline" onClick={() => onClose('endorse')}>
-                {t('profile.profileactiondialogs.cancel', 'Cancel')}
+                {t('profileSection.profileactiondialogs.cancel', 'Cancel')}
               </Button>
               <Button onClick={() => {
                 onSubmit('endorse', { type: endorsementType, message });
                 setMessage("");
               }}>
-                {t('profile.profileactiondialogs.submitEndorsement', 'Submit Endorsement')}
+                {t('profileSection.profileactiondialogs.submitEndorsement', 'Submit Endorsement')}
               </Button>
             </div>
           </div>
@@ -252,7 +252,7 @@ export function ProfileActionDialogs({
               <Users className="w-5 h-5 text-accent" />
               Invite to Club Project
             </DialogTitle>
-            <DialogDescription>{t('profile.profileactiondialogs.inviteThisMemberToCollaborateOn', 'Invite this member to collaborate on a private club project or team.')}</DialogDescription>
+            <DialogDescription>{t('profileSection.profileactiondialogs.inviteThisMemberToCollaborateOn', 'Invite this member to collaborate on a private club project or team.')}</DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <div>
@@ -267,13 +267,13 @@ export function ProfileActionDialogs({
             </div>
             <div className="flex justify-end gap-2">
               <Button variant="outline" onClick={() => onClose('invite')}>
-                {t('profile.profileactiondialogs.cancel', 'Cancel')}
+                {t('profileSection.profileactiondialogs.cancel', 'Cancel')}
               </Button>
               <Button onClick={() => {
                 onSubmit('invite', { message });
                 setMessage("");
               }}>
-                {t('profile.profileactiondialogs.sendInvitation', 'Send Invitation')}
+                {t('profileSection.profileactiondialogs.sendInvitation', 'Send Invitation')}
               </Button>
             </div>
           </div>
@@ -288,7 +288,7 @@ export function ProfileActionDialogs({
               <Shield className="w-5 h-5 text-destructive" />
               Report or Block User
             </DialogTitle>
-            <DialogDescription>{t('profile.profileactiondialogs.helpKeepTheQuantumClubSafe', 'Help keep the Quantum Club safe by reporting inappropriate behavior.')}</DialogDescription>
+            <DialogDescription>{t('profileSection.profileactiondialogs.helpKeepTheQuantumClubSafe', 'Help keep the Quantum Club safe by reporting inappropriate behavior.')}</DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <div>
@@ -324,14 +324,14 @@ export function ProfileActionDialogs({
             </div>
             <div className="flex justify-end gap-2">
               <Button variant="outline" onClick={() => onClose('report')}>
-                {t('profile.profileactiondialogs.cancel', 'Cancel')}
+                {t('profileSection.profileactiondialogs.cancel', 'Cancel')}
               </Button>
               <Button variant="ghost" onClick={() => {
                 onSubmit('report', { reason: reportReason, message });
                 setMessage("");
                 setReportReason("spam");
               }}>
-                {t('profile.profileactiondialogs.submitReport', 'Submit Report')}
+                {t('profileSection.profileactiondialogs.submitReport', 'Submit Report')}
               </Button>
             </div>
           </div>

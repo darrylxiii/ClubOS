@@ -46,7 +46,7 @@ export default function ExpenseFilters({
       <div className="relative flex-1 min-w-[200px]">
         <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
         <Input
-          placeholder={t('financial.searchVendorOrDesc')}
+          placeholder={t('financialSection.searchVendorOrDesc')}
           className="pl-8"
           value={search}
           onChange={(e) => onSearchChange(e.target.value)}
@@ -55,10 +55,10 @@ export default function ExpenseFilters({
 
       <Select value={category} onValueChange={onCategoryChange}>
         <SelectTrigger className="w-[180px]">
-          <SelectValue placeholder={t('financial.allCategories')} />
+          <SelectValue placeholder={t('financialSection.allCategories')} />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="all">{t('financial.allCategories')}</SelectItem>
+          <SelectItem value="all">{t('financialSection.allCategories')}</SelectItem>
           {categories.map((c) => (
             <SelectItem key={c.id} value={c.name}>{c.name}</SelectItem>
           ))}
@@ -67,12 +67,12 @@ export default function ExpenseFilters({
 
       <Select value={recurringFilter} onValueChange={onRecurringFilterChange}>
         <SelectTrigger className="w-[140px]">
-          <SelectValue placeholder={t('financial.allTypes')} />
+          <SelectValue placeholder={t('financialSection.allTypes')} />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="all">{t('financial.allTypes')}</SelectItem>
-          <SelectItem value="recurring">{t('financial.recurring')}</SelectItem>
-          <SelectItem value="one-time">{t('financial.oneTime')}</SelectItem>
+          <SelectItem value="all">{t('financialSection.allTypes')}</SelectItem>
+          <SelectItem value="recurring">{t('financialSection.recurring')}</SelectItem>
+          <SelectItem value="one-time">{t('financialSection.oneTime')}</SelectItem>
         </SelectContent>
       </Select>
 
@@ -94,7 +94,7 @@ export default function ExpenseFilters({
       {hasActiveFilters && (
         <Button variant="ghost" size="sm" onClick={onClear} className="h-9">
           <X className="h-4 w-4 mr-1" />
-          {t('actions.clear')}
+          {t('actionsSection.clear')}
         </Button>
       )}
     </div>

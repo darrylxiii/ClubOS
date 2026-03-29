@@ -51,8 +51,8 @@ export default function SupportTicketNew() {
     
     if (!formData.category || !formData.subject || !formData.description) {
       toast({
-        title: t('support.missingInfo'),
-        description: t('support.fillRequired'),
+        title: t('supportSection.missingInfo'),
+        description: t('supportSection.fillRequired'),
         variant: "destructive",
       });
       return;
@@ -79,8 +79,8 @@ export default function SupportTicketNew() {
       if (error) throw error;
 
       toast({
-        title: t('support.ticketCreated'),
-        description: t('support.ticketCreatedDesc', { number: data.ticket.ticket_number, minutes: data.ticket.sla_target_response_minutes || 120 }),
+        title: t('supportSection.ticketCreated'),
+        description: t('supportSection.ticketCreatedDesc', { number: data.ticket.ticket_number, minutes: data.ticket.sla_target_response_minutes || 120 }),
       });
 
       navigate(`/support/tickets/${data.ticket.id}`);
@@ -88,7 +88,7 @@ export default function SupportTicketNew() {
       console.error('Error creating ticket:', error);
       toast({
         title: t('common.error'),
-        description: t('support.createError'),
+        description: t('supportSection.createError'),
         variant: "destructive",
       });
     } finally {
@@ -114,13 +114,13 @@ export default function SupportTicketNew() {
         className="mb-6"
       >
         <ArrowLeft className="h-4 w-4 mr-2" />
-        {t('support.backToTickets')}
+        {t('supportSection.backToTickets')}
       </Button>
 
       <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2">{t('support.createTicket')}</h1>
+        <h1 className="text-3xl font-bold mb-2">{t('supportSection.createTicket')}</h1>
         <p className="text-muted-foreground">
-          {t('support.createDesc')}
+          {t('supportSection.createDesc')}
         </p>
       </div>
 
@@ -129,14 +129,14 @@ export default function SupportTicketNew() {
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium mb-2">
-                {t('support.category')} <span className="text-destructive">*</span>
+                {t('supportSection.category')} <span className="text-destructive">*</span>
               </label>
               <Select
                 value={formData.category}
                 onValueChange={(value) => setFormData({ ...formData, category: value })}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder={t('support.selectCategory')} />
+                  <SelectValue placeholder={t('supportSection.selectCategory')} />
                 </SelectTrigger>
                 <SelectContent>
                   {getCategoryLabels(t).map((cat) => (
@@ -149,7 +149,7 @@ export default function SupportTicketNew() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-2">{t('support.priority')}</label>
+              <label className="block text-sm font-medium mb-2">{t('supportSection.priority')}</label>
               <Select
                 value={formData.priority}
                 onValueChange={(value) => setFormData({ ...formData, priority: value })}
@@ -172,10 +172,10 @@ export default function SupportTicketNew() {
 
             <div>
               <label className="block text-sm font-medium mb-2">
-                {t('support.subject')} <span className="text-destructive">*</span>
+                {t('supportSection.subject')} <span className="text-destructive">*</span>
               </label>
               <Input
-                placeholder={t('support.subjectPlaceholder')}
+                placeholder={t('supportSection.subjectPlaceholder')}
                 value={formData.subject}
                 onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
                 maxLength={200}
@@ -184,10 +184,10 @@ export default function SupportTicketNew() {
 
             <div>
               <label className="block text-sm font-medium mb-2">
-                {t('support.description')} <span className="text-destructive">*</span>
+                {t('supportSection.description')} <span className="text-destructive">*</span>
               </label>
               <Textarea
-                placeholder={t('support.descriptionPlaceholder')}
+                placeholder={t('supportSection.descriptionPlaceholder')}
                 rows={8}
                 value={formData.description}
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
@@ -200,11 +200,11 @@ export default function SupportTicketNew() {
           <div className="flex gap-3">
             <AlertCircle className="h-5 w-5 text-blue-500 flex-shrink-0 mt-0.5" />
             <div className="text-sm">
-              <p className="font-medium mb-1">{t('support.beforeSubmitting')}</p>
+              <p className="font-medium mb-1">{t('supportSection.beforeSubmitting')}</p>
               <ul className="list-disc list-inside space-y-1 text-muted-foreground">
-                <li>{t('support.checkKb')} <a href="/help" className="text-primary hover:underline">{t('support.knowledgeBase')}</a></li>
-                <li>{t('support.includeErrors')}</li>
-                <li>{t('support.describeSteps')}</li>
+                <li>{t('supportSection.checkKb')} <a href="/help" className="text-primary hover:underline">{t('supportSection.knowledgeBase')}</a></li>
+                <li>{t('supportSection.includeErrors')}</li>
+                <li>{t('supportSection.describeSteps')}</li>
               </ul>
             </div>
           </div>
@@ -212,7 +212,7 @@ export default function SupportTicketNew() {
 
         <div className="flex gap-3">
           <Button type="submit" disabled={loading} className="flex-1">
-            {loading ? t('support.creating') : t('support.createTicket')}
+            {loading ? t('supportSection.creating') : t('supportSection.createTicket')}
           </Button>
           <Button
             type="button"

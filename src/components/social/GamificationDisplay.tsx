@@ -66,25 +66,25 @@ export const GamificationDisplay = () => {
   const stats = [
     {
       icon: Flame,
-      label: t('social.gamification.currentStreak'),
-      value: t('social.gamification.days', { count: engagement.current_streak }),
+      label: t('socialSection.gamification.currentStreak'),
+      value: t('socialSection.gamification.days', { count: engagement.current_streak }),
       color: "text-orange-500",
     },
     {
       icon: Trophy,
-      label: t('social.gamification.longestStreak'),
-      value: t('social.gamification.days', { count: engagement.longest_streak }),
+      label: t('socialSection.gamification.longestStreak'),
+      value: t('socialSection.gamification.days', { count: engagement.longest_streak }),
       color: "text-yellow-500",
     },
     {
       icon: Star,
-      label: t('social.gamification.totalPosts'),
+      label: t('socialSection.gamification.totalPosts'),
       value: engagement.total_posts.toString(),
       color: "text-blue-500",
     },
     {
       icon: Zap,
-      label: t('social.gamification.level'),
+      label: t('socialSection.gamification.level'),
       value: engagement.level.toString(),
       color: "text-purple-500",
     },
@@ -107,7 +107,7 @@ export const GamificationDisplay = () => {
               <Target className="h-6 w-6 text-primary" />
             </div>
             <div>
-              <p className="text-sm text-muted-foreground">{t('social.gamification.level')}</p>
+              <p className="text-sm text-muted-foreground">{t('socialSection.gamification.level')}</p>
               <p className="text-3xl font-bold">{engagement.level}</p>
             </div>
           </div>
@@ -118,7 +118,7 @@ export const GamificationDisplay = () => {
         </div>
         <Progress value={progressPercentage} className="h-3" />
         <p className="text-xs text-muted-foreground mt-2 text-center">
-          {t('social.gamification.xpToLevel', { xp: experienceToNextLevel - engagement.experience_points, level: engagement.level + 1 })}
+          {t('socialSection.gamification.xpToLevel', { xp: experienceToNextLevel - engagement.experience_points, level: engagement.level + 1 })}
         </p>
       </Card>
 
@@ -140,7 +140,7 @@ export const GamificationDisplay = () => {
       <Card className="p-6">
         <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
           <Award className="h-5 w-5 text-primary" />
-          {t('social.gamification.badges')}
+          {t('socialSection.gamification.badges')}
         </h3>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {badges.map((badge) => (
@@ -156,7 +156,7 @@ export const GamificationDisplay = () => {
               <p className="text-sm font-medium text-center">{badge.name}</p>
               {!badge.unlocked && (
                 <Badge variant="secondary" className="mt-2 text-xs">
-                  {t('social.gamification.locked')}
+                  {t('socialSection.gamification.locked')}
                 </Badge>
               )}
             </div>
@@ -168,9 +168,9 @@ export const GamificationDisplay = () => {
       <Card className="p-6 bg-gradient-to-br from-yellow-500/10 to-orange-500/10 border-yellow-500/20">
         <div className="flex items-center justify-between">
           <div>
-            <h3 className="text-lg font-semibold mb-1">{t('social.gamification.weeklyLeaderboard')}</h3>
+            <h3 className="text-lg font-semibold mb-1">{t('socialSection.gamification.weeklyLeaderboard')}</h3>
             <p className="text-sm text-muted-foreground">
-              {t('social.gamification.leaderboardDescription')}
+              {t('socialSection.gamification.leaderboardDescription')}
             </p>
           </div>
           <TrendingUp className="h-12 w-12 text-yellow-500" />

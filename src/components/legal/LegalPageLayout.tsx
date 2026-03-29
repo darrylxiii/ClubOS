@@ -103,14 +103,14 @@ export function LegalPageLayout({ title, lastUpdated, sections, children, descri
                     <div className="flex items-center gap-2 mb-1.5">
                       <AlertTriangle className="w-4 h-4 text-amber-600 dark:text-amber-400 flex-shrink-0" />
                       <h4 className="font-semibold text-amber-900 dark:text-amber-200 text-sm">
-                        {t('legal.translationDisclaimer.title', 'Translation Notice')}
+                        {t('legalSection.translationDisclaimer.title', 'Translation Notice')}
                       </h4>
                     </div>
                     <p className="text-sm text-amber-800/90 dark:text-amber-300/80 leading-relaxed mb-2">
-                      {t('legal.translationDisclaimer.body', 'This document has been translated for your convenience. The original English version is the only legally binding and authoritative version. In the event of any discrepancy, inconsistency, or dispute between this translated version and the English original, the English version shall prevail in all respects.')}
+                      {t('legalSection.translationDisclaimer.body', 'This document has been translated for your convenience. The original English version is the only legally binding and authoritative version. In the event of any discrepancy, inconsistency, or dispute between this translated version and the English original, the English version shall prevail in all respects.')}
                     </p>
                     <p className="text-xs text-amber-700/70 dark:text-amber-400/60 leading-relaxed">
-                      {t('legal.translationDisclaimer.noLiability', 'ClubOS assumes no liability for the accuracy, reliability, or completeness of this translation. This translated version does not constitute legal advice and may not reflect the most current legal developments. You are encouraged to review the English original before making any decisions based on this document.')}
+                      {t('legalSection.translationDisclaimer.noLiability', 'ClubOS assumes no liability for the accuracy, reliability, or completeness of this translation. This translated version does not constitute legal advice and may not reflect the most current legal developments. You are encouraged to review the English original before making any decisions based on this document.')}
                     </p>
                     <div className="flex items-center gap-3 mt-3">
                       <Button
@@ -120,13 +120,13 @@ export function LegalPageLayout({ title, lastUpdated, sections, children, descri
                         onClick={() => { i18n.changeLanguage('en'); }}
                       >
                         <Globe className="w-3.5 h-3.5 mr-1.5" />
-                        {t('legal.translationDisclaimer.viewEnglish', 'View English Original')}
+                        {t('legalSection.translationDisclaimer.viewEnglish', 'View English Original')}
                       </Button>
                       <button
                         onClick={() => setDismissedDisclaimer(true)}
                         className="text-xs text-amber-700/60 dark:text-amber-400/50 hover:text-amber-800 dark:hover:text-amber-300 underline underline-offset-2 transition-colors"
                       >
-                        {t('legal.translationDisclaimer.dismiss', 'I understand, continue reading')}
+                        {t('legalSection.translationDisclaimer.dismiss', 'I understand, continue reading')}
                       </button>
                     </div>
                   </div>
@@ -150,7 +150,7 @@ export function LegalPageLayout({ title, lastUpdated, sections, children, descri
           {/* Table of Contents - Desktop */}
           <aside className="hidden lg:block w-64 flex-shrink-0 sticky top-24 h-fit">
             <Card className="p-4">
-              <h3 className="font-semibold mb-4 text-sm uppercase tracking-wider text-muted-foreground">{t('legal.contents')}</h3>
+              <h3 className="font-semibold mb-4 text-sm uppercase tracking-wider text-muted-foreground">{t('legalSection.contents')}</h3>
               <ScrollArea className="h-[calc(100vh-200px)]">
                 <nav className="space-y-1">
                   {sections.map((section) => (
@@ -183,7 +183,7 @@ export function LegalPageLayout({ title, lastUpdated, sections, children, descri
             <div className="fixed inset-0 z-40 bg-background/95 backdrop-blur-sm lg:hidden">
               <div className="h-full overflow-auto p-4 pt-20">
                 <Card className="p-4">
-                  <h3 className="font-semibold mb-4 text-sm uppercase tracking-wider text-muted-foreground">{t('legal.contents')}</h3>
+                  <h3 className="font-semibold mb-4 text-sm uppercase tracking-wider text-muted-foreground">{t('legalSection.contents')}</h3>
                   <nav className="space-y-1">
                     {sections.map((section) => (
                       <button

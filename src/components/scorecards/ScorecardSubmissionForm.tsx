@@ -89,6 +89,7 @@ const { t } = useTranslation('common');
 }
 
 export function ScorecardSubmissionForm({
+  const { t } = useTranslation('common');
   applicationId,
   meetingId,
   stageIndex = 0,

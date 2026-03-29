@@ -62,7 +62,7 @@ export default function PublicUserProfile() {
       <div className="min-h-screen flex flex-col">
         <MinimalHeader />
         <div className="flex-1 flex items-center justify-center">
-          <p className="text-muted-foreground">{t('profile.notFound')}</p>
+          <p className="text-muted-foreground">{t('profileSection.notFound')}</p>
         </div>
       </div>
     );

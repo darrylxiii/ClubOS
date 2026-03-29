@@ -55,7 +55,7 @@ export const CaseGrid = memo(({ cases, playerCase, onSelectCase, disabled }: Cas
     <div 
       className="grid grid-cols-4 md:grid-cols-6 lg:grid-cols-7 gap-2 md:gap-3"
       role="grid"
-      aria-label={t('miljoenenjacht.briefcaseSelectionGrid')}
+      aria-label={t('miljoenenjachtSection.briefcaseSelectionGrid')}
     >
       {availableCases.map((briefCase, index) => (
         <motion.div

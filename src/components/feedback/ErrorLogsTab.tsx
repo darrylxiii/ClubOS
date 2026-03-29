@@ -116,8 +116,8 @@ export const ErrorLogsTab = () => {
     } catch (error: unknown) {
       console.error('Error loading error logs:', error);
       toast({
-        title: t('feedback.errorlogstab.failedToLoadErrorLogs', 'Failed to load error logs'),
-        description: error instanceof Error ? error.message : t('feedback.errorlogstab.anUnexpectedErrorOccurred', 'An unexpected error occurred'),
+        title: t('feedbackSection.errorlogstab.failedToLoadErrorLogs', 'Failed to load error logs'),
+        description: error instanceof Error ? error.message : t('feedbackSection.errorlogstab.anUnexpectedErrorOccurred', 'An unexpected error occurred'),
         variant: 'destructive',
       });
     } finally {
@@ -188,14 +188,14 @@ export const ErrorLogsTab = () => {
       if (error) throw error;
 
       toast({
-        title: resolved ? t('feedback.errorlogstab.markedAsResolved', 'Marked as resolved') : t('feedback.errorlogstab.markedAsUnresolved', 'Marked as unresolved'),
+        title: resolved ? t('feedbackSection.errorlogstab.markedAsResolved', 'Marked as resolved') : t('feedbackSection.errorlogstab.markedAsUnresolved', 'Marked as unresolved'),
       });
       loadErrors();
     } catch (error: unknown) {
       console.error('Error updating error log:', error);
       toast({
-        title: t('feedback.errorlogstab.failedToUpdate', 'Failed to update'),
-        description: error instanceof Error ? error.message : t('feedback.errorlogstab.anUnexpectedErrorOccurred', 'An unexpected error occurred'),
+        title: t('feedbackSection.errorlogstab.failedToUpdate', 'Failed to update'),
+        description: error instanceof Error ? error.message : t('feedbackSection.errorlogstab.anUnexpectedErrorOccurred', 'An unexpected error occurred'),
         variant: 'destructive',
       });
     }
@@ -227,25 +227,25 @@ export const ErrorLogsTab = () => {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
           <CardHeader className="pb-3">
-            <CardDescription>{t('feedback.totalErrors')}</CardDescription>
+            <CardDescription>{t('feedbackSection.totalErrors')}</CardDescription>
             <CardTitle className="text-3xl">{stats.total}</CardTitle>
           </CardHeader>
         </Card>
         <Card>
           <CardHeader className="pb-3">
-            <CardDescription>{t('feedback.critical')}</CardDescription>
+            <CardDescription>{t('feedbackSection.critical')}</CardDescription>
             <CardTitle className="text-3xl text-destructive">{stats.critical}</CardTitle>
           </CardHeader>
         </Card>
         <Card>
           <CardHeader className="pb-3">
-            <CardDescription>{t('feedback.errors')}</CardDescription>
+            <CardDescription>{t('feedbackSection.errors')}</CardDescription>
             <CardTitle className="text-3xl text-destructive">{stats.errors}</CardTitle>
           </CardHeader>
         </Card>
         <Card>
           <CardHeader className="pb-3">
-            <CardDescription>{t('feedback.unresolved')}</CardDescription>
+            <CardDescription>{t('feedbackSection.unresolved')}</CardDescription>
             <CardTitle className="text-3xl text-yellow-500">{stats.unresolved}</CardTitle>
           </CardHeader>
         </Card>
@@ -254,15 +254,15 @@ export const ErrorLogsTab = () => {
       {/* Filters */}
       <Card>
         <CardHeader>
-          <CardTitle>{t('feedback.errorLogs')}</CardTitle>
-          <CardDescription>{t('feedback.monitorAndResolveApplicationErrors')}</CardDescription>
+          <CardTitle>{t('feedbackSection.errorLogs')}</CardTitle>
+          <CardDescription>{t('feedbackSection.monitorAndResolveApplicationErrors')}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex flex-col sm:flex-row gap-4">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <Input
-                placeholder={t('feedback.searchErrors')}
+                placeholder={t('feedbackSection.searchErrors')}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-9"
@@ -270,38 +270,38 @@ export const ErrorLogsTab = () => {
             </div>
             <Select value={severityFilter} onValueChange={setSeverityFilter}>
               <SelectTrigger className="w-full sm:w-[180px]">
-                <SelectValue placeholder={t('feedback.severity')} />
+                <SelectValue placeholder={t('feedbackSection.severity')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">{t('feedback.errorlogstab.allSeverities', 'All Severities')}</SelectItem>
-                <SelectItem value="critical">{t('feedback.errorlogstab.critical', 'Critical')}</SelectItem>
-                <SelectItem value="error">{t('feedback.errorlogstab.error', 'Error')}</SelectItem>
-                <SelectItem value="warning">{t('feedback.errorlogstab.warning', 'Warning')}</SelectItem>
-                <SelectItem value="info">{t('feedback.errorlogstab.info', 'Info')}</SelectItem>
+                <SelectItem value="all">{t('feedbackSection.errorlogstab.allSeverities', 'All Severities')}</SelectItem>
+                <SelectItem value="critical">{t('feedbackSection.errorlogstab.critical', 'Critical')}</SelectItem>
+                <SelectItem value="error">{t('feedbackSection.errorlogstab.error', 'Error')}</SelectItem>
+                <SelectItem value="warning">{t('feedbackSection.errorlogstab.warning', 'Warning')}</SelectItem>
+                <SelectItem value="info">{t('feedbackSection.errorlogstab.info', 'Info')}</SelectItem>
               </SelectContent>
             </Select>
             <Select value={typeFilter} onValueChange={setTypeFilter}>
               <SelectTrigger className="w-full sm:w-[180px]">
-                <SelectValue placeholder={t('feedback.type')} />
+                <SelectValue placeholder={t('feedbackSection.type')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">{t('feedback.errorlogstab.allTypes', 'All Types')}</SelectItem>
-                <SelectItem value="react">{t('feedback.errorlogstab.react', 'React')}</SelectItem>
-                <SelectItem value="api">{t('feedback.errorlogstab.api', 'API')}</SelectItem>
-                <SelectItem value="edge_function">{t('feedback.errorlogstab.edgeFunction', 'Edge Function')}</SelectItem>
-                <SelectItem value="database">{t('feedback.errorlogstab.database', 'Database')}</SelectItem>
-                <SelectItem value="network">{t('feedback.errorlogstab.network', 'Network')}</SelectItem>
-                <SelectItem value="unknown">{t('feedback.errorlogstab.unknown', 'Unknown')}</SelectItem>
+                <SelectItem value="all">{t('feedbackSection.errorlogstab.allTypes', 'All Types')}</SelectItem>
+                <SelectItem value="react">{t('feedbackSection.errorlogstab.react', 'React')}</SelectItem>
+                <SelectItem value="api">{t('feedbackSection.errorlogstab.api', 'API')}</SelectItem>
+                <SelectItem value="edge_function">{t('feedbackSection.errorlogstab.edgeFunction', 'Edge Function')}</SelectItem>
+                <SelectItem value="database">{t('feedbackSection.errorlogstab.database', 'Database')}</SelectItem>
+                <SelectItem value="network">{t('feedbackSection.errorlogstab.network', 'Network')}</SelectItem>
+                <SelectItem value="unknown">{t('feedbackSection.errorlogstab.unknown', 'Unknown')}</SelectItem>
               </SelectContent>
             </Select>
             <Select value={resolvedFilter} onValueChange={setResolvedFilter}>
               <SelectTrigger className="w-full sm:w-[180px]">
-                <SelectValue placeholder={t('feedback.status')} />
+                <SelectValue placeholder={t('feedbackSection.status')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">{t('feedback.errorlogstab.allStatus', 'All Status')}</SelectItem>
-                <SelectItem value="unresolved">{t('feedback.errorlogstab.unresolved', 'Unresolved')}</SelectItem>
-                <SelectItem value="resolved">{t('feedback.errorlogstab.resolved', 'Resolved')}</SelectItem>
+                <SelectItem value="all">{t('feedbackSection.errorlogstab.allStatus', 'All Status')}</SelectItem>
+                <SelectItem value="unresolved">{t('feedbackSection.errorlogstab.unresolved', 'Unresolved')}</SelectItem>
+                <SelectItem value="resolved">{t('feedbackSection.errorlogstab.resolved', 'Resolved')}</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -311,19 +311,19 @@ export const ErrorLogsTab = () => {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>{t('feedback.errorlogstab.severity', 'Severity')}</TableHead>
-                  <TableHead>{t('feedback.errorlogstab.type', 'Type')}</TableHead>
-                  <TableHead>{t('feedback.errorlogstab.errorMessage', 'Error Message')}</TableHead>
-                  <TableHead>{t('feedback.errorlogstab.component', 'Component')}</TableHead>
-                  <TableHead>{t('feedback.errorlogstab.time', 'Time')}</TableHead>
-                  <TableHead>{t('feedback.errorlogstab.status', 'Status')}</TableHead>
-                  <TableHead className="text-right">{t('feedback.errorlogstab.actions', 'Actions')}</TableHead>
+                  <TableHead>{t('feedbackSection.errorlogstab.severity', 'Severity')}</TableHead>
+                  <TableHead>{t('feedbackSection.errorlogstab.type', 'Type')}</TableHead>
+                  <TableHead>{t('feedbackSection.errorlogstab.errorMessage', 'Error Message')}</TableHead>
+                  <TableHead>{t('feedbackSection.errorlogstab.component', 'Component')}</TableHead>
+                  <TableHead>{t('feedbackSection.errorlogstab.time', 'Time')}</TableHead>
+                  <TableHead>{t('feedbackSection.errorlogstab.status', 'Status')}</TableHead>
+                  <TableHead className="text-right">{t('feedbackSection.errorlogstab.actions', 'Actions')}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filteredErrors.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={7} className="text-center text-muted-foreground py-8">{t('feedback.errorlogstab.noErrorsFound', 'No errors found')}</TableCell>
+                    <TableCell colSpan={7} className="text-center text-muted-foreground py-8">{t('feedbackSection.errorlogstab.noErrorsFound', 'No errors found')}</TableCell>
                   </TableRow>
                 ) : (
                   filteredErrors.map((error) => (
@@ -350,10 +350,10 @@ export const ErrorLogsTab = () => {
                         {error.resolved ? (
                             <Badge variant="default" className="bg-green-500 gap-1">
                               <CheckCircle className="w-3 h-3" />
-                              {t('feedback.errorlogstab.resolved', 'Resolved')}
+                              {t('feedbackSection.errorlogstab.resolved', 'Resolved')}
                             </Badge>
                         ) : (
-                          <Badge variant="secondary">{t('feedback.errorlogstab.unresolved', 'Unresolved')}</Badge>
+                          <Badge variant="secondary">{t('feedbackSection.errorlogstab.unresolved', 'Unresolved')}</Badge>
                         )}
                       </TableCell>
                       <TableCell className="text-right">
@@ -363,14 +363,14 @@ export const ErrorLogsTab = () => {
                             variant="outline"
                             onClick={() => handleViewDetails(error)}
                           >
-                            {t('feedback.errorlogstab.details', 'Details')}
+                            {t('feedbackSection.errorlogstab.details', 'Details')}
                           </Button>
                           <Button
                             size="sm"
                             variant={error.resolved ? 'outline' : 'default'}
                             onClick={() => handleMarkResolved(error.id, !error.resolved)}
                           >
-                            {error.resolved ? t('feedback.errorlogstab.unresolve', 'Unresolve') : t('feedback.errorlogstab.resolve', 'Resolve')}
+                            {error.resolved ? t('feedbackSection.errorlogstab.unresolve', 'Unresolve') : t('feedbackSection.errorlogstab.resolve', 'Resolve')}
                           </Button>
                         </div>
                       </TableCell>
@@ -387,29 +387,29 @@ export const ErrorLogsTab = () => {
       <Dialog open={detailsOpen} onOpenChange={setDetailsOpen}>
         <DialogContent className="max-w-3xl max-h-[80vh]">
           <DialogHeader>
-            <DialogTitle>{t('feedback.errorDetails')}</DialogTitle>
-            <DialogDescription>{t('feedback.fullErrorInformationAndStackTrace')}</DialogDescription>
+            <DialogTitle>{t('feedbackSection.errorDetails')}</DialogTitle>
+            <DialogDescription>{t('feedbackSection.fullErrorInformationAndStackTrace')}</DialogDescription>
           </DialogHeader>
           {selectedError && (
             <ScrollArea className="max-h-[60vh]">
               <div className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <div className="text-sm font-medium text-muted-foreground">{t('feedback.errorlogstab.severity', 'Severity')}</div>
+                    <div className="text-sm font-medium text-muted-foreground">{t('feedbackSection.errorlogstab.severity', 'Severity')}</div>
                     <Badge variant={getSeverityColor(selectedError.severity) as any} className="mt-1">
                       {selectedError.severity}
                     </Badge>
                   </div>
                   <div>
-                    <div className="text-sm font-medium text-muted-foreground">{t('feedback.errorlogstab.type', 'Type')}</div>
+                    <div className="text-sm font-medium text-muted-foreground">{t('feedbackSection.errorlogstab.type', 'Type')}</div>
                     <Badge variant="outline" className="mt-1">{selectedError.error_type}</Badge>
                   </div>
                   <div>
-                    <div className="text-sm font-medium text-muted-foreground">{t('feedback.errorlogstab.component', 'Component')}</div>
-                    <div className="mt-1">{selectedError.component_name || t('feedback.errorlogstab.unknown', 'Unknown')}</div>
+                    <div className="text-sm font-medium text-muted-foreground">{t('feedbackSection.errorlogstab.component', 'Component')}</div>
+                    <div className="mt-1">{selectedError.component_name || t('feedbackSection.errorlogstab.unknown', 'Unknown')}</div>
                   </div>
                   <div>
-                    <div className="text-sm font-medium text-muted-foreground">{t('feedback.errorlogstab.time', 'Time')}</div>
+                    <div className="text-sm font-medium text-muted-foreground">{t('feedbackSection.errorlogstab.time', 'Time')}</div>
                     <div className="mt-1 text-sm">
                       {formatDistanceToNow(new Date(selectedError.created_at), { addSuffix: true })}
                     </div>
@@ -417,22 +417,22 @@ export const ErrorLogsTab = () => {
                 </div>
 
                 <div>
-                  <div className="text-sm font-medium text-muted-foreground mb-2">{t('feedback.errorlogstab.user', 'User')}</div>
+                  <div className="text-sm font-medium text-muted-foreground mb-2">{t('feedbackSection.errorlogstab.user', 'User')}</div>
                   <div className="text-sm">
-                    {selectedError.profiles?.full_name || t('feedback.errorlogstab.guest', 'Guest')} 
+                    {selectedError.profiles?.full_name || t('feedbackSection.errorlogstab.guest', 'Guest')} 
                     {selectedError.profiles?.email && ` (${selectedError.profiles.email})`}
                   </div>
                 </div>
 
                 <div>
-                  <div className="text-sm font-medium text-muted-foreground mb-2">{t('feedback.errorlogstab.errorMessage', 'Error Message')}</div>
+                  <div className="text-sm font-medium text-muted-foreground mb-2">{t('feedbackSection.errorlogstab.errorMessage', 'Error Message')}</div>
                   <div className="text-sm bg-muted/30 p-3 rounded-lg font-mono">
                     {selectedError.error_message}
                   </div>
                 </div>
 
                 <div>
-                  <div className="text-sm font-medium text-muted-foreground mb-2">{t('feedback.errorlogstab.pageUrl', 'Page URL')}</div>
+                  <div className="text-sm font-medium text-muted-foreground mb-2">{t('feedbackSection.errorlogstab.pageUrl', 'Page URL')}</div>
                   <div className="text-sm bg-muted/30 p-3 rounded-lg break-all">
                     {selectedError.page_url}
                   </div>
@@ -440,7 +440,7 @@ export const ErrorLogsTab = () => {
 
                 {selectedError.error_stack && (
                   <div>
-                    <div className="text-sm font-medium text-muted-foreground mb-2">{t('feedback.errorlogstab.stackTrace', 'Stack Trace')}</div>
+                    <div className="text-sm font-medium text-muted-foreground mb-2">{t('feedbackSection.errorlogstab.stackTrace', 'Stack Trace')}</div>
                     <pre className="text-xs bg-muted/30 p-3 rounded-lg overflow-auto max-h-64 font-mono">
                       {selectedError.error_stack}
                     </pre>

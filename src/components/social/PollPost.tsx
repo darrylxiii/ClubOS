@@ -43,7 +43,7 @@ export const PollPost = ({
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
-        toast.error(t('social.poll.signInToVote'));
+        toast.error(t('socialSection.poll.signInToVote'));
         return;
       }
 
@@ -68,10 +68,10 @@ export const PollPost = ({
       setSelectedOption(optionId);
       setHasVoted(true);
       onVote?.();
-      toast.success(t('social.poll.voteRecorded'));
+      toast.success(t('socialSection.poll.voteRecorded'));
     } catch (error) {
       console.error("Error voting:", error);
-      toast.error(t('social.poll.voteFailed'));
+      toast.error(t('socialSection.poll.voteFailed'));
     }
   };
 
@@ -115,7 +115,7 @@ export const PollPost = ({
                   {(hasVoted || pollEnded) && (
                     <div className="flex items-center gap-2">
                       <span className="text-sm text-muted-foreground">
-                        {t('social.poll.votes', { count: option.votes })}
+                        {t('socialSection.poll.votes', { count: option.votes })}
                       </span>
                       <span className="text-lg font-bold">{percentage}%</span>
                     </div>
@@ -127,9 +127,9 @@ export const PollPost = ({
         })}
       </div>
       <div className="mt-4 flex items-center justify-between text-sm text-muted-foreground">
-        <span>{t('social.poll.totalVotes', { count: totalVotes.toLocaleString() })}</span>
+        <span>{t('socialSection.poll.totalVotes', { count: totalVotes.toLocaleString() })}</span>
         <span>
-          {pollEnded ? t('social.poll.ended') : t('social.poll.endsOn', { date: new Date(endsAt).toLocaleDateString() })}
+          {pollEnded ? t('socialSection.poll.ended') : t('socialSection.poll.endsOn', { date: new Date(endsAt).toLocaleDateString() })}
         </span>
       </div>
     </Card>

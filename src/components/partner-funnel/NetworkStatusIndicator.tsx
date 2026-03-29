@@ -47,6 +47,7 @@ export function NetworkStatusIndicator() {
 
 // Minimal inline status for form areas
 export function InlineNetworkStatus({ className }: { className?: string }) {
+  const { t } = useTranslation('common');
   const { isOnline } = useOfflineIndicator();
   const { isSlowConnection } = useNetworkStatus();
 

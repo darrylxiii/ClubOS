@@ -31,9 +31,9 @@ export function UrgencyIndicators({
   if (hasPendingOffer) {
     indicators.push({
       icon: AlertTriangle,
-      label: t('partner.pendingOffer', 'Pending Offer'),
+      label: t('partnerSection.pendingOffer', 'Pending Offer'),
       variant: "destructive" as const,
-      tooltip: t('partner.pendingOfferTooltip', 'Candidate has a pending offer from another company')
+      tooltip: t('partnerSection.pendingOfferTooltip', 'Candidate has a pending offer from another company')
     });
   }
 
@@ -41,9 +41,9 @@ export function UrgencyIndicators({
   if (noticeEndsInDays !== undefined && noticeEndsInDays <= 30) {
     indicators.push({
       icon: Clock,
-      label: t('partner.noticeDays', '{{days}}d notice', { days: noticeEndsInDays }),
+      label: t('partnerSection.noticeDays', '{{days}}d notice', { days: noticeEndsInDays }),
       variant: noticeEndsInDays <= 14 ? "destructive" as const : "default" as const,
-      tooltip: t('partner.noticePeriodEnds', 'Notice period ends in {{days}} days', { days: noticeEndsInDays })
+      tooltip: t('partnerSection.noticePeriodEnds', 'Notice period ends in {{days}} days', { days: noticeEndsInDays })
     });
   }
 
@@ -51,9 +51,9 @@ export function UrgencyIndicators({
   if (profileViews >= 5) {
     indicators.push({
       icon: TrendingUp,
-      label: t('partner.viewCount', '{{count}} views', { count: profileViews }),
+      label: t('partnerSection.viewCount', '{{count}} views', { count: profileViews }),
       variant: "secondary" as const,
-      tooltip: t('partner.profileViewedTimes', 'Profile viewed {{count}} times by other companies', { count: profileViews })
+      tooltip: t('partnerSection.profileViewedTimes', 'Profile viewed {{count}} times by other companies', { count: profileViews })
     });
   }
 
@@ -61,9 +61,9 @@ export function UrgencyIndicators({
   if (daysInStage > avgDaysInStage * 1.5) {
     indicators.push({
       icon: Zap,
-      label: t('partner.daysInStage', '{{days}}d in stage', { days: daysInStage }),
+      label: t('partnerSection.daysInStage', '{{days}}d in stage', { days: daysInStage }),
       variant: "default" as const,
-      tooltip: t('partner.daysInStageAvg', '{{days}} days in current stage (avg: {{avg}})', { days: daysInStage, avg: avgDaysInStage })
+      tooltip: t('partnerSection.daysInStageAvg', '{{days}} days in current stage (avg: {{avg}})', { days: daysInStage, avg: avgDaysInStage })
     });
   }
 

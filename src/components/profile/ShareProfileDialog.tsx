@@ -120,9 +120,9 @@ export const ShareProfileDialog = ({ open, onClose, userId }: ShareProfileDialog
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>{t('profile.shareYourProfile')}</DialogTitle>
+          <DialogTitle>{t('profileSection.shareYourProfile')}</DialogTitle>
           <DialogDescription>
-            {t('profile.shareProfileDesc')}
+            {t('profileSection.shareProfileDesc')}
           </DialogDescription>
         </DialogHeader>
 
@@ -130,18 +130,18 @@ export const ShareProfileDialog = ({ open, onClose, userId }: ShareProfileDialog
           {/* Generate New Link */}
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label>{t('profile.linkDuration')}</Label>
+              <Label>{t('profileSection.linkDuration')}</Label>
               <Select value={duration} onValueChange={setDuration}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="1">{t('profile.hours', { count: 1 })}</SelectItem>
-                  <SelectItem value="6">{t('profile.hours', { count: 6 })}</SelectItem>
-                  <SelectItem value="12">{t('profile.hours', { count: 12 })}</SelectItem>
-                  <SelectItem value="24">{t('profile.hours', { count: 24 })}</SelectItem>
-                  <SelectItem value="48">{t('profile.hours', { count: 48 })}</SelectItem>
-                  <SelectItem value="72">{t('profile.hours', { count: 72 })}</SelectItem>
+                  <SelectItem value="1">{t('profileSection.hours', { count: 1 })}</SelectItem>
+                  <SelectItem value="6">{t('profileSection.hours', { count: 6 })}</SelectItem>
+                  <SelectItem value="12">{t('profileSection.hours', { count: 12 })}</SelectItem>
+                  <SelectItem value="24">{t('profileSection.hours', { count: 24 })}</SelectItem>
+                  <SelectItem value="48">{t('profileSection.hours', { count: 48 })}</SelectItem>
+                  <SelectItem value="72">{t('profileSection.hours', { count: 72 })}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -151,14 +151,14 @@ export const ShareProfileDialog = ({ open, onClose, userId }: ShareProfileDialog
               disabled={generating}
               className="w-full"
             >
-              {generating ? t('common:status.generating') : t('profile.generateShareLink')}
+              {generating ? t('common:status.generating') : t('profileSection.generateShareLink')}
             </Button>
           </div>
 
           {/* Active Links */}
           {!loading && activeLinks.length > 0 && (
             <div className="space-y-3">
-              <Label className="text-sm font-semibold">{t('profile.activeShareLinks')}</Label>
+              <Label className="text-sm font-semibold">{t('profileSection.activeShareLinks')}</Label>
               <div className="space-y-2 max-h-64 overflow-y-auto">
                 {activeLinks.map((link) => (
                   <div
@@ -208,7 +208,7 @@ export const ShareProfileDialog = ({ open, onClose, userId }: ShareProfileDialog
                       </span>
                       <span className="flex items-center gap-1">
                         <Eye className="h-3 w-3" />
-                        {link.view_count} {t('profile.views')}
+                        {link.view_count} {t('profileSection.views')}
                       </span>
                     </div>
                   </div>

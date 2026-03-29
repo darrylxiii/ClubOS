@@ -409,6 +409,7 @@ export const UpcomingInterviewsWidget = ({ jobId }: UpcomingInterviewsWidgetProp
 };
 
 const InterviewCard = ({ interview }: { interview: NormalizedInterview }) => {
+  const { t } = useTranslation('common');
   const [showReschedule, setShowReschedule] = useState(false);
   const [showPrepDoc, setShowPrepDoc] = useState(false);
   const [showFeedback, setShowFeedback] = useState(false);

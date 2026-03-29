@@ -97,15 +97,15 @@ export default function EditProfileSlugDialog({
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>{t('profile.editProfileUrl')}</DialogTitle>
+          <DialogTitle>{t('profileSection.editProfileUrl')}</DialogTitle>
           <DialogDescription>
-            {t('profile.editProfileUrlDesc')}
+            {t('profileSection.editProfileUrlDesc')}
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4 py-4">
           <div className="space-y-2">
-            <Label htmlFor="slug">{t('profile.profileUrl')}</Label>
+            <Label htmlFor="slug">{t('profileSection.profileUrl')}</Label>
             <div className="flex items-center gap-2">
               <span className="text-sm text-muted-foreground">{"os.thequantumclub.com/profile/"}</span>
               <Input
@@ -118,7 +118,7 @@ export default function EditProfileSlugDialog({
             </div>
             {slug && !validateSlug(slug) && (
               <p className="text-sm text-destructive">
-                {t('profile.slugValidation')}
+                {t('profileSection.slugValidation')}
               </p>
             )}
           </div>

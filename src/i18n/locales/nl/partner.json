@@ -146,12 +146,7 @@
     "noInterviews": "Geen interviews gepland",
     "noOffers": "Geen openstaande aanbiedingen"
   },
-  "status": {
-    "active": "Actief",
-    "inactive": "Inactief",
-    "pending": "In behandeling",
-    "verified": "Geverifieerd"
-  },
+  "status": "Status",
   "referrals": {
     "title": "Verwijzingen",
     "myReferrals": "Mijn verwijzingen",
@@ -295,7 +290,8 @@
     "text2": "Overzicht",
     "text3": "Pijplijn",
     "text4": "Trends",
-    "text5": "Benchmarks"
+    "text5": "Benchmarks",
+    "diversity": "Diversity"
   },
   "partnerFunnel": {
     "desc": "Beschrijf de rol. Wij regelen de rest.",
@@ -333,7 +329,9 @@
     "desc4": "Blader door exclusieve kansen geselecteerd voor uw netwerk",
     "desc5": "Indienen Kandidaten",
     "desc6": "Introduceer toptalent via ons gestroomlijnd proces",
-    "desc7": "Plan uw onboardinggesprek"
+    "desc7": "Plan uw onboardinggesprek",
+    "welcomeToast": "Welcome to The Quantum Club!",
+    "failedOnboarding": "Failed to complete onboarding"
   },
   "addCandidateDialog": {
     "toast": {
@@ -552,9 +550,19 @@
     "badge": {
       "noActivity": "Nee Activiteit",
       "urgent": "Urgent",
-      "pendingSignup": "Aanmelding in behandeling"
+      "pendingSignup": "Aanmelding in behandeling",
+      "needsFollowUp": "Needs Follow-up"
     },
-    "noApplicationsFoundMatchingYourFilters": "Geen sollicitaties gevonden die overeenkomen met uw filters"
+    "noApplicationsFoundMatchingYourFilters": "Geen sollicitaties gevonden die overeenkomen met uw filters",
+    "candidate": "Candidate",
+    "job": "Job",
+    "stage": "Stage",
+    "source": "Source",
+    "lastActivity": "Last Activity",
+    "applied": "Applied",
+    "advanceStage": "Advance Stage",
+    "sendMessage": "Send Message",
+    "scheduleInterview": "Schedule Interview"
   },
   "benchmarkComparison": {
     "badge": {
@@ -715,7 +723,13 @@
       "email": "E-mail",
       "message": "Bericht",
       "meeting": "Vergadering"
-    }
+    },
+    "interactionTimeline": "Interaction Timeline",
+    "adding": "Adding...",
+    "addInteraction": "Add Interaction",
+    "rejectionDetails": "Rejection Details",
+    "advancementDetails": "Advancement Details",
+    "sentiment": "Sentiment"
   },
   "candidateInternalRatingCard": {
     "title": "Beoordelingsgeschiedenis",
@@ -744,7 +758,13 @@
     },
     "selectedJobsWillBeMentionedInTheInvitati": "Geselecteerde vacatures worden vermeld in de uitnodigingsmail",
     "thisMessageWillBeIncludedInTheInvitation": "Dit bericht wordt opgenomen in de uitnodigingsmail",
-    "whatHappensNext": "Wat gebeurt er hierna?"
+    "whatHappensNext": "Wat gebeurt er hierna?",
+    "title": "Invite Candidate to Platform",
+    "sending": "Sending...",
+    "sendInvitation": "Send Invitation",
+    "step1": "Candidate receives invitation email with secure link",
+    "step2": "Link expires in 7 days",
+    "step3": "When they sign up, their profile data will be merged with user account"
   },
   "candidateLinkedJobs": {
     "toast": {
@@ -1465,7 +1485,17 @@
   "candidateWorkAuthCard": {
     "noWorkAuthorizationDataAvailable": "Geen work authorization data beschikbaar",
     "requiresSponsorship": "Vereist sponsoring",
-    "noSponsorshipRequired": "Geen sponsoring vereist"
+    "noSponsorshipRequired": "Geen sponsoring vereist",
+    "workAuthorization": "Work Authorization",
+    "compensationExpectations": "Compensation Expectations",
+    "availability": "Availability",
+    "locationPreferences": "Location Preferences",
+    "authorizedCountries": "Authorized Countries",
+    "visaType": "Visa Type",
+    "salaryRange": "Salary Range",
+    "currency": "Currency",
+    "noticePeriod": "Notice Period",
+    "remotePreference": "Remote Preference"
   },
   "changeOrdersPanel": {
     "noChangeOrdersYet": "Nog geen change orders",
@@ -1591,10 +1621,20 @@
     },
     "menu": {
       "navigation": "Navigatie",
-      "adminTools": "Beheer Tools"
+      "adminTools": "Beheer Tools",
+      "applicationsHub": "Applications Hub",
+      "companySettings": "Company Settings",
+      "companyManagement": "Company Management",
+      "aiConfiguration": "AI Configuration",
+      "clubSyncRequests": "Club Sync Requests",
+      "globalAnalytics": "Global Analytics",
+      "refreshData": "Refresh Data"
     },
     "newJob": "Nieuwe vacature",
-    "jobs": "Vacatures"
+    "jobs": "Vacatures",
+    "tooltip": {
+      "search": "Search (/ key)"
+    }
   },
   "jobsUnifiedFilterBar": {
     "menu": {
@@ -1638,7 +1678,20 @@
   "compactJobCard": {
     "tooltip": {
       "confidential": "Vertrouwelijk"
-    }
+    },
+    "publish": "Publish",
+    "unpublish": "Unpublish",
+    "reopen": "Reopen",
+    "restore": "Restore",
+    "candidates": "Candidates",
+    "daysOpen": "Days Open",
+    "active": "Active",
+    "interviews": "Interviews",
+    "conversion": "Conversion",
+    "hired": "Hired",
+    "target": "Target",
+    "lastActivity": "Last Activity",
+    "pipelinePercent": "Pipeline %"
   },
   "jobsInlineStats": {
     "clubSync": "ClubSync"
@@ -2525,5 +2578,888 @@
       "failedToSetPassword": "Instellen van wachtwoord mislukt.",
       "partnerCompletedInitialAccountSetupPassword": "Partner heeft de initiële accountconfiguratie voltooid (wachtwoord + profiel)"
     }
+  },
+  "statusSection": {
+    "active": "Actief",
+    "inactive": "Inactief",
+    "pending": "In behandeling",
+    "verified": "Geverifieerd"
+  },
+  "strategist": {
+    "askPlaceholder": "Ask a question, request feedback, or share an update...",
+    "noStrategistDesc": "A dedicated talent strategist will be assigned to your account to help you find the perfect candidates. Post a role to get started.",
+    "messageSent": "Message sent to your strategist",
+    "messageError": "Failed to send message",
+    "askTitle": "Ask Your Strategist",
+    "sendingFrom": "Sending from:",
+    "to": "To:",
+    "cancel": "Cancel",
+    "sending": "Sending...",
+    "send": "Send",
+    "availability": "Availability",
+    "next5Days": "Next 5 business days",
+    "noSlots": "No open slots",
+    "bookCall": "Book Call",
+    "noteSent": "Note added",
+    "noteError": "Failed to add note",
+    "sharedNotes": "Shared Notes",
+    "noNotes": "No notes yet. Start a conversation with your strategist.",
+    "addNotePlaceholder": "Add a note for your strategist...",
+    "addNote": "Add Note",
+    "noStrategist": "No Strategist Assigned",
+    "postRole": "Post a Role",
+    "badge": "Strategist",
+    "ask": "Ask",
+    "activityFeed": "Strategist Activity",
+    "actions": "actions"
+  },
+  "evaluator_id": "Evaluator_Id",
+  "total": "Total",
+  "created_at": "Created_At",
+  "is_active": "Is_Active",
+  "successMetrics": {
+    "title": "Success Metrics Dashboard",
+    "noCompany": "No company associated",
+    "noCompanyDesc": "Please ensure your account is linked to a company to view success metrics.",
+    "error": "Unable to load metrics",
+    "errorDesc": "There was a problem loading your success metrics. Please try again later.",
+    "noData": "No success data yet",
+    "noDataDesc": "Once you start making placements, your success metrics will appear here.",
+    "totalHires": "Total Hires",
+    "avgTimeToHire": "Avg Time to Hire",
+    "days": "days",
+    "retention90d": "90-Day Retention",
+    "qualityScoreLabel": "Quality Score",
+    "outOf100": "out of 100",
+    "retentionTracker": "90-Day Retention Tracker",
+    "retentionDesc": "Percentage of hires still employed after 90 days",
+    "retentionProgress": "Retention rate progress",
+    "improving": "Improving",
+    "declining": "Declining",
+    "excellent": "Excellent",
+    "good": "Good",
+    "needsAttention": "Needs attention",
+    "target": "Target",
+    "roiPerPlacement": "ROI Per Placement",
+    "returnMultiple": "return",
+    "roiExplanation": "Every $1 spent returns ${{amount}} in hire value.",
+    "last6Months": "Last 6 months",
+    "totalFees": "Total Fees",
+    "avgPerHire": "Avg Per Hire",
+    "qualityOfHire": "Quality of Hire Composite",
+    "compositeScore": "Composite Score",
+    "retentionFactor": "90-Day Retention",
+    "productivityFactor": "Time-to-Productivity",
+    "satisfactionFactor": "Hiring Manager Satisfaction",
+    "weight40": "40% weight",
+    "weight30": "30% weight"
+  },
+  "networkIntelligence": {
+    "noCompany": {
+      "title": "No Company Selected",
+      "description": "Select a company to view network intelligence and benchmarks."
+    },
+    "error": {
+      "title": "Unable to Load Intelligence",
+      "description": "Something went wrong loading network data. Please try again later."
+    },
+    "cards": {
+      "yourPercentile": "Your Percentile",
+      "aboveAvg": "Above avg",
+      "nearAvg": "Near avg",
+      "belowAvg": "Below avg",
+      "percentileSubtitle": "Across all network metrics",
+      "networkTTF": "Network Avg Time to Fill",
+      "ttfSubtitle": "Average across all partners",
+      "networkAcceptance": "Network Avg Acceptance",
+      "acceptanceSubtitle": "Offer acceptance rate"
+    },
+    "benchmarks": {
+      "title": "Your Metrics vs Network",
+      "topPerformer": "Top Performer",
+      "noData": "Complete more hiring cycles to unlock network benchmarks."
+    },
+    "trends": {
+      "title": "Network Trends",
+      "hiringVolume": "Hiring Volume",
+      "timeToFill": "Time to Fill",
+      "offerAcceptance": "Offer Acceptance",
+      "salaryMovement": "Salary Movement",
+      "stable": "Stable"
+    },
+    "similar": {
+      "title": "Companies Like Yours",
+      "rolesPerQuarter": "Roles per Quarter",
+      "rolesPerQuarterDesc": "Companies your size typically hire this many roles per quarter",
+      "topAcceptance": "Top Acceptance Rate",
+      "topAcceptanceDesc": "Top-performing companies in your segment achieve this offer acceptance",
+      "avgTimeToFill": "Avg Time to Fill",
+      "avgTimeToFillDesc": "Network average for companies with similar hiring volume",
+      "healthBenchmark": "Health Benchmark",
+      "healthBenchmarkDesc": "Your overall hiring health score vs. network peers"
+    }
+  },
+  "brandCenter": {
+    "brandScore": "Employer Brand Score",
+    "brandScoreDescription": "A composite measure of how attractive your company is to candidates, based on offer acceptance, interview sentiment, and application momentum.",
+    "scoreExcellent": "Excellent",
+    "scoreGood": "Good",
+    "scoreFair": "Fair",
+    "scoreNeedsWork": "Needs Work",
+    "offerAcceptance": "Offer Acceptance",
+    "offerAcceptanceSub": "Of offers accepted by candidates",
+    "strong": "Strong",
+    "improvable": "Improvable",
+    "interviewSentiment": "Interview Sentiment",
+    "interviewSentimentSub": "Average scorecard rating",
+    "positive": "Positive",
+    "mixed": "Mixed",
+    "applicationVolume": "Application Volume",
+    "applicationVolumeSub": "vs. previous 30 days",
+    "growing": "Growing",
+    "declining": "Declining",
+    "stable": "Stable",
+    "candidateNPS": "Candidate NPS",
+    "responses": "responses",
+    "npsExcellent": "Excellent",
+    "npsGood": "Good",
+    "npsFair": "Fair",
+    "npsPoor": "Poor",
+    "promoters": "Promoters",
+    "passives": "Passives",
+    "detractors": "Detractors",
+    "npsTrend": "NPS Trend (monthly)",
+    "setupNPS": "Set Up NPS Surveys",
+    "setupNPSDescription": "Start collecting candidate satisfaction scores after interviews to track your employer brand health over time.",
+    "comingSoon": "Coming Soon",
+    "noNPSData": "No NPS responses yet. Scores will appear as candidates complete surveys.",
+    "competitorComparison": "Brand vs. Industry",
+    "points": "pts",
+    "above": "above",
+    "below": "below",
+    "yourBrand": "Your Brand Score",
+    "industryAverage": "Industry Average",
+    "metricBreakdown": "Metric Breakdown",
+    "noBenchmarks": "Complete more hiring cycles to unlock detailed benchmarks against anonymized industry data.",
+    "percentileNote": "Comparisons based on anonymized partner benchmarks",
+    "noCompany": "No Company Selected",
+    "noCompanyDescription": "Connect to a company to view your employer brand command center and track how candidates perceive your organization."
+  },
+  "committee": {
+    "title": "Hiring Committee",
+    "subtitle": "Collaborative hiring decisions, calibration, and audit trails",
+    "noCompany": "No company context found",
+    "noCompanyDesc": "Please make sure you are associated with a company to access the Hiring Committee.",
+    "tabs": {
+      "sessions": "Active Sessions",
+      "calibration": "Calibration",
+      "audit": "Audit Trail"
+    },
+    "sessions": {
+      "loading": "Loading sessions",
+      "emptyTitle": "No active voting sessions",
+      "emptyDesc": "Voting sessions are created when a candidate reaches the committee review stage. Check back soon.",
+      "activeHeader": "Active Sessions",
+      "completedHeader": "Past Sessions",
+      "active": "Active",
+      "completed": "Completed",
+      "openSession": "Open session for {{candidate}}",
+      "back": "Back",
+      "statusActive": "Voting in progress",
+      "statusCompleted": "Session completed",
+      "endSession": "End Session"
+    },
+    "calibration": {
+      "emptyTitle": "No calibration data yet",
+      "emptyDesc": "Once reviewers submit scorecards, calibration insights will appear here.",
+      "totalReviewers": "Active Reviewers",
+      "totalScorecardsSubtitle": "{{count}} scorecards total",
+      "teamAverage": "Team Average Score",
+      "calibrationAlerts": "Calibration Alerts",
+      "highVarianceWarning": "{{count}} high-variance reviewers",
+      "noAlerts": "All reviewers well-calibrated",
+      "teamAvgLine": "Team average: {{avg}}/5",
+      "reviewerListLabel": "Reviewer calibration list",
+      "insightHarsh": "Rates {{pct}}% harsher than average",
+      "insightLenient": "Rates {{pct}}% more lenient than average",
+      "insightConsistent": "Highly consistent scorer",
+      "avg": "Avg",
+      "reviews": "reviews",
+      "varianceTooltip": "Score variance (lower is more consistent)",
+      "var": "var"
+    },
+    "audit": {
+      "loading": "Loading audit trail",
+      "emptyTitle": "No decisions recorded",
+      "emptyDesc": "Hiring decisions will appear here as reviewers submit their scorecards.",
+      "emptyFiltered": "No decisions match this filter",
+      "decisionBy": "{{reviewer}} recommended \"{{recommendation}}\" for {{job}}",
+      "job": "Job",
+      "reviewer": "Reviewer",
+      "score": "Score",
+      "filterAdvanced": "Advanced",
+      "filterRejected": "Rejected",
+      "filterOffered": "Offered",
+      "filterHired": "Hired"
+    },
+    "roster": {
+      "loading": "Loading roster",
+      "title": "Committee Roster",
+      "emptyTitle": "No committee members",
+      "emptyDesc": "Add team members to this job to form a hiring committee.",
+      "listLabel": "Committee members",
+      "submitted": "submitted",
+      "pending": "pending",
+      "done": "Done",
+      "remind": "Remind",
+      "remindAriaLabel": "Send reminder to {{name}}",
+      "reminderTitle": "Scorecard Reminder",
+      "reminderMessage": "Your scorecard submission is pending. Please review and submit.",
+      "reminderSent": "Reminder sent",
+      "reminderSentDesc": "{{name}} has been notified."
+    }
+  },
+  "vip": {
+    "pageTitle": "VIP Candidate Experience",
+    "pageSubtitle": "Craft a premium experience for every candidate",
+    "emptyState": {
+      "title": "No company selected",
+      "description": "Select a company from the sidebar to configure the VIP candidate experience toolkit."
+    },
+    "brandedPortal": {
+      "title": "Branded Portal Preview",
+      "candidateView": "Candidate View",
+      "subtitle": "This is how candidates experience your brand when they visit your portal.",
+      "companyPlaceholder": "Your Company"
+    },
+    "feedbackSLA": {
+      "title": "Feedback SLA Compliance",
+      "waiting": "waiting",
+      "description": "of candidates got feedback within 24h",
+      "weeklyTrend": "8-week trend"
+    },
+    "stageTimeline": {
+      "title": "Candidate Stage Timeline",
+      "active": "active",
+      "description": "Toggle real-time notifications candidates receive at each stage.",
+      "notifyOn": "Notify candidate",
+      "notifyOff": "Silent",
+      "updateError": "Failed to update notification setting"
+    },
+    "culture": {
+      "title": "Culture Showcase",
+      "saving": "Saving...",
+      "save": "Save",
+      "savedSuccess": "Culture content saved",
+      "savedError": "Failed to save culture content",
+      "descriptionLabel": "About your culture",
+      "descriptionPlaceholder": "Describe what makes your company a great place to work...",
+      "highlightsLabel": "Culture highlights",
+      "addHighlight": "Add",
+      "highlightPlaceholder": "e.g. Flexible remote work",
+      "preview": "Preview"
+    }
+  },
+  "briefing": {
+    "title": "Executive Briefing Deck",
+    "subtitle": "Generate a board-ready hiring intelligence report for your clients.",
+    "documentTitle": "Executive Hiring Briefing",
+    "includeSections": "Include Sections",
+    "selectAll": "Select All",
+    "deselectAll": "Deselect All",
+    "selectSections": "Select sections from the left panel to preview your briefing.",
+    "generatePDF": "Generate PDF",
+    "schedule": "Schedule",
+    "noCompany": "No company linked",
+    "noCompanyDesc": "Executive briefings will be available once your company profile is set up.",
+    "noSectionsTitle": "No sections selected",
+    "noSectionsDesc": "Please select at least one section to include in the PDF.",
+    "pdfGenerated": "Briefing PDF generated",
+    "pdfGeneratedDesc": "Your executive briefing has been downloaded.",
+    "pdfError": "PDF generation failed",
+    "pdfErrorDesc": "Something went wrong. Please try again.",
+    "noPipelineData": "No pipeline data available.",
+    "noTrendData": "No quarterly trend data available yet.",
+    "noOpenRoles": "No open roles at this time.",
+    "benchmarkNote": "Benchmarks are anonymized averages across the ClubOS partner network.",
+    "sections": {
+      "hiringProgress": "Hiring Progress",
+      "hiringProgressDesc": "Pipeline overview with total applications, hires, and active jobs.",
+      "timeCost": "Time & Cost Metrics",
+      "timeCostDesc": "Average time-to-fill and cost-per-hire analysis.",
+      "pipelineHealth": "Pipeline Health",
+      "pipelineHealthDesc": "Stage distribution and bottleneck identification.",
+      "benchmarks": "Benchmarks",
+      "benchmarksDesc": "Performance vs industry and network averages.",
+      "quarterlyTrends": "Quarterly Trends",
+      "quarterlyTrendsDesc": "Key metrics tracked across the last four quarters.",
+      "openRoles": "Open Roles Summary",
+      "openRolesDesc": "Active roles with application counts and days open."
+    },
+    "metric": {
+      "totalApplications": "Total Applications",
+      "totalHires": "Total Hires",
+      "activeJobs": "Active Jobs",
+      "avgTimeToHire": "Avg Time to Hire",
+      "offerAcceptance": "Offer Acceptance Rate",
+      "benchmarkTTF": "Network Avg Time-to-Fill",
+      "benchmarkOffer": "Network Offer Acceptance",
+      "benchmarkCPR": "Avg Candidates / Role"
+    },
+    "table": {
+      "quarter": "Quarter",
+      "applications": "Applications",
+      "hires": "Hires",
+      "ttf": "TTF (days)",
+      "offerRate": "Offer %",
+      "role": "Role",
+      "applicants": "Applicants",
+      "daysOpen": "Days Open"
+    }
+  },
+  "confidential": {
+    "title": "Confidential Searches",
+    "subtitle": "Manage C-suite and sensitive executive searches with tiered disclosure.",
+    "newSearch": "New Confidential Search",
+    "newSearchDesc": "Create a new confidential search with code name and tiered disclosure.",
+    "empty": "No confidential searches yet",
+    "emptyDesc": "Create your first confidential search to manage sensitive executive placements with tiered candidate disclosure.",
+    "errorTitle": "Unable to load confidential searches",
+    "errorDesc": "There was an issue loading your searches. Please try again later.",
+    "hoverToReveal": "Hover to reveal actual title",
+    "auditTrail": "Audit Trail",
+    "editor": {
+      "title": "Confidential Search Details",
+      "codeName": "Code Name",
+      "codeNamePlaceholder": "e.g. Project Phoenix",
+      "codeNameHint": "This is the only name candidates will see at the most restricted tier.",
+      "actualTitle": "Actual Role Title",
+      "actualTitlePlaceholder": "e.g. Chief Technology Officer",
+      "actualTitleHint": "Hidden from candidates until disclosure is granted.",
+      "disclosureLevel": "Initial Disclosure Level",
+      "tierDescriptions": "What candidates see at each tier (optional)",
+      "tier1Placeholder": "Senior leadership role at a leading technology company...",
+      "tier2Placeholder": "C-suite position reporting to the CEO at a Series D company...",
+      "tier3Placeholder": "Full job description with company details, compensation, and team info...",
+      "cancel": "Cancel",
+      "create": "Create Confidential Search",
+      "update": "Update Search"
+    },
+    "tier": {
+      "codeNameOnly": "Tier 1 — Code Name Only",
+      "codeNameDesc": "Most restricted. Candidates see only the code name.",
+      "ndaRequired": "Tier 2 — NDA Required",
+      "ndaDesc": "Company revealed after NDA is signed.",
+      "fullAccess": "Tier 3 — Full Access",
+      "fullAccessDesc": "All details visible to approved candidates.",
+      "number": "Tier {{n}}"
+    },
+    "disclosure": {
+      "label": "Disclosure Level",
+      "confirmTitle": "Change Disclosure Level",
+      "confirmDesc": "Change the disclosure level to \"{{level}}\"? This will affect what information candidates can see.",
+      "confirmAction": "Change Level"
+    },
+    "audit": {
+      "disclosureChanged": "Disclosure level changed",
+      "disclosureChangedDesc": "{{from}} to {{to}}",
+      "stealthEnabled": "Confidential mode enabled",
+      "stealthDisabled": "Confidential mode disabled",
+      "viewerAdded": "Viewer granted access",
+      "viewerRemoved": "Viewer access revoked",
+      "bulkAdd": "Bulk access granted",
+      "bulkCount": "{{count}} viewers added",
+      "bulkRemove": "Bulk access revoked",
+      "bulkRemovedCount": "{{count}} viewers removed",
+      "accessGranted": "Access Granted",
+      "accessRevoked": "Revoked",
+      "by": "By",
+      "system": "System",
+      "empty": "No audit activity for this search yet.",
+      "filterDisclosure": "Disclosure",
+      "filterAccess": "Access",
+      "filterStealth": "Stealth"
+    }
+  },
+  "predictive": {
+    "title": "Predictive Hiring Intelligence",
+    "noCompany": "No company associated",
+    "noCompanyDesc": "Please ensure your account is linked to a company to view predictive intelligence.",
+    "error": "Unable to load predictions",
+    "errorDesc": "There was a problem loading predictive intelligence data. Please try again later.",
+    "noData": "Not enough data yet",
+    "noDataDesc": "Once you have active jobs and hiring history, predictive intelligence will generate forecasts here.",
+    "projectedHires": "Projected Hires",
+    "avgPredictedTTF": "Avg Predicted Time-to-Fill",
+    "avgAcceptance": "Avg Acceptance Probability",
+    "days": "days",
+    "daysShort": "d",
+    "totalProjectedHires": "Total Projected Hires This Year",
+    "workforceForecast": "Based on your 18-month trend, you'll likely need:",
+    "noForecastData": "Not enough historical data to generate forecasts yet.",
+    "quarterlyHiringTrend": "Quarterly hiring trend",
+    "timeToFillForecast": "Time-to-Fill Forecast",
+    "noOpenRoles": "No open roles to forecast.",
+    "role": "Role",
+    "predicted": "Predicted",
+    "current": "Current",
+    "status": "Status",
+    "confidence": "Conf.",
+    "on-track": "On Track",
+    "behind": "Behind",
+    "critical": "Critical",
+    "ttfTrend": "Average time-to-fill trend (6 months)",
+    "salaryAdvisor": "Salary Adjustment Advisor",
+    "noSalaryInsights": "All current offers have strong acceptance probability, or no salary data available.",
+    "salaryInsightText": "Increasing offer by {{percent}}% would raise acceptance probability from {{current}}% to {{recommended}}%.",
+    "acceptanceProbability": "Acceptance probability",
+    "acceptanceProbabilityTitle": "Acceptance Probability",
+    "contributingFactors": "Contributing factors",
+    "factorComp": "Compensation",
+    "factorBrand": "Company brand",
+    "factorSeniority": "Role seniority",
+    "factorEngagement": "Candidate engagement",
+    "competitive": "Competitive",
+    "belowMarket": "Below market",
+    "strong": "Strong",
+    "moderate": "Moderate",
+    "high": "High",
+    "medium": "Medium"
+  },
+  "offerIntel": {
+    "title": "Offer Intelligence",
+    "noCompany": "No company associated",
+    "noCompanyDesc": "Please ensure your account is linked to a company to view offer intelligence.",
+    "noData": "No offer data yet",
+    "noDataDesc": "Once candidates reach the offer stage, intelligence and analytics will appear here.",
+    "error": "Unable to load offer intelligence",
+    "errorDesc": "There was a problem loading your offer data. Please try again later.",
+    "acceptanceRate": "Acceptance Rate",
+    "avgTimeToAccept": "Avg Time to Accept",
+    "counterOfferRate": "Counter-Offer Rate",
+    "days": "days",
+    "benchmarkTitle": "Compensation Benchmark",
+    "percentileLabel": "{{percentile}}th percentile",
+    "yourOffer": "Your Offer",
+    "marketP50": "Market P50",
+    "acceptance": "acceptance",
+    "counterOfferTitle": "Counter-Offer Likelihood",
+    "demandLow": "Low",
+    "demandMedium": "Medium",
+    "demandHigh": "High",
+    "factorSeniority": "Seniority",
+    "factorTenure": "Tenure",
+    "factorDemand": "Industry Demand",
+    "tenureYears": "{{count}} years",
+    "bufferAdvice": "Recommended buffer: +{{min}}--{{max}}% above target to counter retention offers",
+    "simulatorTitle": "Offer Comparison Simulator",
+    "optimal": "Optimal",
+    "baseSalary": "Base Salary",
+    "bonus": "Bonus",
+    "equity": "Equity",
+    "winLossTitle": "Win / Loss Analysis",
+    "outcomeBreakdown": "Outcome Breakdown",
+    "topDeclineReasons": "Top Reasons for Decline",
+    "acceptanceTrend": "Acceptance trend (6 months)",
+    "accepted": "Accepted",
+    "declined": "Declined",
+    "expired": "Expired",
+    "withdrawn": "Withdrawn",
+    "totalDeclined": "Declined",
+    "noOutcomes": "No offer outcomes recorded yet.",
+    "noDeclines": "No declined offers to analyze.",
+    "reasonComp": "Compensation below expectations",
+    "reasonCounter": "Accepted counter-offer",
+    "reasonOther": "Chose another opportunity",
+    "reasonCulture": "Culture fit concerns"
+  },
+  "cri": {
+    "title": "Candidate Relationship Intelligence",
+    "subtitle": "Deep insights into every candidate relationship",
+    "noCompany": "No company linked",
+    "noCompanyDesc": "Candidate relationship intelligence will be available once your company profile is set up.",
+    "searchPlaceholder": "Search candidates by name...",
+    "searching": "Searching...",
+    "noResults": "No candidates found",
+    "candidate": "Candidate",
+    "engaged": "engaged",
+    "engagement": "Engagement",
+    "sentimentLabel": "Sentiment",
+    "warmReactivation": "Warm Reactivation",
+    "metrics": {
+      "engagement": "Engagement Score",
+      "sentiment": "Sentiment",
+      "bestOutreach": "Best Outreach Time",
+      "outOf100": "out of 100",
+      "basedOnHistory": "Based on response patterns"
+    },
+    "timeline": {
+      "title": "Interaction Timeline",
+      "messages": "Messages",
+      "emails": "Emails",
+      "meetings": "Meetings",
+      "stageChanges": "Stage Changes",
+      "scorecards": "Scorecards",
+      "empty": "No interactions found for this candidate."
+    },
+    "sentiment": {
+      "title": "Sentiment Analysis",
+      "warmingUp": "Warming up",
+      "coolingDown": "Cooling down",
+      "stable": "Stable",
+      "outOf": "out of 100",
+      "last8": "Last {{count}} interactions",
+      "notEnoughData": "Not enough data for trend analysis"
+    },
+    "outreach": {
+      "title": "Optimal Outreach Timing",
+      "bestTime": "Best time to reach out",
+      "low": "Low",
+      "high": "High"
+    },
+    "reactivation": {
+      "title": "Warm Reactivation",
+      "subtitle": "Silver-medalist candidates showing re-engagement",
+      "profileUpdate": "Updated profile",
+      "newApplication": "New application",
+      "reachOut": "Reach out",
+      "reachOutStarted": "Opening profile for {{name}}",
+      "none": "No warm reactivation candidates at this time."
+    },
+    "heatmap": {
+      "title": "Engagement Heatmap",
+      "count": "{{count}} candidates",
+      "candidate": "Candidate",
+      "total": "Total",
+      "empty": "No active pipeline candidates found.",
+      "legendLow": "Low",
+      "legendHigh": "High"
+    }
+  },
+  "marketAlerts": {
+    "title": "Talent Market Alerts",
+    "subtitle": "Real-time signals on competitor moves, layoffs, and pipeline health",
+    "cards": {
+      "active": "Active Alerts",
+      "critical": "Critical",
+      "thisWeek": "This Week"
+    },
+    "categories": {
+      "competitor": "Competitor Movement",
+      "layoff": "Layoff Events",
+      "salary": "Salary Changes",
+      "offerActivity": "Offer Activity",
+      "pipeline": "Pipeline Stalls"
+    },
+    "actions": {
+      "viewProfile": "View Profile",
+      "addToPipeline": "Add to Pipeline",
+      "dismiss": "Dismiss",
+      "snooze": "Snooze"
+    },
+    "feed": {
+      "otherAlerts": "Market Signals"
+    },
+    "empty": {
+      "title": "No New Alerts",
+      "description": "You are all caught up. New market signals will appear here in real time."
+    },
+    "noCompany": {
+      "title": "No Company Selected",
+      "description": "Select a company to view talent market alerts."
+    },
+    "error": {
+      "title": "Unable to Load Alerts",
+      "description": "Something went wrong loading market alerts. Please try again later."
+    },
+    "prefs": {
+      "title": "Alert Preferences",
+      "description": "Choose which market alerts you receive and how.",
+      "competitor": "Competitor Movement",
+      "layoff": "Layoff Events",
+      "salary": "Salary Changes",
+      "offerActivity": "Candidate Offer Activity",
+      "pipeline": "Pipeline Stalls",
+      "deliveryLabel": "Delivery method",
+      "delivery": {
+        "inApp": "In-app only",
+        "inAppEmail": "In-app + Email",
+        "inAppPush": "In-app + Push"
+      },
+      "close": "Close"
+    }
+  },
+  "warRoom": {
+    "title": "Talent War Room",
+    "heading": "Talent War Room",
+    "subtitle": "Live command center for hiring intelligence",
+    "noCompany": "No company associated",
+    "noCompanyDesc": "Please ensure your account is linked to a company to access the Talent War Room.",
+    "error": "Unable to load war room",
+    "errorDesc": "There was a problem loading intelligence data. Please try again later.",
+    "noData": "No data",
+    "lastUpdated": "Updated {{time}}",
+    "status": {
+      "live": "Live",
+      "stale": "Stale",
+      "disconnected": "Offline"
+    },
+    "metrics": {
+      "threatLevel": "Threat Level",
+      "competitors": "Competitor Roles",
+      "overlapping": "overlapping roles",
+      "flightRisks": "Flight Risks",
+      "highRisk": "{{count}} critical",
+      "monitored": "monitored",
+      "salaryPressure": "Salary Pressure"
+    },
+    "threatRadar": {
+      "title": "Threat Radar",
+      "competitors": "Competitors",
+      "flightRisks": "Flight Risks",
+      "salaryPressure": "Salary Pressure",
+      "levels": {
+        "low": "Low",
+        "medium": "Medium",
+        "high": "High",
+        "critical": "Critical"
+      }
+    },
+    "competitors": {
+      "title": "Competitor Hiring",
+      "activeCount": "{{count}} active",
+      "overlapAlert": "{{count}} competitors hiring for the same skillset",
+      "empty": "No overlapping competitor activity detected"
+    },
+    "flightRisk": {
+      "title": "Flight Risk Radar",
+      "highRiskCount": "{{count}} high risk",
+      "empty": "No flight risks detected in your pipeline",
+      "prioritize": "Prioritize Outreach",
+      "outreachQueued": "Outreach prioritized",
+      "outreachDesc": "{{name}} has been moved to priority outreach queue"
+    },
+    "salary": {
+      "title": "Salary Movements",
+      "empty": "Not enough salary data for trend analysis",
+      "thisQuarter": "this quarter"
+    }
+  },
+  "nurturing": {
+    "title": "Talent Pool Nurturing",
+    "subtitle": "Re-engage high-quality candidates from your silver medalist pool",
+    "noCompany": "No company linked",
+    "noCompanyDesc": "Talent pool nurturing will be available once your company profile is set up.",
+    "metrics": {
+      "poolSize": "Pool Size",
+      "silverMedalists": "Silver medalists",
+      "reengaged": "Re-engaged This Month",
+      "last30Days": "Last 30 days",
+      "conversionRate": "Conversion Rate",
+      "reengagementRate": "Re-engagement rate"
+    },
+    "pool": {
+      "title": "Silver Medalist Pool",
+      "empty": "No silver medalists in the talent pool yet.",
+      "profileUpdated": "Profile updated",
+      "appliedElsewhere": "Applied elsewhere",
+      "inactive": "Inactive",
+      "rejectedAt": "Rejected at",
+      "lastActivity": "Last activity",
+      "reachOut": "Reach out",
+      "addToShortlist": "Shortlist",
+      "reachOutSuccess": "Re-engagement email queued for {{name}}",
+      "shortlistSuccess": "{{name}} added to shortlist",
+      "sortQuality": "Quality Score",
+      "sortRecency": "Most Recent"
+    },
+    "signals": {
+      "title": "Re-engagement Signals",
+      "empty": "No re-engagement signals detected yet.",
+      "hot": "Hot",
+      "type": "Type",
+      "action": "Action",
+      "priorityReachOut": "Priority reach-out",
+      "monitor": "Monitor",
+      "category": {
+        "profile_update": "Profile Updates",
+        "new_application": "New Applications",
+        "linkedin_activity": "LinkedIn Activity"
+      }
+    },
+    "builder": {
+      "title": "Sequence Builder",
+      "step1": "Step 1: Select trigger",
+      "step2": "Step 2: Select action",
+      "step3": "Step 3: Preview sequence",
+      "chooseTrigger": "Choose trigger...",
+      "chooseAction": "Choose action...",
+      "add": "Add",
+      "trigger": "Trigger",
+      "action": "Action",
+      "save": "Save Sequence",
+      "saved": "Nurturing sequence saved",
+      "deleted": "Sequence deleted",
+      "savedSequences": "Saved Sequences",
+      "trigger30Days": "30 days after rejection",
+      "triggerProfileUpdated": "Profile updated",
+      "triggerNewRole": "New role posted matching skills",
+      "actionSendEmail": "Send personalized email",
+      "actionAddShortlist": "Add to shortlist",
+      "actionNotifyStrategist": "Notify strategist"
+    }
+  },
+  "chiefOfStaff": {
+    "heading": "AI Chief of Staff",
+    "subtitle": "Your proactive hiring intelligence assistant",
+    "ariaLabel": "AI Chief of Staff",
+    "noCompany": "No company associated",
+    "noCompanyDesc": "Please ensure your account is linked to a company to access the AI Chief of Staff.",
+    "error": "Unable to load intelligence",
+    "errorDesc": "There was a problem loading the AI Chief of Staff. Please try again later.",
+    "actions": {
+      "title": "Prioritized Actions",
+      "empty": "No pending actions -- you are all caught up!",
+      "pending": "pending",
+      "takeAction": "Action",
+      "markDone": "Mark as done"
+    },
+    "urgency": {
+      "critical": "Critical",
+      "high": "High",
+      "medium": "Medium"
+    },
+    "bottlenecks": {
+      "title": "Pipeline Bottlenecks",
+      "empty": "No bottlenecks detected -- pipeline is flowing smoothly.",
+      "avgDays": "{{days}} days avg",
+      "stuck": "stuck",
+      "viewCandidates": "View candidates"
+    },
+    "weekly": {
+      "title": "Weekly Update",
+      "hires": "Hires",
+      "newCandidates": "New Candidates",
+      "offersSent": "Offers Sent",
+      "pipelineHealth": "Pipeline",
+      "health": {
+        "excellent": "Excellent",
+        "good": "Good",
+        "needs-attention": "Needs Attention",
+        "critical": "Critical"
+      },
+      "keyEvents": "Key Events",
+      "noData": "No activity data available for this week.",
+      "copyBtn": "Copy to clipboard",
+      "copiedBtn": "Copied!",
+      "sendBtn": "Send to team",
+      "copied": "Weekly update copied to clipboard",
+      "copyFailed": "Failed to copy",
+      "sendQueued": "Weekly update queued for team delivery"
+    },
+    "insights": {
+      "title": "Proactive Insights",
+      "empty": "No insights yet. Intelligence data will generate insights as your pipeline grows.",
+      "opportunity": "Opportunity",
+      "risk": "Risk",
+      "recommendation": "Recommendation",
+      "milestone": "Milestone"
+    },
+    "threat": {
+      "label": "Threat Level",
+      "levels": {
+        "low": "Low",
+        "medium": "Medium",
+        "high": "High",
+        "critical": "Critical"
+      },
+      "viewWarRoom": "War Room"
+    }
+  },
+  "common:manual": "Manual",
+  "common:linkedin": "LinkedIn",
+  "common:cancel": "Cancel",
+  "diversity": {
+    "applied": "Applied",
+    "screened": "Screened",
+    "interviewed": "Interviewed",
+    "offered": "Offered",
+    "title": "Source Diversity & Pipeline Funnel",
+    "sourceDiversityScore": "Source Diversity Score",
+    "topSources": "Top Sources",
+    "pipelineFunnel": "Pipeline Funnel"
+  },
+  "healthScore": {
+    "title": "Hiring Health",
+    "excellent": "Excellent",
+    "good": "Good",
+    "needsAttention": "Needs Attention",
+    "critical": "Critical",
+    "noCompany": "No company linked",
+    "noCompanyDesc": "Health scores will appear once your company profile is set up."
+  },
+  "marketIntel": {
+    "avgSalaryRange": "Avg. Salary Range",
+    "avgCandidates": "Avg. Candidates/Role",
+    "avgTimeToFill": "Avg. Time to Fill",
+    "vsBenchmark": "vs est. avg",
+    "onBenchmark": "On est. avg",
+    "activeRoles": "Active Roles",
+    "title": "Your Hiring Metrics"
+  },
+  "automations": {
+    "bookingCreated": "When a meeting is booked",
+    "bookingCancelled": "When a meeting is cancelled",
+    "bookingRescheduled": "When a meeting is rescheduled",
+    "reminder": "Before meeting",
+    "bookingCompleted": "When a meeting ends",
+    "autoMatch": "AI matches candidates with 85%+ score to your roles",
+    "clubSync": "Club Sync",
+    "slaMonitoring": "SLA breach alerts sent when response times exceed targets",
+    "slaAlerts": "SLA Monitoring",
+    "dailyBriefing": "Daily pipeline briefing generated every morning",
+    "briefing": "Daily Briefing",
+    "platformAutomations": "Platform Automations",
+    "active": "Active",
+    "customWorkflows": "Custom Workflows",
+    "workflow": "workflow"
+  },
+  "offersDashboard": {
+    "unknownCandidate": "Unknown Candidate",
+    "unknownRole": "Unknown Role",
+    "pending": "Pending",
+    "accepted": "Accepted",
+    "declined": "Declined",
+    "negotiating": "Negotiating",
+    "pendingOffers": "Pending Offers",
+    "acceptedOffers": "Accepted",
+    "declinedOffers": "Declined",
+    "errorTitle": "Unable to load offers",
+    "errorDesc": "There was an issue loading your offers. Please try again later.",
+    "noOffers": "No offers yet",
+    "noOffersDesc": "When candidates reach the offer stage, they will appear here.",
+    "today": "Today"
+  },
+  "welcomeCeremony": {
+    "slaGuarantee": "48h Candidate Shortlist SLA",
+    "dedicatedStrategist": "Dedicated Talent Strategist",
+    "prioritySourcing": "Priority AI-Powered Sourcing",
+    "exclusiveMember": "Exclusive Member",
+    "yourStrategist": "Your Talent Strategist",
+    "yourCompany": "Your Organization",
+    "exclusiveBenefits": "Your Exclusive Benefits",
+    "readyMessage": "Your exclusive partner portal is ready. Everything you need to hire world-class talent, in one place.",
+    "agreements": {
+      "title": "Partner Agreements",
+      "dpaLabel": "I have read and accept the",
+      "dpaLink": "Data Processing Agreement",
+      "termsLabel": "I agree to the",
+      "termsLink": "Terms of Service",
+      "and": "and",
+      "privacyLink": "Privacy Policy",
+      "note": "As a partner processing personal data on our platform, you are required to accept these agreements.",
+      "reminder": "Please accept both agreements to continue."
+    },
+    "enterPortal": "Enter Your Portal"
   }
 }

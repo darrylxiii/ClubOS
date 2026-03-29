@@ -29,7 +29,7 @@ export const DashboardWidget = ({
   headerAction,
 }: DashboardWidgetProps) => {
   const { t } = useTranslation('common');
-  const resolvedEmptyMessage = emptyMessage || t('dashboard.noDataAvailable', 'No data available');
+  const resolvedEmptyMessage = emptyMessage || t('dashboardSection.noDataAvailable', 'No data available');
   if (isLoading) {
     return (
       <Card className={cn("h-full flex flex-col", className)}>

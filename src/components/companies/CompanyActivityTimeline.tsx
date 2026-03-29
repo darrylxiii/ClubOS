@@ -96,6 +96,7 @@ function ActivityEventCard({ event }: { event: CompanyActivityEvent }) {
 }
 
 export function CompanyActivityTimeline({ companyId }: CompanyActivityTimelineProps) {
+  const { t } = useTranslation('common');
   const { events, isLoading, error, hasMore, loadMore } = useCompanyActivity({ 
     companyId,
     limit: 20

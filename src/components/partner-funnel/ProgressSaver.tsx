@@ -62,6 +62,7 @@ const { t } = useTranslation('common');
  * Minimal cloud sync indicator
  */
 export function CloudSyncIndicator({ isSynced }: { isSynced: boolean }) {
+  const { t } = useTranslation('common');
   return (
     <div className="flex items-center gap-1 text-xs text-muted-foreground">
       {isSynced ? (

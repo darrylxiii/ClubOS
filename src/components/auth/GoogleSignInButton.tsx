@@ -25,7 +25,7 @@ export function GoogleSignInButton({ className }: { className?: string }) {
 
       if (error) throw error;
     } catch (err: any) {
-      toast.error(err.message || t("notifications.error"));
+      toast.error(err.message || t("notificationsSection.error"));
     }
   };
 

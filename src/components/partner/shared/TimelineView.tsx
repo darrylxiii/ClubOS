@@ -83,7 +83,7 @@ export function TimelineView({
   if (items.length === 0) {
     return (
       <div className={cn('text-center py-8 text-sm text-muted-foreground', className)}>
-        {emptyMessage || t('timeline.empty', 'No activity yet')}
+        {emptyMessage || t('timelineSection.empty', 'No activity yet')}
       </div>
     );
   }
@@ -100,7 +100,7 @@ export function TimelineView({
             className="h-7 text-xs"
             onClick={() => setActiveFilter(null)}
           >
-            {t('timeline.all', 'All')}
+            {t('timelineSection.all', 'All')}
           </Button>
           {filterCategories.map(cat => (
             <Button
@@ -190,7 +190,7 @@ export function TimelineView({
           className="w-full text-xs text-muted-foreground"
           onClick={() => setShowAll(true)}
         >
-          {t('timeline.showMore', 'Show {{count}} more', { count: filteredItems.length - maxVisible })}
+          {t('timelineSection.showMore', 'Show {{count}} more', { count: filteredItems.length - maxVisible })}
         </Button>
       )}
     </div>

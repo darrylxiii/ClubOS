@@ -185,40 +185,40 @@ export const ProfileHeaderUpload = ({
             {currentMediaUrl ? (
               <>
                 <ImagePlus className="w-4 h-4" />
-                {t('profile.changeHeader')}
+                {t('profileSection.changeHeader')}
               </>
             ) : (
               <>
                 <Upload className="w-4 h-4" />
-                {t('profile.addHeader')}
+                {t('profileSection.addHeader')}
               </>
             )}
           </Button>
         </DialogTrigger>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>{t('profile.profileHeaderWallpaper')}</DialogTitle>
+            <DialogTitle>{t('profileSection.profileHeaderWallpaper')}</DialogTitle>
             <DialogDescription>
-              {t('profile.headerUploadDesc')}
+              {t('profileSection.headerUploadDesc')}
             </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label>{t('profile.mediaType')}</Label>
+              <Label>{t('profileSection.mediaType')}</Label>
               <RadioGroup value={mediaType} onValueChange={(v) => setMediaType(v as "image" | "video")}>
                 <div className="flex items-center space-x-2">
                   <RadioGroupItem value="image" id="image" />
                   <Label htmlFor="image" className="flex items-center gap-2 cursor-pointer">
                     <ImagePlus className="w-4 h-4" />
-                    {t('profile.imageMaxSize')}
+                    {t('profileSection.imageMaxSize')}
                   </Label>
                 </div>
                 <div className="flex items-center space-x-2">
                   <RadioGroupItem value="video" id="video" />
                   <Label htmlFor="video" className="flex items-center gap-2 cursor-pointer">
                     <Video className="w-4 h-4" />
-                    {t('profile.videoMaxSize')}
+                    {t('profileSection.videoMaxSize')}
                   </Label>
                 </div>
               </RadioGroup>
@@ -249,7 +249,7 @@ export const ProfileHeaderUpload = ({
                   ) : (
                     <>
                       <Upload className="w-4 h-4 mr-2" />
-                      {t('profile.chooseMedia', { type: mediaType === "image" ? t('profile.image') : t('profile.video') })}
+                      {t('profileSection.chooseMedia', { type: mediaType === "image" ? t('profileSection.image') : t('profileSection.video') })}
                     </>
                   )}
                 </Button>
@@ -271,7 +271,7 @@ export const ProfileHeaderUpload = ({
                 ) : (
                   <>
                     <Trash2 className="w-4 h-4 mr-2" />
-                    {t('profile.removeHeader')}
+                    {t('profileSection.removeHeader')}
                   </>
                 )}
               </Button>

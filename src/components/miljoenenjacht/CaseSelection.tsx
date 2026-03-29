@@ -27,8 +27,8 @@ export const CaseSelection = memo(({ onSelectCase }: CaseSelectionProps) => {
     <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-background via-background/95 to-primary/5">
       <div className="max-w-6xl w-full space-y-8">
         <div className="text-center space-y-2">
-          <h2 className="text-3xl md:text-4xl font-bold">{t('miljoenenjacht.chooseYourBriefcase')}</h2>
-          <p className="text-lg text-muted-foreground">{t('miljoenenjacht.thisCaseIsYoursItWillBeRevealedAtTheEn')}</p>
+          <h2 className="text-3xl md:text-4xl font-bold">{t('miljoenenjachtSection.chooseYourBriefcase')}</h2>
+          <p className="text-lg text-muted-foreground">{t('miljoenenjachtSection.thisCaseIsYoursItWillBeRevealedAtTheEn')}</p>
         </div>
 
         <div className="grid grid-cols-4 md:grid-cols-6 lg:grid-cols-7 gap-3 md:gap-4">

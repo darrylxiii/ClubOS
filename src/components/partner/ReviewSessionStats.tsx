@@ -40,7 +40,7 @@ export function ReviewSessionStats({
     )}>
       <span className="flex items-center gap-1">
         <Zap className="h-3 w-3 text-primary" />
-        <span className="font-medium text-foreground">{totalReviewed}</span> {t('partner.reviewed', 'reviewed')}
+        <span className="font-medium text-foreground">{totalReviewed}</span> {t('partnerSection.reviewed', 'reviewed')}
       </span>
 
       {approvedCount > 0 && (
@@ -67,13 +67,13 @@ export function ReviewSessionStats({
       {avgTimePerReview && (
         <span className="flex items-center gap-1">
           <Clock className="h-3 w-3" />
-          {t('partner.avgTime', 'avg')} {avgTimePerReview}
+          {t('partnerSection.avgTime', 'avg')} {avgTimePerReview}
         </span>
       )}
 
       {totalInQueue > 0 && (
         <span className="ml-auto text-muted-foreground/70">
-          {t('partner.remainingCount', '{{count}} remaining', { count: totalInQueue - totalReviewed })}
+          {t('partnerSection.remainingCount', '{{count}} remaining', { count: totalInQueue - totalReviewed })}
         </span>
       )}
     </div>

@@ -478,5 +478,17 @@
     "noPendingTasks": "No pending tasks.",
     "noTasksInProgress": "No tasks in progress.",
     "noCompletedTasks": "No completed tasks."
-  }
+  },
+  "map": {
+    "title": "Title",
+    "subtitle": "Subtitle"
+  },
+  "full_name": "Full_Name",
+  "a": "A",
+  "user_id": "User_Id",
+  "id": "Id",
+  "name": "Name",
+  "tab": "Tab",
+  "job_id": "Job_Id",
+  "role": "Role"
 }

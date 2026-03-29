@@ -117,6 +117,7 @@ const circuitStateConfig = {
 };
 
 export function SLAStatusPanel() {
+  const { t } = useTranslation('common');
   const { data, isLoading, error } = useSLADashboard();
 
   if (isLoading) {
@@ -324,6 +325,7 @@ export function SLAStatusPanel() {
 
 // Compact version for the executive summary bar
 export function SLAStatusBadge() {
+  const { t } = useTranslation('common');
   const { data, isLoading } = useSLADashboard();
 
   if (isLoading || !data) {

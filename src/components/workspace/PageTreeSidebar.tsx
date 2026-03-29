@@ -164,6 +164,7 @@ interface PageTreeSidebarProps {
 }
 
 export function PageTreeSidebar({ selectedPageId }: PageTreeSidebarProps) {
+  const { t } = useTranslation('common');
   const navigate = useNavigate();
   const { 
     pageTree, 

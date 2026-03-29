@@ -50,7 +50,6 @@ interface DiagnosticsResult {
  * Returns the session or throws an error with redirect flag
  */
 async function ensureValidSession(navigate: ReturnType<typeof useNavigate>) {
-  const { t } = useTranslation('common');
   const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
   
   if (sessionError) {
@@ -67,8 +66,8 @@ async function ensureValidSession(navigate: ReturnType<typeof useNavigate>) {
       console.error('[WhatsApp] Refresh failed:', refreshError);
       // Auto-redirect on expired session
       notify.error('Session expired', {
-        description: t('whatsapp.whatsappsettingstab.redirectingToSignIn', 'Redirecting to sign in...'),
-        action: { label: t('whatsapp.whatsappsettingstab.signInNow', 'Sign In Now'), onClick: () => navigate('/auth') }
+        description: 'Redirecting to sign in...',
+        action: { label: 'Sign In Now', onClick: () => navigate('/auth') }
       });
       setTimeout(() => navigate('/auth'), 2000);
       throw new Error('SESSION_EXPIRED_REDIRECT');
@@ -115,7 +114,7 @@ function parseEdgeFunctionError(error: unknown): { message: string; code?: strin
   // Handle FunctionsFetchError (network/CORS issues)
   if (error instanceof FunctionsFetchError) {
     return {
-      message: t('whatsapp.whatsappsettingstab.networkErrorConnectingToBackend', 'Network error connecting to backend'),
+      message: 'Network error connecting to backend',
       code: 'NETWORK_ERROR',
       action: 'Check your internet connection, disable ad blockers, or try refreshing the page',
     };
@@ -126,7 +125,7 @@ function parseEdgeFunctionError(error: unknown): { message: string; code?: strin
     // Check for session errors we threw
     if (error.message === 'SESSION_EXPIRED' || error.message === 'SESSION_ERROR') {
       return {
-        message: t('whatsapp.whatsappsettingstab.sessionExpired', 'Session expired'),
+        message: 'Session expired',
         code: 'SESSION_EXPIRED',
         action: 'Please sign in again',
       };
@@ -145,9 +144,10 @@ function parseEdgeFunctionError(error: unknown): { message: string; code?: strin
     }
   }
   
-  return { message: t('whatsapp.whatsappsettingstab.anUnexpectedErrorOccurred', 'An unexpected error occurred') };
+  return { message: 'An unexpected error occurred' };
 }
 export function WhatsAppSettingsTab() {
+  const { t } = useTranslation('common');
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const [isSyncing, setIsSyncing] = useState(false);
@@ -189,7 +189,7 @@ export function WhatsAppSettingsTab() {
   async function handleRefreshSession() {
     const { data, error } = await supabase.auth.refreshSession();
     if (error || !data.session) {
-      notify.error('Could not refresh session', { description: t('whatsapp.whatsappsettingstab.pleaseSignInAgain', 'Please sign in again.') });
+      notify.error('Could not refresh session', { description: t('whatsappSection.whatsappsettingstab.pleaseSignInAgain', 'Please sign in again.') });
       navigate('/auth');
     } else {
       setSessionStatus('valid');
@@ -375,9 +375,9 @@ export function WhatsAppSettingsTab() {
       
       if (parsed.code === 'SESSION_EXPIRED' || parsed.code === 'AUTH_REQUIRED' || parsed.code === 'AUTH_ERROR') {
         notify.error('Session expired', {
-          description: t('whatsapp.whatsappsettingstab.pleaseSignInAgainToContinue', 'Please sign in again to continue'),
+          description: t('whatsappSection.whatsappsettingstab.pleaseSignInAgainToContinue', 'Please sign in again to continue'),
           action: {
-            label: t('whatsapp.whatsappsettingstab.signIn', 'Sign In'),
+            label: t('whatsappSection.whatsappsettingstab.signIn', 'Sign In'),
             onClick: () => window.location.href = '/auth'
           }
         });
@@ -416,7 +416,7 @@ export function WhatsAppSettingsTab() {
       
       if (parsed.code === 'SESSION_EXPIRED' || parsed.code === 'AUTH_REQUIRED') {
         notify.error('Session expired', {
-          description: t('whatsapp.whatsappsettingstab.pleaseSignInAgain1', 'Please sign in again')
+          description: t('whatsappSection.whatsappsettingstab.pleaseSignInAgain1', 'Please sign in again')
         });
       } else {
         notify.error(parsed.message);
@@ -479,7 +479,7 @@ export function WhatsAppSettingsTab() {
             OK
           </Badge>
         ) : check.skipped ? (
-          <Badge variant="outline" className="bg-muted text-muted-foreground">{t('whatsapp.whatsappsettingstab.skipped', 'Skipped')}</Badge>
+          <Badge variant="outline" className="bg-muted text-muted-foreground">{t('whatsappSection.whatsappsettingstab.skipped', 'Skipped')}</Badge>
         ) : (
           <Badge variant="outline" className="bg-red-500/10 text-red-600 border-red-500/20">
             <XCircle className="w-3 h-3 mr-1" />
@@ -531,7 +531,7 @@ export function WhatsAppSettingsTab() {
             : 'bg-muted text-muted-foreground border-border'
         }`}>
           {isConnected ? <Wifi className="w-4 h-4" /> : <WifiOff className="w-4 h-4" />}
-          {isConnected ? t('whatsapp.whatsappsettingstab.connected', 'Connected') : t('whatsapp.whatsappsettingstab.notConnected', 'Not Connected')}
+          {isConnected ? t('whatsappSection.whatsappsettingstab.connected', 'Connected') : t('whatsappSection.whatsappsettingstab.notConnected', 'Not Connected')}
         </div>
       </div>
 
@@ -569,7 +569,7 @@ export function WhatsAppSettingsTab() {
                   <Activity className="h-5 w-5 text-primary" />
                   Activate WhatsApp Business
                 </CardTitle>
-                <CardDescription>{t('whatsapp.whatsappsettingstab.connectYourWhatsappBusinessApiTo', 'Connect your WhatsApp Business API to start messaging candidates')}</CardDescription>
+                <CardDescription>{t('whatsappSection.whatsappsettingstab.connectYourWhatsappBusinessApiTo', 'Connect your WhatsApp Business API to start messaging candidates')}</CardDescription>
               </CardHeader>
               <CardContent>
                 <Button 
@@ -590,7 +590,7 @@ export function WhatsAppSettingsTab() {
                     </>
                   )}
                 </Button>
-                <p className="text-xs text-muted-foreground mt-3">{t('whatsapp.whatsappsettingstab.requiresWhatsappaccesstokenWhatsappphonenumberidAn', 'Requires WHATSAPP_ACCESS_TOKEN, WHATSAPP_PHONE_NUMBER_ID, and WHATSAPP_BUSINESS_ACCOUNT_ID in backend secrets')}</p>
+                <p className="text-xs text-muted-foreground mt-3">{t('whatsappSection.whatsappsettingstab.requiresWhatsappaccesstokenWhatsappphonenumberidAn', 'Requires WHATSAPP_ACCESS_TOKEN, WHATSAPP_PHONE_NUMBER_ID, and WHATSAPP_BUSINESS_ACCOUNT_ID in backend secrets')}</p>
               </CardContent>
             </Card>
           )}
@@ -718,7 +718,7 @@ export function WhatsAppSettingsTab() {
                   </div>
                 ))}
                 {(!templates || templates.length === 0) && (
-                  <p className="text-center text-muted-foreground py-8">{t('whatsapp.whatsappsettingstab.noTemplatesFoundClickSyncTemplates', 'No templates found. Click "Sync Templates" to fetch from WhatsApp.')}</p>
+                  <p className="text-center text-muted-foreground py-8">{t('whatsappSection.whatsappsettingstab.noTemplatesFoundClickSyncTemplates', 'No templates found. Click "Sync Templates" to fetch from WhatsApp.')}</p>
                 )}
               </div>
             </CardContent>
@@ -733,7 +733,7 @@ export function WhatsAppSettingsTab() {
                 <Globe className="h-5 w-5" />
                 Webhook Configuration
               </CardTitle>
-              <CardDescription>{t('whatsapp.whatsappsettingstab.configureTheseSettingsInMetaBusiness', 'Configure these settings in Meta Business Suite')}</CardDescription>
+              <CardDescription>{t('whatsappSection.whatsappsettingstab.configureTheseSettingsInMetaBusiness', 'Configure these settings in Meta Business Suite')}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
@@ -779,34 +779,34 @@ export function WhatsAppSettingsTab() {
                 <Key className="h-5 w-5" />
                 API Credentials
               </CardTitle>
-              <CardDescription>{t('whatsapp.whatsappsettingstab.requiredSecretsForWhatsappBusinessApi', 'Required secrets for WhatsApp Business API')}</CardDescription>
+              <CardDescription>{t('whatsappSection.whatsappsettingstab.requiredSecretsForWhatsappBusinessApi', 'Required secrets for WhatsApp Business API')}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-3">
                 <div className="flex items-center justify-between p-3 rounded-lg border">
                   <div>
-                    <p className="font-medium">{t('whatsapp.whatsappsettingstab.whatsappaccesstoken', 'WHATSAPP_ACCESS_TOKEN')}</p>
+                    <p className="font-medium">{t('whatsappSection.whatsappsettingstab.whatsappaccesstoken', 'WHATSAPP_ACCESS_TOKEN')}</p>
                     <p className="text-sm text-muted-foreground">{"Permanent access token from Meta"}</p>
                   </div>
                   <Badge variant="outline">{"Required"}</Badge>
                 </div>
                 <div className="flex items-center justify-between p-3 rounded-lg border">
                   <div>
-                    <p className="font-medium">{t('whatsapp.whatsappsettingstab.whatsappphonenumberid', 'WHATSAPP_PHONE_NUMBER_ID')}</p>
+                    <p className="font-medium">{t('whatsappSection.whatsappsettingstab.whatsappphonenumberid', 'WHATSAPP_PHONE_NUMBER_ID')}</p>
                     <p className="text-sm text-muted-foreground">{"Phone number ID from WhatsApp Business"}</p>
                   </div>
                   <Badge variant="outline">{"Required"}</Badge>
                 </div>
                 <div className="flex items-center justify-between p-3 rounded-lg border">
                   <div>
-                    <p className="font-medium">{t('whatsapp.whatsappsettingstab.whatsappbusinessaccountid', 'WHATSAPP_BUSINESS_ACCOUNT_ID')}</p>
+                    <p className="font-medium">{t('whatsappSection.whatsappsettingstab.whatsappbusinessaccountid', 'WHATSAPP_BUSINESS_ACCOUNT_ID')}</p>
                     <p className="text-sm text-muted-foreground">{"Business account ID from Meta"}</p>
                   </div>
                   <Badge variant="outline">{"Required"}</Badge>
                 </div>
                 <div className="flex items-center justify-between p-3 rounded-lg border">
                   <div>
-                    <p className="font-medium">{t('whatsapp.whatsappsettingstab.whatsappwebhookverifytoken', 'WHATSAPP_WEBHOOK_VERIFY_TOKEN')}</p>
+                    <p className="font-medium">{t('whatsappSection.whatsappsettingstab.whatsappwebhookverifytoken', 'WHATSAPP_WEBHOOK_VERIFY_TOKEN')}</p>
                     <p className="text-sm text-muted-foreground">{"Custom token for webhook verification"}</p>
                   </div>
                   <Badge variant="secondary">{"Optional"}</Badge>
@@ -834,7 +834,7 @@ export function WhatsAppSettingsTab() {
                 <Wifi className="h-5 w-5" />
                 Connectivity Probe
               </CardTitle>
-              <CardDescription>{t('whatsapp.whatsappsettingstab.testRawNetworkConnectivityBeforeRunning', 'Test raw network connectivity before running full diagnostics')}</CardDescription>
+              <CardDescription>{t('whatsappSection.whatsappsettingstab.testRawNetworkConnectivityBeforeRunning', 'Test raw network connectivity before running full diagnostics')}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <Button 
@@ -909,7 +909,7 @@ export function WhatsAppSettingsTab() {
                 <Stethoscope className="h-5 w-5" />
                 Connection Diagnostics
               </CardTitle>
-              <CardDescription>{t('whatsapp.whatsappsettingstab.runHealthChecksToDiagnoseConnection', 'Run health checks to diagnose connection issues')}</CardDescription>
+              <CardDescription>{t('whatsappSection.whatsappsettingstab.runHealthChecksToDiagnoseConnection', 'Run health checks to diagnose connection issues')}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <Button 
@@ -946,7 +946,7 @@ export function WhatsAppSettingsTab() {
                       )}
                       <span className="font-medium">
                         {diagnosticsResult.overall_status === 'healthy' 
-                          ? t('whatsapp.whatsappsettingstab.allSystemsOperational', 'All systems operational') : t('whatsapp.whatsappsettingstab.issuesFound', 'Issues found')}
+                          ? t('whatsappSection.whatsappsettingstab.allSystemsOperational', 'All systems operational') : t('whatsappSection.whatsappsettingstab.issuesFound', 'Issues found')}
                       </span>
                     </div>
                     <p className="text-xs text-muted-foreground mt-1">

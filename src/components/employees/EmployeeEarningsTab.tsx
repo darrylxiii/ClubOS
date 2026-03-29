@@ -113,12 +113,12 @@ export function EmployeeEarningsTab({ employeeId, userId }: EmployeeEarningsTabP
           <CardContent className="p-4">
             <div className="flex items-center gap-2 text-xs text-muted-foreground mb-1">
               <Wallet className="w-3.5 h-3.5" />
-              {t('employees.totalEarnings')}
+              {t('employeesSection.totalEarnings')}
             </div>
             <div className="text-2xl font-bold">{formatCurrency(aggregated.totalEarnings)}</div>
             <div className="flex gap-2 mt-1 text-xs">
-              <span className="text-green-500">{t('employees.paid')}: {formatCurrency(aggregated.totalPaid)}</span>
-              <span className="text-yellow-500">{t('employees.pending')}: {formatCurrency(aggregated.totalPending)}</span>
+              <span className="text-green-500">{t('employeesSection.paid')}: {formatCurrency(aggregated.totalPaid)}</span>
+              <span className="text-yellow-500">{t('employeesSection.pending')}: {formatCurrency(aggregated.totalPending)}</span>
             </div>
           </CardContent>
         </Card>
@@ -127,7 +127,7 @@ export function EmployeeEarningsTab({ employeeId, userId }: EmployeeEarningsTabP
           <CardContent className="p-4">
             <div className="flex items-center gap-2 text-xs text-muted-foreground mb-1">
               <DollarSign className="w-3.5 h-3.5" />
-              {t('employees.commissions')}
+              {t('employeesSection.commissions')}
             </div>
             <div className="text-2xl font-bold">{formatCurrency(aggregated.commissions.total)}</div>
             <div className="text-xs text-muted-foreground mt-1">
@@ -141,11 +141,11 @@ export function EmployeeEarningsTab({ employeeId, userId }: EmployeeEarningsTabP
             <CardContent className="p-4">
               <div className="flex items-center gap-2 text-xs text-muted-foreground mb-1">
                 <Percent className="w-3.5 h-3.5" />
-                {t('employees.revenueShares')}
+                {t('employeesSection.revenueShares')}
               </div>
               <div className="text-2xl font-bold">{formatCurrency(aggregated.shareEarnings.projected)}</div>
               <div className="text-xs text-green-500 mt-1">
-                {t('employees.realized')}: {formatCurrency(aggregated.shareEarnings.realized)}
+                {t('employeesSection.realized')}: {formatCurrency(aggregated.shareEarnings.realized)}
               </div>
             </CardContent>
           </Card>
@@ -155,7 +155,7 @@ export function EmployeeEarningsTab({ employeeId, userId }: EmployeeEarningsTabP
           <CardContent className="p-4">
             <div className="flex items-center gap-2 text-xs text-muted-foreground mb-1">
               <Gift className="w-3.5 h-3.5" />
-              {t('employees.referralPayouts')}
+              {t('employeesSection.referralPayouts')}
             </div>
             <div className="text-2xl font-bold">{formatCurrency(aggregated.referralPayouts.total)}</div>
             <div className="text-xs text-muted-foreground mt-1">
@@ -171,7 +171,7 @@ export function EmployeeEarningsTab({ employeeId, userId }: EmployeeEarningsTabP
           <CardHeader className="py-3">
             <CardTitle className="text-sm flex items-center gap-2">
               <TrendingUp className="w-4 h-4" />
-              {t('employees.monthlyEarnings')}
+              {t('employeesSection.monthlyEarnings')}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -187,7 +187,7 @@ export function EmployeeEarningsTab({ employeeId, userId }: EmployeeEarningsTabP
                   }}
                 />
                 <recharts.YAxis tick={{ fontSize: 11 }} tickFormatter={(v: number) => `€${(v / 1000).toFixed(0)}k`} />
-                <recharts.Tooltip formatter={(value: number) => [formatCurrency(value), t('employees.earnings')]} />
+                <recharts.Tooltip formatter={(value: number) => [formatCurrency(value), t('employeesSection.earnings')]} />
                 <recharts.Bar dataKey="amount" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
               </recharts.BarChart>
             </recharts.ResponsiveContainer>
@@ -200,14 +200,14 @@ export function EmployeeEarningsTab({ employeeId, userId }: EmployeeEarningsTabP
         <CardHeader className="py-3">
           <CardTitle className="text-sm flex items-center gap-2">
             <DollarSign className="w-4 h-4" />
-            {t('employees.commissionHistory')}
+            {t('employeesSection.commissionHistory')}
           </CardTitle>
         </CardHeader>
         <CardContent className="p-0">
           <ScrollArea className="h-[300px]">
             <div className="p-4 space-y-2">
               {commissions.length === 0 ? (
-                <div className="text-center py-8 text-muted-foreground text-sm">{t('employees.noCommissionsRecorded')}</div>
+                <div className="text-center py-8 text-muted-foreground text-sm">{t('employeesSection.noCommissionsRecorded')}</div>
               ) : (
                 commissions.map((c: any) => (
                   <div key={c.id} className="flex items-center justify-between p-3 rounded-lg bg-muted/10 hover:bg-muted/20 transition-colors">

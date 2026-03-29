@@ -386,7 +386,7 @@ const Miljoenenjacht = memo(() => {
           <div className="lg:col-span-1 space-y-4">
             <Card>
               <CardContent className="p-4">
-                <h3 className="font-semibold mb-4 text-center">{t('miljoenenjacht.title')}</h3>
+                <h3 className="font-semibold mb-4 text-center">{t('miljoenenjachtSection.title')}</h3>
                 <GameBoard
                   cases={gameState.cases}
                   playerCase={gameState.playerCase || 0}

@@ -36,6 +36,7 @@ const getSignalConfig = (type: string) => {
 };
 
 export default function IntelligenceFeedView() {
+  const { t } = useTranslation('common');
   const [signals, setSignals] = useState<PredictiveSignal[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<string | null>(null);

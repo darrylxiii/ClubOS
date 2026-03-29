@@ -260,7 +260,7 @@ export function PreJoinPreview({
               <div className="absolute inset-0 flex flex-col items-center justify-center p-4 text-center">
                 <AlertTriangle className="h-12 w-12 text-destructive mb-4" />
                 <p className="text-sm text-muted-foreground">{permissionError}</p>
-                <Button variant="outline" className="mt-4" onClick={initializeMedia}>{t('meetings.prejoinpreview.tryAgain', 'Try Again')}</Button>
+                <Button variant="outline" className="mt-4" onClick={initializeMedia}>{t('meetingsSection.prejoinpreview.tryAgain', 'Try Again')}</Button>
               </div>
             ) : (
               <>
@@ -317,7 +317,7 @@ export function PreJoinPreview({
               disabled={isLoading || !!permissionError}
             >
               {isAudioEnabled ? <Mic className="h-5 w-5" /> : <MicOff className="h-5 w-5" />}
-              {isAudioEnabled ? t('meetings.prejoinpreview.mute', 'Mute') : t('meetings.prejoinpreview.unmute', 'Unmute')}
+              {isAudioEnabled ? t('meetingsSection.prejoinpreview.mute', 'Mute') : t('meetingsSection.prejoinpreview.unmute', 'Unmute')}
             </Button>
             
             <Button
@@ -328,7 +328,7 @@ export function PreJoinPreview({
               disabled={isLoading || !!permissionError}
             >
               {isVideoEnabled ? <Video className="h-5 w-5" /> : <VideoOff className="h-5 w-5" />}
-              {isVideoEnabled ? t('meetings.prejoinpreview.stopVideo', 'Stop Video') : t('meetings.prejoinpreview.startVideo', 'Start Video')}
+              {isVideoEnabled ? t('meetingsSection.prejoinpreview.stopVideo', 'Stop Video') : t('meetingsSection.prejoinpreview.startVideo', 'Start Video')}
             </Button>
             
             <Button

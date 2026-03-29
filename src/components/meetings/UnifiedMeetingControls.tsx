@@ -113,7 +113,7 @@ export function UnifiedMeetingControls({
             </Button>
           </TooltipTrigger>
           <TooltipContent>
-            {isMuted ? t('meetings.unifiedmeetingcontrols.unmute', 'Unmute') : t('meetings.unifiedmeetingcontrols.mute', 'Mute')}
+            {isMuted ? t('meetingsSection.unifiedmeetingcontrols.unmute', 'Unmute') : t('meetingsSection.unifiedmeetingcontrols.mute', 'Mute')}
           </TooltipContent>
         </Tooltip>
 
@@ -130,7 +130,7 @@ export function UnifiedMeetingControls({
             </Button>
           </TooltipTrigger>
           <TooltipContent>
-            {isVideoOn ? t('meetings.unifiedmeetingcontrols.turnOffCamera', 'Turn off camera') : t('meetings.unifiedmeetingcontrols.turnOnCamera', 'Turn on camera')}
+            {isVideoOn ? t('meetingsSection.unifiedmeetingcontrols.turnOffCamera', 'Turn off camera') : t('meetingsSection.unifiedmeetingcontrols.turnOnCamera', 'Turn on camera')}
           </TooltipContent>
         </Tooltip>
 
@@ -147,7 +147,7 @@ export function UnifiedMeetingControls({
             </Button>
           </TooltipTrigger>
           <TooltipContent>
-            {isScreenSharing ? t('meetings.unifiedmeetingcontrols.stopSharing', 'Stop sharing') : t('meetings.unifiedmeetingcontrols.shareScreen', 'Share screen')}
+            {isScreenSharing ? t('meetingsSection.unifiedmeetingcontrols.stopSharing', 'Stop sharing') : t('meetingsSection.unifiedmeetingcontrols.shareScreen', 'Share screen')}
           </TooltipContent>
         </Tooltip>
 
@@ -182,7 +182,7 @@ export function UnifiedMeetingControls({
             </Button>
           </TooltipTrigger>
           <TooltipContent>
-            {handRaised ? t('meetings.unifiedmeetingcontrols.lowerHand', 'Lower hand') : t('meetings.unifiedmeetingcontrols.raiseHand', 'Raise hand')}
+            {handRaised ? t('meetingsSection.unifiedmeetingcontrols.lowerHand', 'Lower hand') : t('meetingsSection.unifiedmeetingcontrols.raiseHand', 'Raise hand')}
           </TooltipContent>
         </Tooltip>
 
@@ -258,7 +258,7 @@ export function UnifiedMeetingControls({
             </Button>
           </TooltipTrigger>
           <TooltipContent>
-            {meeting.meetingState.isTranscribing ? t('meetings.unifiedmeetingcontrols.stopTranscription', 'Stop transcription') : t('meetings.unifiedmeetingcontrols.startTranscription', 'Start transcription')}
+            {meeting.meetingState.isTranscribing ? t('meetingsSection.unifiedmeetingcontrols.stopTranscription', 'Stop transcription') : t('meetingsSection.unifiedmeetingcontrols.startTranscription', 'Start transcription')}
           </TooltipContent>
         </Tooltip>
 
@@ -278,7 +278,7 @@ export function UnifiedMeetingControls({
             </Button>
           </TooltipTrigger>
           <TooltipContent>
-            {meeting.meetingState.isRecording ? t('meetings.unifiedmeetingcontrols.stopRecording', 'Stop recording') : t('meetings.unifiedmeetingcontrols.startRecording', 'Start recording')}
+            {meeting.meetingState.isRecording ? t('meetingsSection.unifiedmeetingcontrols.stopRecording', 'Stop recording') : t('meetingsSection.unifiedmeetingcontrols.startRecording', 'Start recording')}
           </TooltipContent>
         </Tooltip>
 

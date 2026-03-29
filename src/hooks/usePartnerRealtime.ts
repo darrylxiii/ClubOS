@@ -4,12 +4,14 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import i18n from '@/i18n/config';
 import { quantumSoundEngine } from '@/lib/sounds/QuantumSoundEngine';
+import { useTranslation } from 'react-i18next';
 
 /**
  * Hook to enable real-time subscriptions for Partner Dashboard
  * Subscribes to partner_smart_alerts, applications, and meetings tables
  */
 export function usePartnerRealtime(companyId: string | undefined) {
+  const { t } = useTranslation('common');
   const queryClient = useQueryClient();
 
   useEffect(() => {

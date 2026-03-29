@@ -91,6 +91,7 @@ function KeyHint({ keyName, action }: { keyName: string; action: string }) {
  * Floating keyboard hint that appears on first visit
  */
 export function KeyboardHintToast({ onDismiss }: { onDismiss: () => void }) {
+  const { t } = useTranslation('common');
   const [visible, setVisible] = useState(true);
 
   useEffect(() => {

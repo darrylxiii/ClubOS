@@ -39,7 +39,6 @@ interface UnifiedStatsBarProps {
 
 // Animated counter component
 function AnimatedNumber({ value, duration = 1000 }: { value: number; duration?: number }) {
-  const { t } = useTranslation('common');
   const [displayValue, setDisplayValue] = useState(0);
   
   useEffect(() => {
@@ -73,6 +72,7 @@ function AnimatedNumber({ value, duration = 1000 }: { value: number; duration?: 
 }
 
 export const UnifiedStatsBar = ({ role, stats, loading = false }: UnifiedStatsBarProps) => {
+  const { t } = useTranslation('common');
   const getStatsConfig = (): StatConfig[] => {
     switch (role) {
       case 'admin':

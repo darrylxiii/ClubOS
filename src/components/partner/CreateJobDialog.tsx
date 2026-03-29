@@ -163,6 +163,7 @@ const { t } = useTranslation('common');
 
 // ── Tag Input Component (Fix 10: comma + paste support) ──────────────
 function TagInput({ tags, onChange, placeholder }: { tags: string[]; onChange: (tags: string[]) => void; placeholder: string }) {
+  const { t } = useTranslation('common');
   const [input, setInput] = useState("");
 
   const addTag = () => {
@@ -277,6 +278,7 @@ function StepIndicator({ currentStep, totalSteps }: { currentStep: number; total
 
 // ── Main Dialog ──────────────────────────────────────────────
 const CreateJobDialogContent = ({ open, onOpenChange, companyId, onJobCreated }: CreateJobDialogProps) => {
+  const { t } = useTranslation('common');
   const { user } = useAuth();
   const { currentRole } = useRole();
   const [currentStep, setCurrentStep] = useState(0);
@@ -451,13 +453,13 @@ const CreateJobDialogContent = ({ open, onOpenChange, companyId, onJobCreated }:
     const errors: FieldError[] = [];
 
     if (step === 0) {
-      if (!formData.company_id) errors.push({ field: 'company_id', message: t('partner.createjobdialog.pleaseSelectACompany', 'Please select a company') });
-      if (!formData.title || formData.title.trim().length < 2) errors.push({ field: 'title', message: t('partner.createjobdialog.titleMustBeAtLeast2', 'Title must be at least 2 characters') });
+      if (!formData.company_id) errors.push({ field: 'company_id', message: t('partnerSection.createjobdialog.pleaseSelectACompany', 'Please select a company') });
+      if (!formData.title || formData.title.trim().length < 2) errors.push({ field: 'title', message: t('partnerSection.createjobdialog.titleMustBeAtLeast2', 'Title must be at least 2 characters') });
     }
 
     if (step === 1) {
       if (formData.location_type !== 'remote' && (!formData.location || formData.location.trim().length < 2)) {
-        errors.push({ field: 'location', message: t('partner.createjobdialog.locationIsRequiredForNonremoteRoles', 'Location is required for non-remote roles') });
+        errors.push({ field: 'location', message: t('partnerSection.createjobdialog.locationIsRequiredForNonremoteRoles', 'Location is required for non-remote roles') });
       }
     }
 
@@ -465,10 +467,10 @@ const CreateJobDialogContent = ({ open, onOpenChange, companyId, onJobCreated }:
       // Fix 4: Salary negative value guard in step validation
       const salaryMin = formData.salary_min ? parseFloat(formData.salary_min) : null;
       const salaryMax = formData.salary_max ? parseFloat(formData.salary_max) : null;
-      if (salaryMin !== null && salaryMin < 0) errors.push({ field: 'salary_min', message: t('partner.createjobdialog.salaryCannotBeNegative', 'Salary cannot be negative') });
-      if (salaryMax !== null && salaryMax < 0) errors.push({ field: 'salary_max', message: t('partner.createjobdialog.salaryCannotBeNegative', 'Salary cannot be negative') });
+      if (salaryMin !== null && salaryMin < 0) errors.push({ field: 'salary_min', message: t('partnerSection.createjobdialog.salaryCannotBeNegative', 'Salary cannot be negative') });
+      if (salaryMax !== null && salaryMax < 0) errors.push({ field: 'salary_max', message: t('partnerSection.createjobdialog.salaryCannotBeNegative', 'Salary cannot be negative') });
       if (salaryMin !== null && salaryMax !== null && salaryMin > salaryMax) {
-        errors.push({ field: 'salary_max', message: t('partner.createjobdialog.minimumSalaryCannotExceedMaximumSalary', 'Minimum salary cannot exceed maximum salary') });
+        errors.push({ field: 'salary_max', message: t('partnerSection.createjobdialog.minimumSalaryCannotExceedMaximumSalary', 'Minimum salary cannot exceed maximum salary') });
       }
     }
 
@@ -761,7 +763,7 @@ const CreateJobDialogContent = ({ open, onOpenChange, companyId, onJobCreated }:
       setSubmitStep("complete");
       clearDraft();
 
-      toast.success(isAutoPublish ? t('partner.createjobdialog.rolePublishedSuccessfully', 'Role published successfully.') : t('partner.createjobdialog.roleSubmittedForReview', 'Role submitted for review.'));
+      toast.success(isAutoPublish ? t('partnerSection.createjobdialog.rolePublishedSuccessfully', 'Role published successfully.') : t('partnerSection.createjobdialog.roleSubmittedForReview', 'Role submitted for review.'));
 
       setTimeout(() => {
         onOpenChange(false);
@@ -772,7 +774,7 @@ const CreateJobDialogContent = ({ open, onOpenChange, companyId, onJobCreated }:
     } catch (error: unknown) {
       console.error('Job creation error:', error);
       setSubmitStep("idle");
-      toast.error(error instanceof Error ? error.message : t('partner.createjobdialog.anUnexpectedErrorOccurred', 'An unexpected error occurred'));
+      toast.error(error instanceof Error ? error.message : t('partnerSection.createjobdialog.anUnexpectedErrorOccurred', 'An unexpected error occurred'));
     }
   };
 
@@ -856,7 +858,7 @@ const CreateJobDialogContent = ({ open, onOpenChange, companyId, onJobCreated }:
 
       {/* Company selector — unlocked for admin/strategist */}
       <div className="space-y-2">
-        <Label className="glass-label">{t('partner.createjobdialog.company', 'Company')} <span className="text-destructive">*</span></Label>
+        <Label className="glass-label">{t('partnerSection.createjobdialog.company', 'Company')} <span className="text-destructive">*</span></Label>
         {!isPartner && companies.length > 5 ? (
           <CompanyCombobox
             companies={companies}
@@ -880,7 +882,7 @@ const CreateJobDialogContent = ({ open, onOpenChange, companyId, onJobCreated }:
 
       {/* Title */}
       <div className="space-y-2">
-        <Label className="glass-label">{t('partner.createjobdialog.jobTitle', 'Job Title')} <span className="text-destructive">*</span></Label>
+        <Label className="glass-label">{t('partnerSection.createjobdialog.jobTitle', 'Job Title')} <span className="text-destructive">*</span></Label>
         <Input
           value={formData.title}
           onChange={(e) => handleInputChange('title', e.target.value)}
@@ -977,7 +979,7 @@ const CreateJobDialogContent = ({ open, onOpenChange, companyId, onJobCreated }:
       {/* Primary Location */}
       {formData.location_type !== 'remote' && (
         <div className="space-y-2">
-          <Label className="glass-label">{t('partner.createjobdialog.primaryLocation', 'Primary Location')} <span className="text-destructive">*</span></Label>
+          <Label className="glass-label">{t('partnerSection.createjobdialog.primaryLocation', 'Primary Location')} <span className="text-destructive">*</span></Label>
           {formData.company_id ? (
             <CompanyOfficeLocationPicker
               companyId={formData.company_id}
@@ -1284,8 +1286,8 @@ const CreateJobDialogContent = ({ open, onOpenChange, companyId, onJobCreated }:
               {/* Admin-only summary rows */}
               {!isPartner && (
                 <>
-                  <SummaryRow label={t("pipeline", "Pipeline")} value={pipelineType === 'continuous' ? t('partner.createjobdialog.continuous', 'Continuous') : t('partner.createjobdialog.standard', 'Standard')} />
-                  <SummaryRow label={t("stealth", "Stealth")} value={isStealthEnabled ? t('partner.createjobdialog.enabled', 'Enabled') : t('partner.createjobdialog.off', 'Off')} />
+                  <SummaryRow label={t("pipeline", "Pipeline")} value={pipelineType === 'continuous' ? t('partnerSection.createjobdialog.continuous', 'Continuous') : t('partnerSection.createjobdialog.standard', 'Standard')} />
+                  <SummaryRow label={t("stealth", "Stealth")} value={isStealthEnabled ? t('partnerSection.createjobdialog.enabled', 'Enabled') : t('partnerSection.createjobdialog.off', 'Off')} />
                   {feeConfig.useOverride && <SummaryRow label={t("fee_override", "Fee Override")} value="Yes" />}
                 </>
               )}
@@ -1314,7 +1316,7 @@ const CreateJobDialogContent = ({ open, onOpenChange, companyId, onJobCreated }:
         {submitStep === "complete" && (
           <div className="flex items-center gap-3 p-4 bg-primary/10 border border-primary/20 rounded-xl">
             <CheckCircle2 className="w-5 h-5 text-primary" />
-            <span className="text-sm font-medium">{isPartner ? t('partner.createjobdialog.roleSubmittedForReview', 'Role submitted for review.') : t('partner.createjobdialog.rolePublishedSuccessfully', 'Role published successfully.')}</span>
+            <span className="text-sm font-medium">{isPartner ? t('partnerSection.createjobdialog.roleSubmittedForReview', 'Role submitted for review.') : t('partnerSection.createjobdialog.rolePublishedSuccessfully', 'Role published successfully.')}</span>
           </div>
         )}
       </div>
@@ -1365,7 +1367,7 @@ const CreateJobDialogContent = ({ open, onOpenChange, companyId, onJobCreated }:
                 {isSubmitting ? (
                   <><Upload className="w-4 h-4 mr-2 animate-pulse" />{t("submitting", "Submitting...")}</>
                 ) : (
-                  isPartner ? t('partner.createjobdialog.submitForReview', 'Submit for Review') : t('partner.createjobdialog.publishRole', 'Publish Role')
+                  isPartner ? t('partnerSection.createjobdialog.submitForReview', 'Submit for Review') : t('partnerSection.createjobdialog.publishRole', 'Publish Role')
                 )}
               </Button>
             )}

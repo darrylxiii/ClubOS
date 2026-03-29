@@ -71,7 +71,7 @@ export const NotificationBell = () => {
             variant="ghost" 
             size="icon" 
             className="relative group rounded-full w-9 h-9 hover:bg-white/10 dark:hover:bg-white/5 transition-all outline-none"
-            aria-label={unreadCount > 0 ? t('notifications.unreadCount', 'Notifications ({{count}} unread)', { count: unreadCount }) : t('notifications.title', 'Notifications')}
+            aria-label={unreadCount > 0 ? t('notificationsSection.unreadCount', 'Notifications ({{count}} unread)', { count: unreadCount }) : t('notificationsSection.title', 'Notifications')}
           >
             <motion.div
               whileHover={{ rotate: [0, -15, 15, -10, 10, -5, 5, 0] }}

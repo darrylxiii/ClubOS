@@ -243,7 +243,7 @@ export function UnifiedEntityTimeline({
   limit = 20,
 }: UnifiedEntityTimelineProps) {
   const { t } = useTranslation('common');
-  const displayTitle = title || t('timeline.activity', 'Activity');
+  const displayTitle = title || t('timelineSection.activity', 'Activity');
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
   const [visibleCount, setVisibleCount] = useState(limit);
   const queryClient = useQueryClient();
@@ -330,13 +330,13 @@ export function UnifiedEntityTimeline({
         <CardContent>
           <div className="text-center py-8 space-y-3">
             <AlertCircle className="w-12 h-12 mx-auto text-destructive opacity-50" />
-            <p className="text-muted-foreground">{t('timeline.failedToLoad', 'Failed to load activity timeline.')}</p>
+            <p className="text-muted-foreground">{t('timelineSection.failedToLoad', 'Failed to load activity timeline.')}</p>
             <Button
               variant="outline"
               size="sm"
               onClick={() => queryClient.invalidateQueries({ queryKey: ["entity-timeline", entityType, entityId] })}
             >
-              {t('timeline.retry', 'Retry')}
+              {t('timelineSection.retry', 'Retry')}
             </Button>
           </div>
         </CardContent>
@@ -356,7 +356,7 @@ export function UnifiedEntityTimeline({
         <CardContent>
           <div className="text-center py-8 space-y-3">
             <Clock className="w-12 h-12 mx-auto text-muted-foreground opacity-50" />
-            <p className="text-muted-foreground">{t('timeline.noActivity', 'No activity recorded yet.')}</p>
+            <p className="text-muted-foreground">{t('timelineSection.noActivity', 'No activity recorded yet.')}</p>
           </div>
         </CardContent>
       </Card>
@@ -372,7 +372,7 @@ export function UnifiedEntityTimeline({
             {displayTitle}
           </CardTitle>
           <Badge variant="secondary" className="text-[10px]">
-            {t('timeline.eventCount', '{{count}} events', { count: events.length })}
+            {t('timelineSection.eventCount', '{{count}} events', { count: events.length })}
           </Badge>
         </div>
       </CardHeader>
@@ -450,7 +450,7 @@ export function UnifiedEntityTimeline({
                         )}
 
                         <p className="text-[10px] text-muted-foreground/60 mt-1">
-                          {t('timeline.via', 'via {{source}}', { source: event.source.replace(/_/g, " ") })}
+                          {t('timelineSection.via', 'via {{source}}', { source: event.source.replace(/_/g, " ") })}
                         </p>
                       </div>
                     </motion.div>
@@ -469,7 +469,7 @@ export function UnifiedEntityTimeline({
               onClick={() => setVisibleCount((v) => v + limit)}
               className="text-xs text-muted-foreground"
             >
-              {t('timeline.loadMore', 'Load more ({{count}} remaining)', { count: events.length - visibleCount })}
+              {t('timelineSection.loadMore', 'Load more ({{count}} remaining)', { count: events.length - visibleCount })}
             </Button>
           </div>
         )}

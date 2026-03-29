@@ -11,6 +11,7 @@ export function TrustBadges() {
 }
 
 export function TrustBadgesMinimal() {
+  const { t } = useTranslation('common');
   return (
     <div className="flex items-center justify-center gap-4 text-xs text-muted-foreground py-2">
       <span>{t("secure", "Secure")}</span>

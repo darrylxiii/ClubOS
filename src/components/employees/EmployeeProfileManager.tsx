@@ -231,6 +231,7 @@ export function EmployeeProfileManager() {
 }
 
 function EmployeeForm({ 
+  const { t } = useTranslation('common');
   employee, 
   onClose,
   allEmployees,

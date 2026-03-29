@@ -15,13 +15,13 @@ export const IntroScreen = memo(({ onStart }: IntroScreenProps) => {
         <CardContent className="p-8 md:p-12 space-y-6">
           <div className="text-center space-y-4">
             <div className="text-6xl md:text-8xl mb-4 animate-pulse">🎁</div>
-            <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">{t('miljoenenjacht.miljoenenjacht')}</h1>
-            <p className="text-xl text-muted-foreground">{t('miljoenenjacht.dealOrNoDealDiscoverYourRiskProfile')}</p>
+            <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">{t('miljoenenjachtSection.miljoenenjacht')}</h1>
+            <p className="text-xl text-muted-foreground">{t('miljoenenjachtSection.dealOrNoDealDiscoverYourRiskProfile')}</p>
           </div>
 
           <div className="space-y-4 text-foreground/90">
             <div className="p-4 rounded-lg bg-primary/5 border border-primary/20">
-              <h3 className="font-semibold mb-2">{t('miljoenenjacht.howItWorks')}</h3>
+              <h3 className="font-semibold mb-2">{t('miljoenenjachtSection.howItWorks')}</h3>
               <ul className="space-y-2 text-sm">
                 <li>• Choose your briefcase - it contains your hidden prize</li>
                 <li>• Open other cases to eliminate amounts from the board</li>
@@ -32,7 +32,7 @@ export const IntroScreen = memo(({ onStart }: IntroScreenProps) => {
             </div>
 
             <div className="p-4 rounded-lg bg-accent/10 border border-accent/20">
-              <h3 className="font-semibold mb-2">{t('miljoenenjacht.whatWellDiscover')}</h3>
+              <h3 className="font-semibold mb-2">{t('miljoenenjachtSection.whatWellDiscover')}</h3>
               <p className="text-sm text-muted-foreground">
                 Through your decisions, we'll analyze your risk tolerance, decision-making style, 
                 emotional regulation under pressure, and match you with ideal career paths based 
@@ -58,7 +58,7 @@ export const IntroScreen = memo(({ onStart }: IntroScreenProps) => {
             onClick={onStart}
             size="lg"
             className="w-full text-lg h-14 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70"
-          >{t('miljoenenjacht.letsPlay ')}</Button>
+          >{t('miljoenenjachtSection.letsPlay ')}</Button>
         </CardContent>
       </Card>
     </div>

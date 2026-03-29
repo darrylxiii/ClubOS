@@ -19,7 +19,7 @@ export const JobSearchBar = memo<JobSearchBarProps>(({
   placeholder,
 }) => {
   const { t } = useTranslation('common');
-  const defaultPlaceholder = placeholder || t('partner.searchJobsPlaceholder', 'Search by job title, company, or location...');
+  const defaultPlaceholder = placeholder || t('partnerSection.searchJobsPlaceholder', 'Search by job title, company, or location...');
   const [localValue, setLocalValue] = useState(value);
   const debouncedValue = useDebounce(localValue, 300);
 
@@ -53,7 +53,7 @@ export const JobSearchBar = memo<JobSearchBarProps>(({
         <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-2">
           {resultsCount !== undefined && (
             <span className="text-sm text-muted-foreground mr-1">
-              {resultsCount === 1 ? t('partner.oneResult', '1 result') : t('partner.resultCount', '{{count}} results', { count: resultsCount })}
+              {resultsCount === 1 ? t('partnerSection.oneResult', '1 result') : t('partnerSection.resultCount', '{{count}} results', { count: resultsCount })}
             </span>
           )}
           <Button

@@ -161,6 +161,7 @@ export function EdgeFunctionRegistryTab() {
 }
 
 function FunctionRow({ fn, onToggle }: { fn: EdgeFunctionEntry; onToggle: (fn: EdgeFunctionEntry, active: boolean) => void }) {
+  const { t } = useTranslation('common');
   const isActive = fn.is_active !== false;
   const errorRate = Number(fn.error_rate) || 0;
   const isCritical = fn.category && CRITICAL_CATEGORIES.includes(fn.category);

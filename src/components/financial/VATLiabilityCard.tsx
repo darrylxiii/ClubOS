@@ -53,30 +53,30 @@ export function VATLiabilityCard({ year, legalEntity }: VATLiabilityCardProps) {
   const vatLabel = isConsolidated ? 'VAT' : config.vatLabel;
   const items = [
     {
-      label: t('financial.netRevenue'),
+      label: t('financialSection.netRevenue'),
       value: formatCurrency(data?.netRevenue || 0),
-      description: isConsolidated ? t('financial.exclMixedVAT') : t('financial.exclVATRate', { rate: config.vatRate, label: config.vatLabel }),
+      description: isConsolidated ? t('financialSection.exclMixedVAT') : t('financialSection.exclVATRate', { rate: config.vatRate, label: config.vatLabel }),
       icon: TrendingUp,
       color: 'text-green-500',
     },
     {
-      label: t('financial.vatCollected', { label: vatLabel }),
+      label: t('financialSection.vatCollected', { label: vatLabel }),
       value: formatCurrency(data?.vatCollectedPaid || 0),
-      description: t('financial.fromPaidInvoices'),
+      description: t('financialSection.fromPaidInvoices'),
       icon: Receipt,
       color: 'text-blue-500',
     },
     {
-      label: t('financial.vatOutstanding', { label: vatLabel }),
+      label: t('financialSection.vatOutstanding', { label: vatLabel }),
       value: formatCurrency(data?.vatCollectedOutstanding || 0),
-      description: t('financial.fromUnpaidInvoices'),
+      description: t('financialSection.fromUnpaidInvoices'),
       icon: Clock,
       color: 'text-amber-500',
     },
     {
-      label: t('financial.totalVATLiability', { label: vatLabel }),
+      label: t('financialSection.totalVATLiability', { label: vatLabel }),
       value: formatCurrency(data?.vatCollected || 0),
-      description: isConsolidated ? t('financial.combinedLiability') : t('financial.owedTo', { authority: config.authority }),
+      description: isConsolidated ? t('financialSection.combinedLiability') : t('financialSection.owedTo', { authority: config.authority }),
       icon: AlertTriangle,
       color: 'text-destructive',
     },
@@ -90,13 +90,13 @@ export function VATLiabilityCard({ year, legalEntity }: VATLiabilityCardProps) {
             <CardTitle className="flex items-center gap-2">
               <Receipt className="h-5 w-5" />
               {isConsolidated
-                ? t('financial.vatPositionAll')
-                : `${config.flag} ${t('financial.vatPosition', { rate: config.vatRate, label: config.vatLabel })}`}
+                ? t('financialSection.vatPositionAll')
+                : `${config.flag} ${t('financialSection.vatPosition', { rate: config.vatRate, label: config.vatLabel })}`}
             </CardTitle>
             <CardDescription>
               {isConsolidated
-                ? t('financial.combinedVATLiabilityFrom', { count: data?.invoiceCount || 0 })
-                : t('financial.vatLiabilityFrom', { label: config.vatLabel, count: data?.invoiceCount || 0 })}
+                ? t('financialSection.combinedVATLiabilityFrom', { count: data?.invoiceCount || 0 })
+                : t('financialSection.vatLiabilityFrom', { label: config.vatLabel, count: data?.invoiceCount || 0 })}
             </CardDescription>
           </div>
           <div className="flex items-center gap-2">
@@ -107,7 +107,7 @@ export function VATLiabilityCard({ year, legalEntity }: VATLiabilityCardProps) {
             )}
             {(!isConsolidated && legalEntity === 'tqc_nl') && (
               <Badge variant="outline" className="text-xs">
-                {t('financial.nextFiling', { quarter: currentQuarter, date: nextFilingDeadline.toLocaleDateString('nl-NL', { month: 'short', day: 'numeric' }) })}
+                {t('financialSection.nextFiling', { quarter: currentQuarter, date: nextFilingDeadline.toLocaleDateString('nl-NL', { month: 'short', day: 'numeric' }) })}
               </Badge>
             )}
           </div>

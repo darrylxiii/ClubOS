@@ -381,8 +381,8 @@ export default function Companies() {
         {/* Header */}
         <div className="flex items-start justify-between gap-4">
           <div className="space-y-2">
-            <h1 className="text-5xl font-black uppercase tracking-tight text-foreground">{t('companies.title')}</h1>
-            <p className="text-lg text-muted-foreground">{t('companies.desc')}</p>
+            <h1 className="text-5xl font-black uppercase tracking-tight text-foreground">{t('companiesSection.title')}</h1>
+            <p className="text-lg text-muted-foreground">{t('companiesSection.desc')}</p>
           </div>
 
           <div className="flex items-center gap-3">
@@ -410,7 +410,7 @@ export default function Companies() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
             <Card className="border-2 hover-scale">
               <CardHeader className="pb-3">
-                <CardDescription className="text-xs uppercase tracking-wide">{t('companies.text2')}</CardDescription>
+                <CardDescription className="text-xs uppercase tracking-wide">{t('companiesSection.text2')}</CardDescription>
                 <CardTitle className="text-4xl font-black">{overallMetrics.active_companies}</CardTitle>
               </CardHeader>
               <CardContent>
@@ -422,14 +422,14 @@ export default function Companies() {
               <>
                 <Card className="border-2 hover-scale">
                   <CardHeader className="pb-3">
-                    <CardDescription className="text-xs uppercase tracking-wide text-amber-600">{t('companies.text3')}</CardDescription>
+                    <CardDescription className="text-xs uppercase tracking-wide text-amber-600">{t('companiesSection.text3')}</CardDescription>
                     <CardTitle className="text-4xl font-black">{overallMetrics.suspended_companies}</CardTitle>
                   </CardHeader>
                 </Card>
 
                 <Card className="border-2 hover-scale">
                   <CardHeader className="pb-3">
-                    <CardDescription className="text-xs uppercase tracking-wide text-muted-foreground">{t('companies.text4')}</CardDescription>
+                    <CardDescription className="text-xs uppercase tracking-wide text-muted-foreground">{t('companiesSection.text4')}</CardDescription>
                     <CardTitle className="text-4xl font-black">{overallMetrics.archived_companies}</CardTitle>
                   </CardHeader>
                 </Card>
@@ -458,7 +458,7 @@ export default function Companies() {
               <>
                 <Card className="border-2 hover-scale">
                   <CardHeader className="pb-3">
-                    <CardDescription className="text-xs uppercase tracking-wide">{t('companies.text5')}</CardDescription>
+                    <CardDescription className="text-xs uppercase tracking-wide">{t('companiesSection.text5')}</CardDescription>
                     <CardTitle className="text-4xl font-black">{overallMetrics.avg_apps_per_company}</CardTitle>
                   </CardHeader>
                   <CardContent>
@@ -471,10 +471,10 @@ export default function Companies() {
                     <CardDescription className="text-xs uppercase tracking-wide flex items-center gap-1">
                       <BarChart3 className="w-3 h-3" /> Activity
                     </CardDescription>
-                    <CardTitle className="text-4xl font-black">{t('companies.text6')}</CardTitle>
+                    <CardTitle className="text-4xl font-black">{t('companiesSection.text6')}</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <p className="text-xs text-muted-foreground">{t('companies.text7')}</p>
+                    <p className="text-xs text-muted-foreground">{t('companiesSection.text7')}</p>
                   </CardContent>
                 </Card>
               </>
@@ -490,7 +490,7 @@ export default function Companies() {
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <Input
                   type="text"
-                  placeholder={t('companies.text8')}
+                  placeholder={t('companiesSection.text8')}
                   value={searchQuery}
                   onChange={e => setSearchQuery(e.target.value)}
                   className="pl-10"
@@ -500,23 +500,23 @@ export default function Companies() {
               {isAdmin && (
                 <Select value={statusFilter} onValueChange={setStatusFilter}>
                   <SelectTrigger>
-                    <SelectValue placeholder={t('companies.text9')} />
+                    <SelectValue placeholder={t('companiesSection.text9')} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">{t('companies.text10')}</SelectItem>
-                    <SelectItem value="active">{t('companies.text11')}</SelectItem>
-                    <SelectItem value="suspended">{t('companies.text12')}</SelectItem>
-                    <SelectItem value="archived">{t('companies.text13')}</SelectItem>
+                    <SelectItem value="all">{t('companiesSection.text10')}</SelectItem>
+                    <SelectItem value="active">{t('companiesSection.text11')}</SelectItem>
+                    <SelectItem value="suspended">{t('companiesSection.text12')}</SelectItem>
+                    <SelectItem value="archived">{t('companiesSection.text13')}</SelectItem>
                   </SelectContent>
                 </Select>
               )}
 
               <Select value={industryFilter} onValueChange={setIndustryFilter}>
                 <SelectTrigger>
-                  <SelectValue placeholder={t('companies.text14')} />
+                  <SelectValue placeholder={t('companiesSection.text14')} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">{t('companies.text15')}</SelectItem>
+                  <SelectItem value="all">{t('companiesSection.text15')}</SelectItem>
                   {industries.map(industry => (
                     <SelectItem key={industry} value={industry!}>{industry}</SelectItem>
                   ))}
@@ -525,14 +525,14 @@ export default function Companies() {
 
               <Select value={sortBy} onValueChange={setSortBy}>
                 <SelectTrigger>
-                  <SelectValue placeholder={t('companies.text16')} />
+                  <SelectValue placeholder={t('companiesSection.text16')} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="name">{t('companies.text17')}</SelectItem>
-                  <SelectItem value="jobs">{t('companies.text18')}</SelectItem>
-                  <SelectItem value="applications">{t('companies.text19')}</SelectItem>
-                  <SelectItem value="followers">{t('companies.text20')}</SelectItem>
-                  <SelectItem value="activity">{t('companies.text21')}</SelectItem>
+                  <SelectItem value="name">{t('companiesSection.text17')}</SelectItem>
+                  <SelectItem value="jobs">{t('companiesSection.text18')}</SelectItem>
+                  <SelectItem value="applications">{t('companiesSection.text19')}</SelectItem>
+                  <SelectItem value="followers">{t('companiesSection.text20')}</SelectItem>
+                  <SelectItem value="activity">{t('companiesSection.text21')}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -544,14 +544,14 @@ export default function Companies() {
           <div className="flex items-center justify-center py-20">
             <div className="space-y-4 text-center">
               <div className="animate-spin w-12 h-12 border-4 border-primary border-t-transparent rounded-full mx-auto" />
-              <p className="text-muted-foreground">{t('companies.text22')}</p>
+              <p className="text-muted-foreground">{t('companiesSection.text22')}</p>
             </div>
           </div>
         ) : filteredCompanies.length === 0 ? (
           <Card className="border-2">
             <CardContent className="py-20 text-center">
               <Building2 className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
-              <h3 className="text-xl font-bold mb-2">{t('companies.text23')}</h3>
+              <h3 className="text-xl font-bold mb-2">{t('companiesSection.text23')}</h3>
               <p className="text-muted-foreground mb-4">
                 {searchQuery || industryFilter !== "all" || statusFilter !== "active"
                   ? t('text.companies.tryAdjustingYourFilters', 'Try adjusting your filters') : t('text.companies.noCompaniesAvailableYet', 'No companies available yet')}
@@ -748,7 +748,7 @@ export default function Companies() {
                         {/* Company Details */}
                         {company.description && (
                           <div>
-                            <h4 className="text-sm font-semibold mb-2">{t('companies.text24')}</h4>
+                            <h4 className="text-sm font-semibold mb-2">{t('companiesSection.text24')}</h4>
                             <p className="text-sm text-muted-foreground line-clamp-3">{company.description}</p>
                           </div>
                         )}

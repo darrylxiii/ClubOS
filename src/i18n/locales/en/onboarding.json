@@ -255,6 +255,36 @@
       "linkSent": "Recovery link sent!",
       "checkEmail": "Check your email to continue on another device",
       "continueFromStep": "Check your email to continue from step {{step}}"
+    },
+    "consent": {
+      "sectionTitle": "Legal Agreements",
+      "ageVerificationLabel": "Age verification",
+      "ageVerificationText": "I confirm that I am at least 16 years of age",
+      "termsLabel": "Terms of Service consent",
+      "termsLink": "Terms of Service",
+      "privacyLabel": "Privacy Policy consent",
+      "privacyLink": "Privacy Policy",
+      "marketingLabel": "Marketing communications consent",
+      "marketingText": "I agree to receive career opportunities, job alerts, and communications from The Quantum Club. You can unsubscribe at any time.",
+      "mustAcceptAll": "Age verification and both agreements are required to continue",
+      "ageVerificationSummary": "Age verification (16+)",
+      "marketingSummary": "Marketing communications (optional)"
     }
-  }
+  },
+  "common": {
+    "and": "and"
+  },
+  "source": "Source",
+  "utm_source": "Utm_Source",
+  "utm_medium": "Utm_Medium",
+  "utm_campaign": "Utm_Campaign",
+  "id": "Id",
+  "setting_value": "Setting_Value",
+  "privacy_policy": "Privacy Policy",
+  "ai_transparency_policy": "AI Transparency Policy",
+  "selected_preferred_locations": "Selected preferred locations",
+  "onboarding_progress": "Onboarding progress",
+  "enter": "Enter",
+  "esc": "Esc",
+  "active_roles": "active roles"
 }

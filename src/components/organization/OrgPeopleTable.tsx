@@ -189,6 +189,7 @@ function DepartmentAccordion({ department, people, defaultOpen }: { department: 
 }
 
 function PersonRow({ person, showDepartment }: { person: CompanyPerson; showDepartment?: boolean }) {
+  const { t } = useTranslation('common');
   return (
     <div className="flex items-center gap-4 p-4 hover:bg-muted/30 transition-colors">
       <Avatar className="w-10 h-10 flex-shrink-0">

@@ -238,7 +238,7 @@ const ParticipantTileComponent = memo(function ParticipantTile({ participant, is
         <div className="absolute top-4 left-1/2 -translate-x-1/2 z-20 animate-in fade-in duration-200">
           <div className="px-3 py-1.5 bg-black/70 backdrop-blur-xl rounded-full border border-white/20 flex items-center gap-1.5">
             <Pin className="h-3 w-3 text-white/80" />
-            <span className="text-xs text-white/80 font-medium">{isFocused ? t('meetings.unpin', 'Unpin') : t('meetings.pin', 'Pin')}</span>
+            <span className="text-xs text-white/80 font-medium">{isFocused ? t('meetingsSection.unpin', 'Unpin') : t('meetingsSection.pin', 'Pin')}</span>
           </div>
         </div>
       )}
@@ -248,7 +248,7 @@ const ParticipantTileComponent = memo(function ParticipantTile({ participant, is
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <span className="text-base font-semibold text-white tracking-wide drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)]">
-              {participant.display_name} {isLocal && t('meetings.youParenthetical', '(You)')}
+              {participant.display_name} {isLocal && t('meetingsSection.youParenthetical', '(You)')}
             </span>
             {participant.role === 'host' && (
               <Badge
@@ -325,7 +325,7 @@ const ParticipantTileComponent = memo(function ParticipantTile({ participant, is
               </div>
             </TooltipTrigger>
             <TooltipContent side="bottom" className="bg-black/90 border-white/10 text-white text-xs space-y-1 p-3">
-              <p className="font-semibold capitalize">{t('meetings.connectionQuality', '{{quality}} Connection', { quality: q })}</p>
+              <p className="font-semibold capitalize">{t('meetingsSection.connectionQuality', '{{quality}} Connection', { quality: q })}</p>
               {hasStats ? (
                 <>
                   <p>RTT: {Math.round(stats.latency)}ms</p>
@@ -334,7 +334,7 @@ const ParticipantTileComponent = memo(function ParticipantTile({ participant, is
                   <p>Bitrate: {(stats.bitrate / 1000).toFixed(0)} kbps</p>
                 </>
               ) : (
-                <p className="text-white/60">{isLocal ? t('meetings.localParticipant', 'Local participant') : t('meetings.collectingStats', 'Collecting stats…')}</p>
+                <p className="text-white/60">{isLocal ? t('meetingsSection.localParticipant', 'Local participant') : t('meetingsSection.collectingStats', 'Collecting stats…')}</p>
               )}
             </TooltipContent>
           </Tooltip>

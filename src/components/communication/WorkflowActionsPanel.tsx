@@ -32,29 +32,29 @@ export function WorkflowActionsPanel({ entityType, entityId, patternType }: Work
   const workflowActions = [
     {
       id: 'create_task',
-      label: t('communication.workflow.createTask', 'Create Follow-up Task'),
-      description: t('communication.workflow.createTaskDesc', 'Add a task to Club Pilot for this relationship'),
+      label: t('communicationSection.workflow.createTask', 'Create Follow-up Task'),
+      description: t('communicationSection.workflow.createTaskDesc', 'Add a task to Club Pilot for this relationship'),
       icon: ListTodo,
       color: 'text-blue-500'
     },
     {
       id: 'send_notification',
-      label: t('communication.workflow.sendAlert', 'Send Alert'),
-      description: t('communication.workflow.sendAlertDesc', 'Notify assigned strategist about this pattern'),
+      label: t('communicationSection.workflow.sendAlert', 'Send Alert'),
+      description: t('communicationSection.workflow.sendAlertDesc', 'Notify assigned strategist about this pattern'),
       icon: Bell,
       color: 'text-yellow-500'
     },
     {
       id: 'schedule_followup',
-      label: t('communication.workflow.scheduleFollowup', 'Schedule Follow-up'),
-      description: t('communication.workflow.scheduleFollowupDesc', 'Set a reminder for future outreach'),
+      label: t('communicationSection.workflow.scheduleFollowup', 'Schedule Follow-up'),
+      description: t('communicationSection.workflow.scheduleFollowupDesc', 'Set a reminder for future outreach'),
       icon: Calendar,
       color: 'text-green-500'
     },
     {
       id: 'assign_strategist',
-      label: t('communication.workflow.escalate', 'Escalate to Strategist'),
-      description: t('communication.workflow.escalateDesc', 'Assign a senior strategist to this case'),
+      label: t('communicationSection.workflow.escalate', 'Escalate to Strategist'),
+      description: t('communicationSection.workflow.escalateDesc', 'Assign a senior strategist to this case'),
       icon: UserPlus,
       color: 'text-purple-500'
     }
@@ -82,13 +82,13 @@ export function WorkflowActionsPanel({ entityType, entityId, patternType }: Work
 
       setExecuted(prev => new Set([...prev, actionType]));
       toast({
-        title: t('communication.workflow.actionExecuted', 'Action executed'),
-        description: t('communication.workflow.actionExecutedDesc', 'Successfully executed {{action}}', { action: actionType.replace(/_/g, ' ') })
+        title: t('communicationSection.workflow.actionExecuted', 'Action executed'),
+        description: t('communicationSection.workflow.actionExecutedDesc', 'Successfully executed {{action}}', { action: actionType.replace(/_/g, ' ') })
       });
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : t('communication.workflow.actionFailedDesc', 'Failed to execute action');
+      const message = err instanceof Error ? err.message : t('communicationSection.workflow.actionFailedDesc', 'Failed to execute action');
       toast({
-        title: t('communication.workflow.actionFailed', 'Action failed'),
+        title: t('communicationSection.workflow.actionFailed', 'Action failed'),
         description: message,
         variant: 'destructive'
       });
@@ -115,13 +115,13 @@ export function WorkflowActionsPanel({ entityType, entityId, patternType }: Work
       if (error) throw error;
 
       toast({
-        title: t('communication.workflow.workflowExecuted', 'Workflow executed'),
-        description: t('communication.workflow.workflowExecutedDesc', 'Executed {{count}} recommended actions', { count: data?.actions_executed || 0 })
+        title: t('communicationSection.workflow.workflowExecuted', 'Workflow executed'),
+        description: t('communicationSection.workflow.workflowExecutedDesc', 'Executed {{count}} recommended actions', { count: data?.actions_executed || 0 })
       });
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : t('communication.workflow.workflowFailedDesc', 'Failed to execute workflow');
+      const message = err instanceof Error ? err.message : t('communicationSection.workflow.workflowFailedDesc', 'Failed to execute workflow');
       toast({
-        title: t('communication.workflow.workflowFailed', 'Workflow failed'),
+        title: t('communicationSection.workflow.workflowFailed', 'Workflow failed'),
         description: message,
         variant: 'destructive'
       });
@@ -136,7 +136,7 @@ export function WorkflowActionsPanel({ entityType, entityId, patternType }: Work
         <div className="flex items-center justify-between">
           <CardTitle className="text-lg font-semibold flex items-center gap-2">
             <Zap className="h-5 w-5 text-primary" />
-            {t('communication.workflow.quickActions', 'Quick Actions')}
+            {t('communicationSection.workflow.quickActions', 'Quick Actions')}
           </CardTitle>
           {patternType && (
             <Badge variant="secondary" className="capitalize">
@@ -157,7 +157,7 @@ export function WorkflowActionsPanel({ entityType, entityId, patternType }: Work
             ) : (
               <Zap className="h-4 w-4 mr-2" />
             )}
-            {t('communication.workflow.executeRecommended', 'Execute Recommended Actions')}
+            {t('communicationSection.workflow.executeRecommended', 'Execute Recommended Actions')}
           </Button>
         )}
 

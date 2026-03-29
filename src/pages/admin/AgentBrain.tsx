@@ -148,6 +148,7 @@ function AgentRetrievalSimulator({ selectedCompany, companyName }: { selectedCom
 }
 
 export default function AgentBrain() {
+    const { t } = useTranslation('common');
     const [companies, setCompanies] = useState<Company[]>([]);
     const [selectedCompany, setSelectedCompany] = useState<string | null>(null);
     const [embeddings, setEmbeddings] = useState<Embedding[]>([]);

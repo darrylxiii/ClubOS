@@ -178,7 +178,7 @@
     "you": "You",
     "annotate": "Annotate",
     "startVideoCall": "Start video call",
-    "callLogMessage": "📹 Video call ended • Duration: {{duration}} • {{count}} participant{{suffix}}"
+    "callLogMessage": "\ud83d\udcf9 Video call ended \u2022 Duration: {{duration}} \u2022 {{count}} participant{{suffix}}"
   },
   "voiceRecorder": {
     "recordingStarted": "Recording started",
@@ -214,7 +214,7 @@
   "call": {
     "microphone": "Microphone",
     "endCall": "End call",
-    "voiceCallLogMessage": "📞 Voice call ended • Duration: {{duration}}",
+    "voiceCallLogMessage": "\ud83d\udcde Voice call ended \u2022 Duration: {{duration}}",
     "micAccessGranted": "Microphone access granted",
     "micAccessDenied": "Microphone access denied. Please allow permissions in your browser.",
     "micNotFound": "No microphone found on your device.",
@@ -306,5 +306,6 @@
   },
   "whatsAppInbox": {
     "text1": "WhatsApp Business"
-  }
+  },
+  "noViewersFound": "No viewers found"
 }

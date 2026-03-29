@@ -48,12 +48,12 @@ export function FollowButton({
 
   const handleFollow = async () => {
     if (!user) {
-      toast({ title: t('profile.followSignIn'), variant: 'destructive' });
+      toast({ title: t('profileSection.followSignIn'), variant: 'destructive' });
       return;
     }
 
     if (user.id === userId) {
-      toast({ title: t('profile.cannotFollowSelf'), variant: 'destructive' });
+      toast({ title: t('profileSection.cannotFollowSelf'), variant: 'destructive' });
       return;
     }
 
@@ -69,7 +69,7 @@ export function FollowButton({
 
         if (error) throw error;
         setIsFollowing(false);
-        toast({ title: t('profile.unfollowedSuccess') });
+        toast({ title: t('profileSection.unfollowedSuccess') });
       } else {
         // Follow
         const { error } = await supabase
@@ -81,13 +81,13 @@ export function FollowButton({
 
         if (error) throw error;
         setIsFollowing(true);
-        toast({ title: t('profile.followingSuccess') });
+        toast({ title: t('profileSection.followingSuccess') });
 
         // Create notification for the followed user
         await supabase.from('notifications').insert({
           user_id: userId,
-          title: t('profile.newFollower'),
-          message: t('profile.someoneFollowedYou'),
+          title: t('profileSection.newFollower'),
+          message: t('profileSection.someoneFollowedYou'),
           type: 'follow',
           category: 'social',
           action_url: `/profile/${user.id}`,
@@ -97,7 +97,7 @@ export function FollowButton({
       console.error('Error toggling follow:', error);
       toast({
         title: t('common:status.error'),
-        description: t('profile.failedFollowStatus'),
+        description: t('profileSection.failedFollowStatus'),
         variant: 'destructive'
       });
     } finally {
@@ -119,12 +119,12 @@ export function FollowButton({
       {isFollowing ? (
         <>
           <UserMinus className="h-4 w-4" />
-          {showLabel && t('profile.unfollow')}
+          {showLabel && t('profileSection.unfollow')}
         </>
       ) : (
         <>
           <UserPlus className="h-4 w-4" />
-          {showLabel && t('profile.follow')}
+          {showLabel && t('profileSection.follow')}
         </>
       )}
     </Button>

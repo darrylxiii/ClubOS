@@ -54,7 +54,7 @@ export const ConnectedAccounts = () => {
       setAccounts(data || []);
     } catch (error) {
       console.error("Error fetching accounts:", error);
-      toast.error(t('social.accounts.loadFailed'));
+      toast.error(t('socialSection.accounts.loadFailed'));
     } finally {
       setLoading(false);
     }
@@ -69,17 +69,17 @@ export const ConnectedAccounts = () => {
 
       if (error) throw error;
       
-      toast.success(t('social.accounts.disconnected'));
+      toast.success(t('socialSection.accounts.disconnected'));
       fetchAccounts();
     } catch (error) {
       console.error("Error disconnecting account:", error);
-      toast.error(t('social.accounts.disconnectFailed'));
+      toast.error(t('socialSection.accounts.disconnectFailed'));
     }
   };
 
   const handleConnect = (platform: string) => {
-    toast.info(t('social.accounts.openingConnection', { platform }), {
-      description: t('social.accounts.redirectToAuth')
+    toast.info(t('socialSection.accounts.openingConnection', { platform }), {
+      description: t('socialSection.accounts.redirectToAuth')
     });
     // In production, this would open OAuth flow
   };
@@ -107,7 +107,7 @@ export const ConnectedAccounts = () => {
     <div className="space-y-6">
       {/* Connected Accounts */}
       <div>
-        <h3 className="text-lg font-semibold mb-4">{t('social.accounts.title')}</h3>
+        <h3 className="text-lg font-semibold mb-4">{t('socialSection.accounts.title')}</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {loading ? (
             <div className="col-span-2 text-center py-12">
@@ -116,9 +116,9 @@ export const ConnectedAccounts = () => {
           ) : accounts.length === 0 ? (
             <Card className="col-span-2 p-12 text-center bg-card/50">
               <div className="text-6xl mb-4">🔗</div>
-              <h3 className="text-xl font-semibold mb-2">{t('social.accounts.noAccounts')}</h3>
+              <h3 className="text-xl font-semibold mb-2">{t('socialSection.accounts.noAccounts')}</h3>
               <p className="text-muted-foreground">
-                {t('social.accounts.noAccountsDescription')}
+                {t('socialSection.accounts.noAccountsDescription')}
               </p>
             </Card>
           ) : (
@@ -133,7 +133,7 @@ export const ConnectedAccounts = () => {
                       <div className="flex items-center gap-2">
                         <h4 className="font-semibold">{account.display_name}</h4>
                         <Badge variant={account.is_active ? "default" : "secondary"}>
-                          {account.is_active ? t('social.accounts.active') : t('social.accounts.inactive')}
+                          {account.is_active ? t('socialSection.accounts.active') : t('socialSection.accounts.inactive')}
                         </Badge>
                       </div>
                       <p className="text-sm text-muted-foreground">@{account.username}</p>
@@ -153,11 +153,11 @@ export const ConnectedAccounts = () => {
                     onClick={() => window.open(account.profile_url, '_blank')}
                   >
                     <ExternalLink className="h-3 w-3" />
-                    {t('social.accounts.viewProfile')}
+                    {t('socialSection.accounts.viewProfile')}
                   </Button>
                   <Button variant="outline" size="sm" className="gap-2">
                     <RefreshCw className="h-3 w-3" />
-                    {t('social.accounts.sync')}
+                    {t('socialSection.accounts.sync')}
                   </Button>
                   <AlertDialog>
                     <AlertDialogTrigger asChild>
@@ -167,15 +167,15 @@ export const ConnectedAccounts = () => {
                     </AlertDialogTrigger>
                     <AlertDialogContent>
                       <AlertDialogHeader>
-                        <AlertDialogTitle>{t('social.accounts.disconnectTitle')}</AlertDialogTitle>
+                        <AlertDialogTitle>{t('socialSection.accounts.disconnectTitle')}</AlertDialogTitle>
                         <AlertDialogDescription>
-                          {t('social.accounts.disconnectDescription', { username: account.username })}
+                          {t('socialSection.accounts.disconnectDescription', { username: account.username })}
                         </AlertDialogDescription>
                       </AlertDialogHeader>
                       <AlertDialogFooter>
-                        <AlertDialogCancel>{t('actions.cancel')}</AlertDialogCancel>
+                        <AlertDialogCancel>{t('actionsSection.cancel')}</AlertDialogCancel>
                         <AlertDialogAction onClick={() => handleDisconnect(account.id)}>
-                          {t('social.accounts.disconnect')}
+                          {t('socialSection.accounts.disconnect')}
                         </AlertDialogAction>
                       </AlertDialogFooter>
                     </AlertDialogContent>
@@ -189,7 +189,7 @@ export const ConnectedAccounts = () => {
 
       {/* Available Platforms */}
       <div>
-        <h3 className="text-lg font-semibold mb-4">{t('social.accounts.connectMore')}</h3>
+        <h3 className="text-lg font-semibold mb-4">{t('socialSection.accounts.connectMore')}</h3>
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
           {platforms.map((platform) => {
             const isConnected = accounts.some(a => a.platform === platform);
@@ -206,7 +206,7 @@ export const ConnectedAccounts = () => {
                 </div>
                 <p className="font-medium capitalize">{platform}</p>
                 {isConnected && (
-                  <Badge variant="secondary" className="mt-2 text-xs">{t('social.accounts.connected')}</Badge>
+                  <Badge variant="secondary" className="mt-2 text-xs">{t('socialSection.accounts.connected')}</Badge>
                 )}
               </Card>
             );

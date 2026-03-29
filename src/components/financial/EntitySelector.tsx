@@ -12,9 +12,9 @@ export function EntitySelector({ value, onChange }: EntitySelectorProps) {
   const { t } = useTranslation('common');
 
   const ENTITY_OPTIONS: { value: LegalEntityFilter; label: string; flag: string }[] = [
-    { value: 'all', label: t('financial.allEntities'), flag: '🌐' },
-    { value: 'tqc_nl', label: t('financial.netherlands'), flag: '🇳🇱' },
-    { value: 'tqc_dubai', label: t('financial.dubai'), flag: '🇦🇪' },
+    { value: 'all', label: t('financialSection.allEntities'), flag: '🌐' },
+    { value: 'tqc_nl', label: t('financialSection.netherlands'), flag: '🇳🇱' },
+    { value: 'tqc_dubai', label: t('financialSection.dubai'), flag: '🇦🇪' },
   ];
   return (
     <Select value={value} onValueChange={(v) => onChange(v as LegalEntityFilter)}>

@@ -328,6 +328,7 @@ export const JobTeamPanel = ({ jobId }: JobTeamPanelProps) => {
 };
 
 const TeamMemberCard = ({ member, onRemove }: { member: any; onRemove: () => void }) => {
+  const { t } = useTranslation('common');
   const user = member.company_member?.user;
   const [interviewCount, setInterviewCount] = useState<number | null>(null);
 

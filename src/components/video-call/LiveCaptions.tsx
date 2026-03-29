@@ -60,7 +60,7 @@ export function LiveCaptions({ enabled, localStream }: LiveCaptionsProps) {
         const newCaption: Caption = {
           id: Date.now().toString(),
           text: transcript,
-          speaker: t('meetings.you', 'You'),
+          speaker: t('meetingsSection.you', 'You'),
           timestamp: new Date(),
           isFinal
         };
@@ -108,7 +108,7 @@ export function LiveCaptions({ enabled, localStream }: LiveCaptionsProps) {
         <div className="flex items-center justify-between mb-2">
           <Badge variant="secondary" className="gap-2">
             {isListening && <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />}
-            {t('meetings.liveCaptions', 'Live Captions')}
+            {t('meetingsSection.liveCaptions', 'Live Captions')}
           </Badge>
         </div>
         

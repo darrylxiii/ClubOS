@@ -101,6 +101,7 @@ const isElevatedRoleCandidate = (request: MemberRequest): boolean => {
 };
 
 export const AdminMemberRequests = () => {
+  const { t } = useTranslation('common');
   const [requests, setRequests] = useState<MemberRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedRequest, setSelectedRequest] = useState<MemberRequest | null>(null);

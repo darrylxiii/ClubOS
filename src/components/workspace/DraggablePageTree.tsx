@@ -197,6 +197,7 @@ interface DraggablePageTreeProps {
 }
 
 export function DraggablePageTree({ selectedPageId }: DraggablePageTreeProps) {
+  const { t } = useTranslation('common');
   const navigate = useNavigate();
   const { 
     pages,

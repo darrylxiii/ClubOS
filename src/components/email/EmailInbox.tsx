@@ -261,8 +261,8 @@ export function EmailInbox() {
     snoozeUntil.setHours(snoozeUntil.getHours() + 3);
 
     snoozeEmail(selectedEmail.id, snoozeUntil);
-    notify.success(t('inbox.emailSnoozed', 'Email snoozed'), {
-      description: t('inbox.emailWillReappear', 'This email will reappear in 3 hours'),
+    notify.success(t('inboxSection.emailSnoozed', 'Email snoozed'), {
+      description: t('inboxSection.emailWillReappear', 'This email will reappear in 3 hours'),
     });
     setSelectedEmail(null);
   };
@@ -314,14 +314,14 @@ export function EmailInbox() {
     const promises = Array.from(selectedEmailIds).map((id) => archiveEmail(id));
     await Promise.all(promises);
     setSelectedEmailIds(new Set());
-    notify.success(t('inbox.archivedCount', `Archived ${selectedEmailIds.size} emails`));
+    notify.success(t('inboxSection.archivedCount', `Archived ${selectedEmailIds.size} emails`));
   };
 
   const handleBulkDelete = async () => {
     const promises = Array.from(selectedEmailIds).map((id) => deleteEmail(id));
     await Promise.all(promises);
     setSelectedEmailIds(new Set());
-    notify.success(t('inbox.deletedCount', `Deleted ${selectedEmailIds.size} emails`));
+    notify.success(t('inboxSection.deletedCount', `Deleted ${selectedEmailIds.size} emails`));
   };
 
   const handleBulkSnooze = async () => {
@@ -330,14 +330,14 @@ export function EmailInbox() {
     const promises = Array.from(selectedEmailIds).map((id) => snoozeEmail(id, snoozeUntil));
     await Promise.all(promises);
     setSelectedEmailIds(new Set());
-    notify.success(t('inbox.snoozedCount', `Snoozed ${selectedEmailIds.size} emails`));
+    notify.success(t('inboxSection.snoozedCount', `Snoozed ${selectedEmailIds.size} emails`));
   };
 
   const handleBulkMarkAsRead = async () => {
     const promises = Array.from(selectedEmailIds).map((id) => markAsRead(id));
     await Promise.all(promises);
     setSelectedEmailIds(new Set());
-    notify.success(t('inbox.markedReadCount', `Marked ${selectedEmailIds.size} emails as read`));
+    notify.success(t('inboxSection.markedReadCount', `Marked ${selectedEmailIds.size} emails as read`));
   };
 
   const handleBulkMarkAsUnread = async () => {
@@ -345,7 +345,7 @@ export function EmailInbox() {
     await Promise.all(promises);
     setSelectedEmailIds(new Set());
     notify.success(
-      t('inbox.markedUnreadCount', `Marked ${selectedEmailIds.size} emails as unread`)
+      t('inboxSection.markedUnreadCount', `Marked ${selectedEmailIds.size} emails as unread`)
     );
   };
 
@@ -378,7 +378,7 @@ export function EmailInbox() {
             <Link to="/settings">
               <Button className="w-full">
                 <SettingsIcon className="mr-2 h-4 w-4" />
-                {t('inbox.goToSettings', 'Go to Settings')}
+                {t('inboxSection.goToSettings', 'Go to Settings')}
               </Button>
             </Link>
           </CardContent>
@@ -397,8 +397,8 @@ export function EmailInbox() {
             <div>
               <h3 className="font-semibold text-lg">
                 {isInitialSync
-                  ? t('inbox.initialSyncInProgress', 'Initial sync in progress...')
-                  : t('inbox.syncingEmails', 'Syncing your emails...')}
+                  ? t('inboxSection.initialSyncInProgress', 'Initial sync in progress...')
+                  : t('inboxSection.syncingEmails', 'Syncing your emails...')}
               </h3>
               <p className="text-sm text-muted-foreground mt-2">
                 {isInitialSync
@@ -447,7 +447,7 @@ export function EmailInbox() {
         >
           <RefreshCw className={`h-4 w-4 ${syncing ? 'animate-spin' : ''} sm:mr-2`} />
           <span className="hidden sm:inline">
-            {syncing ? t('inbox.syncing', 'Syncing...') : t('inbox.sync', 'Sync')}
+            {syncing ? t('inboxSection.syncing', 'Syncing...') : t('inboxSection.sync', 'Sync')}
           </span>
         </Button>
         <Button
@@ -574,7 +574,7 @@ export function EmailInbox() {
               onClick={() => setSelectedEmail(null)}
             >
               <ArrowLeft className="h-4 w-4 mr-2" />
-              {t('inbox.backToInbox', 'Back to Inbox')}
+              {t('inboxSection.backToInbox', 'Back to Inbox')}
             </Button>
             <EmailDetail
               key={selectedEmail.id}

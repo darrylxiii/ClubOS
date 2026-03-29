@@ -73,7 +73,6 @@ interface SelectedSlot {
 type ErrorType = 'network' | 'not_found' | 'inactive' | 'unknown';
 
 function classifyError(error: any): ErrorType {
-  const { t } = useTranslation('common');
   const message = String(error?.message || '').toLowerCase();
   if (message.includes('network') || message.includes('fetch') || message.includes('cors') || message.includes('timeout')) {
     return 'network';
@@ -84,7 +83,7 @@ function classifyError(error: any): ErrorType {
   return 'unknown';
 }
 
-function getErrorMessage(errorType: ErrorType): { title: string; description: string } {
+function getErrorMessage(errorType: ErrorType, t: (key: string, fallback: string) => string): { title: string; description: string } {
   switch (errorType) {
     case 'network':
       return {
@@ -110,6 +109,7 @@ function getErrorMessage(errorType: ErrorType): { title: string; description: st
 }
 
 export default function BookingPage() {
+  const { t } = useTranslation('common');
   const { slug } = useParams();
   const navigate = useNavigate();
 
@@ -257,7 +257,7 @@ export default function BookingPage() {
   }
 
   if (loadError || !bookingLink) {
-    const errorInfo = getErrorMessage(loadError || 'unknown');
+    const errorInfo = getErrorMessage(loadError || 'unknown', t);
     const isNetworkError = loadError === 'network';
     
     return (

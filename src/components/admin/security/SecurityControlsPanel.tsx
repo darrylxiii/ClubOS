@@ -215,6 +215,7 @@ interface ThresholdCardProps {
 }
 
 function ThresholdCard({ 
+  const { t } = useTranslation('common');
   title, 
   description, 
   icon, 

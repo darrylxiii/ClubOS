@@ -148,7 +148,7 @@ export const SkillsSection = ({ userId, isReadOnly = false }: SkillsSectionProps
         <div className="flex justify-between items-center">
           <div className="flex items-center gap-2">
             <Award className="w-5 h-5" />
-            <CardTitle>{t('profile.skillsExpertise')}</CardTitle>
+            <CardTitle>{t('profileSection.skillsExpertise')}</CardTitle>
           </div>
           <Dialog open={isDialogOpen} onOpenChange={(open) => {
             setIsDialogOpen(open);
@@ -158,17 +158,17 @@ export const SkillsSection = ({ userId, isReadOnly = false }: SkillsSectionProps
               <DialogTrigger asChild>
                 <Button size="sm">
                   <Plus className="w-4 h-4 mr-2" />
-                  {t('profile.addSkill')}
+                  {t('profileSection.addSkill')}
                 </Button>
               </DialogTrigger>
             )}
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>{editingId ? t('common:actions.edit') : t('common:actions.add')} {t('profile.skill')}</DialogTitle>
+                <DialogTitle>{editingId ? t('common:actions.edit') : t('common:actions.add')} {t('profileSection.skill')}</DialogTitle>
               </DialogHeader>
               <div className="space-y-4">
                 <div className="space-y-2">
-                  <Label>{t('profile.skillName')} *</Label>
+                  <Label>{t('profileSection.skillName')} *</Label>
                   <Input 
                     value={formData.skill_name}
                     onChange={(e) => setFormData({...formData, skill_name: e.target.value})}
@@ -177,23 +177,23 @@ export const SkillsSection = ({ userId, isReadOnly = false }: SkillsSectionProps
                 </div>
 
                 <div className="space-y-2">
-                  <Label>{t('profile.category')}</Label>
+                  <Label>{t('profileSection.category')}</Label>
                   <Select value={formData.category} onValueChange={(value) => setFormData({...formData, category: value})}>
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="technical">{t('profile.technical')}</SelectItem>
-                      <SelectItem value="soft">{t('profile.softSkills')}</SelectItem>
-                      <SelectItem value="language">{t('profile.language')}</SelectItem>
-                      <SelectItem value="tool">{t('profile.tool')}</SelectItem>
-                      <SelectItem value="framework">{t('profile.framework')}</SelectItem>
+                      <SelectItem value="technical">{t('profileSection.technical')}</SelectItem>
+                      <SelectItem value="soft">{t('profileSection.softSkills')}</SelectItem>
+                      <SelectItem value="language">{t('profileSection.language')}</SelectItem>
+                      <SelectItem value="tool">{t('profileSection.tool')}</SelectItem>
+                      <SelectItem value="framework">{t('profileSection.framework')}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
 
                 <div className="space-y-2">
-                  <Label>{t('profile.proficiencyLevel')}</Label>
+                  <Label>{t('profileSection.proficiencyLevel')}</Label>
                   <div className="flex items-center gap-4">
                     <Input 
                       type="number"
@@ -214,7 +214,7 @@ export const SkillsSection = ({ userId, isReadOnly = false }: SkillsSectionProps
                 </div>
 
                 <div className="space-y-2">
-                  <Label>{t('profile.yearsOfExperience')}</Label>
+                  <Label>{t('profileSection.yearsOfExperience')}</Label>
                   <Input 
                     type="number"
                     min="0"
@@ -224,7 +224,7 @@ export const SkillsSection = ({ userId, isReadOnly = false }: SkillsSectionProps
                 </div>
 
                 <Button onClick={handleSave} className="w-full">
-                  {editingId ? t('common:actions.update') : t('common:actions.add')} {t('profile.skill')}
+                  {editingId ? t('common:actions.update') : t('common:actions.add')} {t('profileSection.skill')}
                 </Button>
               </div>
             </DialogContent>
@@ -248,7 +248,7 @@ export const SkillsSection = ({ userId, isReadOnly = false }: SkillsSectionProps
 
           {filteredSkills.length === 0 ? (
             <p className="text-muted-foreground text-center py-8">
-              {t('profile.noSkillsYet')}
+              {t('profileSection.noSkillsYet')}
             </p>
           ) : (
             <div className="grid gap-4">
@@ -260,12 +260,12 @@ export const SkillsSection = ({ userId, isReadOnly = false }: SkillsSectionProps
                         <h4 className="font-semibold">{skill.skill_name}</h4>
                         {skill.ai_verified && (
                           <Badge variant="default" className="text-xs">
-                            {t('profile.aiVerified')}
+                            {t('profileSection.aiVerified')}
                           </Badge>
                         )}
                       </div>
                       <p className="text-sm text-muted-foreground">
-                        {skill.category} • {t('profile.yearsExperience', { count: skill.years_experience })}
+                        {skill.category} • {t('profileSection.yearsExperience', { count: skill.years_experience })}
                       </p>
                     </div>
                     {!isReadOnly && (
@@ -282,7 +282,7 @@ export const SkillsSection = ({ userId, isReadOnly = false }: SkillsSectionProps
 
                   <div className="space-y-2">
                     <div className="flex justify-between text-sm">
-                      <span>{t('profile.proficiency')}</span>
+                      <span>{t('profileSection.proficiency')}</span>
                       <div className="flex gap-1">
                         {[1, 2, 3, 4, 5].map((level) => (
                           <Star 
@@ -298,7 +298,7 @@ export const SkillsSection = ({ userId, isReadOnly = false }: SkillsSectionProps
                   {skill.endorsement_count > 0 && (
                     <div className="flex items-center gap-2 text-sm text-muted-foreground">
                       <ThumbsUp className="w-4 h-4" />
-                      {t('profile.endorsements', { count: skill.endorsement_count })}
+                      {t('profileSection.endorsements', { count: skill.endorsement_count })}
                     </div>
                   )}
                 </div>

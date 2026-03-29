@@ -38,7 +38,7 @@ export function YearSelector({
                 <span>{year}</span>
                 {hasData(year) && (
                   <Badge variant="secondary" className="text-[10px] px-1 py-0">
-                    {t('financial.data')}
+                    {t('financialSection.data')}
                   </Badge>
                 )}
               </div>

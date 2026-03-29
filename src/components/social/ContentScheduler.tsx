@@ -36,7 +36,7 @@ export const ContentScheduler = () => {
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
       {/* Calendar */}
       <Card className="p-6 lg:col-span-1">
-        <h3 className="text-lg font-semibold mb-4">{t('social.scheduler.contentCalendar')}</h3>
+        <h3 className="text-lg font-semibold mb-4">{t('socialSection.scheduler.contentCalendar')}</h3>
         <Calendar
           mode="single"
           selected={selectedDate}
@@ -45,7 +45,7 @@ export const ContentScheduler = () => {
         />
         <Button className="w-full mt-4 gap-2">
           <Plus className="h-4 w-4" />
-          {t('social.scheduler.schedulePost')}
+          {t('socialSection.scheduler.schedulePost')}
         </Button>
       </Card>
 
@@ -53,10 +53,10 @@ export const ContentScheduler = () => {
       <Card className="p-6 lg:col-span-2">
         <div className="flex items-center justify-between mb-6">
           <h3 className="text-lg font-semibold">
-            {t('social.scheduler.postsFor', { date: format(selectedDate || new Date(), 'MMMM d, yyyy') })}
+            {t('socialSection.scheduler.postsFor', { date: format(selectedDate || new Date(), 'MMMM d, yyyy') })}
           </h3>
           <Badge variant="secondary">
-            {t('social.scheduler.scheduledCount', { count: postsForSelectedDate.length })}
+            {t('socialSection.scheduler.scheduledCount', { count: postsForSelectedDate.length })}
           </Badge>
         </div>
 
@@ -64,7 +64,7 @@ export const ContentScheduler = () => {
           {postsForSelectedDate.length === 0 ? (
             <div className="text-center py-12 text-muted-foreground">
               <Calendar className="h-12 w-12 mx-auto mb-4 opacity-50" />
-              <p>{t('social.scheduler.noPostsScheduled')}</p>
+              <p>{t('socialSection.scheduler.noPostsScheduled')}</p>
             </div>
           ) : (
             postsForSelectedDate.map((post) => (

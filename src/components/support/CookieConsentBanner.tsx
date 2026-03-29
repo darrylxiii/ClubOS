@@ -130,7 +130,7 @@ export const CookieConsentBanner = () => {
               </div>
               <div className="flex-1">
                 <div className="flex items-start justify-between mb-3">
-                  <h3 className="font-semibold text-lg text-foreground">{t('support.cookiePreferences')}</h3>
+                  <h3 className="font-semibold text-lg text-foreground">{t('supportSection.cookiePreferences')}</h3>
                   <Button
                     variant="ghost"
                     size="sm"
@@ -142,10 +142,10 @@ export const CookieConsentBanner = () => {
                 </div>
                 
                 <p className="text-sm text-muted-foreground mb-4">
-                  {t('support.cookieDescription', 'We use cookies to enhance your experience, analyze site traffic, and personalize content.')}
+                  {t('supportSection.cookieDescription', 'We use cookies to enhance your experience, analyze site traffic, and personalize content.')}
                   {' '}
                   <a href="/legal/cookies" className="text-primary hover:underline">
-                    {t('support.learnMore', 'Learn more')}
+                    {t('supportSection.learnMore', 'Learn more')}
                   </a>
                 </p>
 
@@ -153,16 +153,16 @@ export const CookieConsentBanner = () => {
                   <div className="space-y-3 mb-4 p-4 bg-muted/50 rounded-lg">
                     <div className="flex items-center justify-between">
                       <div className="flex-1">
-                        <Label htmlFor="necessary" className="font-medium">{t('support.necessary')}</Label>
-                        <p className="text-xs text-muted-foreground">{t('support.requiredForBasicFunctionality')}</p>
+                        <Label htmlFor="necessary" className="font-medium">{t('supportSection.necessary')}</Label>
+                        <p className="text-xs text-muted-foreground">{t('supportSection.requiredForBasicFunctionality')}</p>
                       </div>
                       <Switch id="necessary" checked={true} disabled />
                     </div>
                     
                     <div className="flex items-center justify-between">
                       <div className="flex-1">
-                        <Label htmlFor="functional">{t('support.functional')}</Label>
-                        <p className="text-xs text-muted-foreground">{t('support.rememberYourPreferences')}</p>
+                        <Label htmlFor="functional">{t('supportSection.functional')}</Label>
+                        <p className="text-xs text-muted-foreground">{t('supportSection.rememberYourPreferences')}</p>
                       </div>
                       <Switch
                         id="functional"
@@ -173,8 +173,8 @@ export const CookieConsentBanner = () => {
                     
                     <div className="flex items-center justify-between">
                       <div className="flex-1">
-                        <Label htmlFor="analytics">{t('support.analytics')}</Label>
-                        <p className="text-xs text-muted-foreground">{t('support.helpUsImproveOurService')}</p>
+                        <Label htmlFor="analytics">{t('supportSection.analytics')}</Label>
+                        <p className="text-xs text-muted-foreground">{t('supportSection.helpUsImproveOurService')}</p>
                       </div>
                       <Switch
                         id="analytics"
@@ -185,8 +185,8 @@ export const CookieConsentBanner = () => {
                     
                     <div className="flex items-center justify-between">
                       <div className="flex-1">
-                        <Label htmlFor="marketing">{t('support.marketing')}</Label>
-                        <p className="text-xs text-muted-foreground">{t('support.personalizedContentOffers')}</p>
+                        <Label htmlFor="marketing">{t('supportSection.marketing')}</Label>
+                        <p className="text-xs text-muted-foreground">{t('supportSection.personalizedContentOffers')}</p>
                       </div>
                       <Switch
                         id="marketing"
@@ -204,18 +204,18 @@ export const CookieConsentBanner = () => {
                         onClick={handleAcceptAll}
                         className="flex-1"
                         size="sm"
-                      >{t('support.acceptAll')}</Button>
+                      >{t('supportSection.acceptAll')}</Button>
                       <Button
                         onClick={handleRejectNonEssential}
                         variant="outline"
                         size="sm"
-                      >{t('support.rejectNonEssential')}</Button>
+                      >{t('supportSection.rejectNonEssential')}</Button>
                       <Button
                         onClick={() => setShowDetails(true)}
                         variant="ghost"
                         size="sm"
                       >
-                        {t('support.customize', 'Customize')}
+                        {t('supportSection.customize', 'Customize')}
                       </Button>
                     </>
                   ) : (
@@ -224,13 +224,13 @@ export const CookieConsentBanner = () => {
                         onClick={handleSaveCustom}
                         className="flex-1"
                         size="sm"
-                      >{t('support.savePreferences')}</Button>
+                      >{t('supportSection.savePreferences')}</Button>
                       <Button
                         onClick={() => setShowDetails(false)}
                         variant="outline"
                         size="sm"
                       >
-                        {t('support.back', 'Back')}
+                        {t('supportSection.back', 'Back')}
                       </Button>
                     </>
                   )}

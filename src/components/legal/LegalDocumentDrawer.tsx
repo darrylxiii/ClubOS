@@ -116,7 +116,7 @@ export function LegalDocumentDrawer({
               </Button>
             ) : (
               <DrawerClose asChild>
-                <Button variant="secondary" className="flex-1">{t('legal.close')}</Button>
+                <Button variant="secondary" className="flex-1">{t('legalSection.close')}</Button>
               </DrawerClose>
             )}
           </div>

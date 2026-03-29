@@ -166,13 +166,13 @@ export function FreelanceProjectsSettings({ userId, profile, onSave }: Freelance
             <Rocket className="h-5 w-5" />
             Freelance Availability
           </CardTitle>
-          <CardDescription>{t('settings.freelanceprojectssettings.enableFreelanceModeToStartReceiving', 'Enable freelance mode to start receiving AI-matched project opportunities')}</CardDescription>
+          <CardDescription>{t('settingsSection.freelanceprojectssettings.enableFreelanceModeToStartReceiving', 'Enable freelance mode to start receiving AI-matched project opportunities')}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
               <Label htmlFor="open-to-freelance">{t("open_to_freelance_projects", "Open to Freelance Projects")}</Label>
-              <p className="text-sm text-muted-foreground">{t('settings.freelanceprojectssettings.showYourProfileToClientsLooking', 'Show your profile to clients looking for freelancers')}</p>
+              <p className="text-sm text-muted-foreground">{t('settingsSection.freelanceprojectssettings.showYourProfileToClientsLooking', 'Show your profile to clients looking for freelancers')}</p>
             </div>
             <Switch
               id="open-to-freelance"
@@ -190,21 +190,21 @@ export function FreelanceProjectsSettings({ userId, profile, onSave }: Freelance
                   onClick={() => setAvailabilityStatus('available')}
                   size="sm"
                 >
-                  {t('settings.freelanceprojectssettings.available', 'Available')}
+                  {t('settingsSection.freelanceprojectssettings.available', 'Available')}
                 </Button>
                 <Button
                   variant={availabilityStatus === 'busy' ? 'default' : 'outline'}
                   onClick={() => setAvailabilityStatus('busy')}
                   size="sm"
                 >
-                  {t('settings.freelanceprojectssettings.busy', 'Busy')}
+                  {t('settingsSection.freelanceprojectssettings.busy', 'Busy')}
                 </Button>
                 <Button
                   variant={availabilityStatus === 'not_accepting' ? 'default' : 'outline'}
                   onClick={() => setAvailabilityStatus('not_accepting')}
                   size="sm"
                 >
-                  {t('settings.freelanceprojectssettings.notAccepting', 'Not Accepting')}
+                  {t('settingsSection.freelanceprojectssettings.notAccepting', 'Not Accepting')}
                 </Button>
               </div>
             </div>
@@ -218,7 +218,7 @@ export function FreelanceProjectsSettings({ userId, profile, onSave }: Freelance
           <Card>
             <CardHeader>
               <CardTitle>{t("rates_availability", "Rates & Availability")}</CardTitle>
-              <CardDescription>{t('settings.freelanceprojectssettings.yourRatesAreManagedInThe', 'Your rates are managed in the Compensation tab')}</CardDescription>
+              <CardDescription>{t('settingsSection.freelanceprojectssettings.yourRatesAreManagedInThe', 'Your rates are managed in the Compensation tab')}</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="flex items-center justify-between">
@@ -237,7 +237,7 @@ export function FreelanceProjectsSettings({ userId, profile, onSave }: Freelance
                   size="sm"
                   className="gap-2"
                 >
-                  {t('settings.freelanceprojectssettings.updateRates', 'Update Rates')} <ExternalLink className="h-3 w-3" />
+                  {t('settingsSection.freelanceprojectssettings.updateRates', 'Update Rates')} <ExternalLink className="h-3 w-3" />
                 </Button>
               </div>
             </CardContent>
@@ -250,7 +250,7 @@ export function FreelanceProjectsSettings({ userId, profile, onSave }: Freelance
                 <Briefcase className="h-5 w-5" />
                 Freelance Categories
               </CardTitle>
-              <CardDescription>{t('settings.freelanceprojectssettings.selectTheTypesOfProjectsYoure', 'Select the types of projects you\'re interested in')}</CardDescription>
+              <CardDescription>{t('settingsSection.freelanceprojectssettings.selectTheTypesOfProjectsYoure', 'Select the types of projects you\'re interested in')}</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="flex flex-wrap gap-2">
@@ -275,7 +275,7 @@ export function FreelanceProjectsSettings({ userId, profile, onSave }: Freelance
                 <Star className="h-5 w-5" />
                 Portfolio & Experience
               </CardTitle>
-              <CardDescription>{t('settings.freelanceprojectssettings.showcaseYourWorkAndExperienceTo', 'Showcase your work and experience to potential clients')}</CardDescription>
+              <CardDescription>{t('settingsSection.freelanceprojectssettings.showcaseYourWorkAndExperienceTo', 'Showcase your work and experience to potential clients')}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
@@ -310,7 +310,7 @@ export function FreelanceProjectsSettings({ userId, profile, onSave }: Freelance
                 <Clock className="h-5 w-5" />
                 Project Preferences
               </CardTitle>
-              <CardDescription>{t('settings.freelanceprojectssettings.helpUsMatchYouWithThe', 'Help us match you with the right projects')}</CardDescription>
+              <CardDescription>{t('settingsSection.freelanceprojectssettings.helpUsMatchYouWithThe', 'Help us match you with the right projects')}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-3">
@@ -354,14 +354,14 @@ export function FreelanceProjectsSettings({ userId, profile, onSave }: Freelance
               onClick={() => navigate('/projects')}
               size="lg"
             >
-              {t('settings.freelanceprojectssettings.viewProjects', 'View Projects')}
+              {t('settingsSection.freelanceprojectssettings.viewProjects', 'View Projects')}
             </Button>
             <Button
               onClick={handleSave}
               disabled={saving}
               size="lg"
             >
-              {saving ? t('settings.freelanceprojectssettings.saving', 'Saving...') : t('settings.freelanceprojectssettings.saveChanges', 'Save Changes')}
+              {saving ? t('settingsSection.freelanceprojectssettings.saving', 'Saving...') : t('settingsSection.freelanceprojectssettings.saveChanges', 'Save Changes')}
             </Button>
           </div>
         </>

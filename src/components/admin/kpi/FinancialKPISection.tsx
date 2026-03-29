@@ -79,6 +79,7 @@ interface FinancialKPISectionProps {
 }
 
 export function FinancialKPISection({ year }: FinancialKPISectionProps) {
+  const { t } = useTranslation('common');
   const { kpis, isLoading, metrics, paymentAging } = useMoneybirdFinancialKPIs(year);
 
   if (isLoading) {
