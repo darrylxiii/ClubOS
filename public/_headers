@@ -47,6 +47,7 @@
 # Cloudflare sends 103 Early Hints with these Link headers
 # BEFORE the HTML is ready, giving ~200ms head start.
 /*
+  Access-Control-Allow-Origin: https://os.thequantumclub.com
   Link: <https://fonts.googleapis.com>; rel=preconnect
   Link: <https://fonts.gstatic.com>; rel=preconnect; crossorigin
   Link: <https://chgrkvftjfibufoopmav.supabase.co>; rel=preconnect; crossorigin
